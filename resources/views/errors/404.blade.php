@@ -1,5 +1,5 @@
 {{-- resources/views/errors/404.blade.php --}}
-@extends('layouts.school')
+@extends('layouts.app')
 
 @section('title', 'Página Não Encontrada')
 @section('page-title', 'Erro 404')

@@ -13,7 +13,7 @@ use App\Http\Controllers\GradeController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\TeacherPortalController;
 use App\Http\Controllers\ParentPortalController;
@@ -55,14 +55,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ========== GESTÃO DE ALUNOS ==========
     Route::middleware('permission:view_students')->prefix('students')->name('students.')->group(function () {
-        Route::get('/', [StudentController::class, 'index'])->name('index');
-        Route::get('/{student}', [StudentController::class, 'show'])->name('show');
-        
         Route::middleware('permission:create_students')->group(function () {
             Route::get('/create', [StudentController::class, 'create'])->name('create');
             Route::post('/', [StudentController::class, 'store'])->name('store');
         });
         
+         Route::get('/', [StudentController::class, 'index'])->name('index');
+        Route::get('/{student}', [StudentController::class, 'show'])->name('show');
+
         Route::middleware('permission:edit_students')->group(function () {
             Route::get('/{student}/edit', [StudentController::class, 'edit'])->name('edit');
             Route::patch('/{student}', [StudentController::class, 'update'])->name('update');
@@ -82,13 +82,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // ========== GESTÃO DE PROFESSORES ==========
     Route::middleware('permission:view_teachers')->prefix('teachers')->name('teachers.')->group(function () {
         Route::get('/', [TeacherController::class, 'index'])->name('index');
-        Route::get('/{teacher}', [TeacherController::class, 'show'])->name('show');
-        
         Route::middleware('permission:create_teachers')->group(function () {
             Route::get('/create', [TeacherController::class, 'create'])->name('create');
             Route::post('/', [TeacherController::class, 'store'])->name('store');
         });
+        Route::get('/{teacher}', [TeacherController::class, 'show'])->name('show');
+    
         
+         Route::post('/{teacher}/toggle-status', [TeacherController::class, 'toggleStatus'])->name('toggle-status');
+
+        Route::post('/{teacher}/assign-class', [TeacherController::class, 'assignClass'])->name('assign-class');
         Route::middleware('permission:edit_teachers')->group(function () {
             Route::get('/{teacher}/edit', [TeacherController::class, 'edit'])->name('edit');
             Route::patch('/{teacher}', [TeacherController::class, 'update'])->name('update');
@@ -98,21 +101,34 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::delete('/{teacher}', [TeacherController::class, 'destroy'])->name('destroy');
         });
 
+
         // Funcionalidades específicas
         Route::get('/{teacher}/classes', [TeacherController::class, 'classes'])->name('classes');
         Route::get('/{teacher}/schedule', [TeacherController::class, 'schedule'])->name('schedule');
+    });
+    
+    // ========== PORTAL DO PROFESSOR ==========
+    Route::middleware(['auth', 'role:teacher'])->prefix('teacher')->name('teacher-portal.')->group(function () {
+        Route::get('/classes', [TeacherPortalController::class, 'myClasses'])->name('classes');
+        Route::get('/dashboard', [TeacherPortalController::class, 'dashboard'])->name('dashboard');
+        Route::get('/classes/{classId}', [TeacherPortalController::class, 'classDetail'])->name('class-detail');
+        Route::get('/classes/{classId}/attendance', [TeacherPortalController::class, 'attendance'])->name('attendance');
+        Route::post('/classes/{classId}/attendance', [TeacherPortalController::class, 'storeAttendance'])->name('store-attendance');
+        Route::get('/classes/{classId}/grades', [TeacherPortalController::class, 'grades'])->name('grades');
+        Route::post('/grades', [TeacherPortalController::class, 'storeGrade'])->name('store-grade');
+        Route::get('/communications', [TeacherPortalController::class, 'communications'])->name('communications');
+        Route::get('/profile', [TeacherPortalController::class, 'profile'])->name('profile');
+        Route::post('/profile', [TeacherPortalController::class, 'updateProfile'])->name('update-profile');
     });
 
     // ========== GESTÃO DE TURMAS ==========
     Route::middleware('permission:view_classes')->prefix('classes')->name('classes.')->group(function () {
         Route::get('/', [ClassRoomController::class, 'index'])->name('index');
-        Route::get('/{class}', [ClassRoomController::class, 'show'])->name('show');
-        
         Route::middleware('permission:create_classes')->group(function () {
             Route::get('/create', [ClassRoomController::class, 'create'])->name('create');
             Route::post('/', [ClassRoomController::class, 'store'])->name('store');
         });
-        
+        Route::get('/{class}', [ClassRoomController::class, 'show'])->name('show');
         Route::middleware('permission:edit_classes')->group(function () {
             Route::get('/{class}/edit', [ClassRoomController::class, 'edit'])->name('edit');
             Route::patch('/{class}', [ClassRoomController::class, 'update'])->name('update');
@@ -125,35 +141,54 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Funcionalidades específicas
         Route::get('/{class}/students', [ClassRoomController::class, 'students'])->name('students');
         Route::post('/{class}/assign-teacher', [ClassRoomController::class, 'assignTeacher'])->name('assign-teacher');
+        //add students to class
+        Route::post('/{class}/add-students', [ClassRoomController::class, 'addStudent'])->name('add-student');
+        Route::post('/{class}/remove-student/{student}', [ClassRoomController::class, 'removeStudent'])->name('remove-student');
     });
 
     // ========== GESTÃO DE DISCIPLINAS ==========
+   // Gestão de Disciplinas
     Route::middleware('permission:view_subjects')->prefix('subjects')->name('subjects.')->group(function () {
         Route::get('/', [SubjectController::class, 'index'])->name('index');
+        Route::get('/{subject}', [SubjectController::class, 'show'])->name('show');
         
-        Route::middleware('permission:manage_subjects')->group(function () {
+        Route::middleware('permission:create_subjects')->group(function () {
             Route::get('/create', [SubjectController::class, 'create'])->name('create');
             Route::post('/', [SubjectController::class, 'store'])->name('store');
+        });
+        
+        Route::middleware('permission:edit_subjects')->group(function () {
             Route::get('/{subject}/edit', [SubjectController::class, 'edit'])->name('edit');
             Route::patch('/{subject}', [SubjectController::class, 'update'])->name('update');
+        });
+        
+        Route::middleware('permission:delete_subjects')->group(function () {
             Route::delete('/{subject}', [SubjectController::class, 'destroy'])->name('destroy');
         });
-    });
 
+        // Funcionalidades específicas
+        Route::get('/{subject}/classes', [SubjectController::class, 'classes'])->name('classes');
+        Route::get('/{subject}/grades', [SubjectController::class, 'grades'])->name('grades');
+        
+        Route::middleware('permission:manage_subjects')->group(function () {
+            Route::post('/{subject}/assign-to-class', [SubjectController::class, 'assignToClass'])->name('assign-to-class');
+            Route::delete('/{subject}/remove-from-class/{class}', [SubjectController::class, 'removeFromClass'])->name('remove-from-class');
+        });
+    });
     // ========== GESTÃO DE MATRÍCULAS ==========
     Route::middleware('permission:view_enrollments')->prefix('enrollments')->name('enrollments.')->group(function () {
         Route::get('/', [EnrollmentController::class, 'index'])->name('index');
-        Route::get('/{enrollment}', [EnrollmentController::class, 'show'])->name('show');
-        
         Route::middleware('permission:create_enrollments')->group(function () {
             Route::get('/create', [EnrollmentController::class, 'create'])->name('create');
             Route::post('/', [EnrollmentController::class, 'store'])->name('store');
         });
-        
         Route::middleware('permission:edit_enrollments')->group(function () {
             Route::get('/{enrollment}/edit', [EnrollmentController::class, 'edit'])->name('edit');
             Route::patch('/{enrollment}', [EnrollmentController::class, 'update'])->name('update');
         });
+        Route::get('/{enrollment}', [EnrollmentController::class, 'show'])->name('show');
+        Route::get('/{enrollment}/print', [EnrollmentController::class, 'print'])->name('print'); // ← ADICIONAR ESTA
+        Route::post('/{enrollment}/confirm-payment', [EnrollmentController::class, 'confirmPayment'])->name('confirm-payment');
 
         // Funcionalidades específicas
         Route::post('/{enrollment}/activate', [EnrollmentController::class, 'activate'])->name('activate');

@@ -1,43 +1,41 @@
 <?php
 
-// app/Models/Enrollment.php
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\Traits\LogsActivity;
-use Spatie\Activitylog\LogOptions;
 
 class Enrollment extends Model
 {
-    use HasFactory, LogsActivity;
+    use HasFactory;
 
     protected $fillable = [
         'student_id',
-        'class_id',
+        'class_id', 
         'school_year',
         'status',
         'enrollment_date',
         'cancellation_date',
         'monthly_fee',
         'payment_day',
-        'observations',
+        'observations'
     ];
 
     protected $casts = [
         'enrollment_date' => 'date',
         'cancellation_date' => 'date',
         'monthly_fee' => 'decimal:2',
+        'school_year' => 'integer',
     ];
 
-    public function getActivitylogOptions(): LogOptions
-    {
-        return LogOptions::defaults()
-            ->logOnly(['status', 'monthly_fee', 'enrollment_date'])
-            ->logOnlyDirty();
-    }
+    // Definir os valores possíveis para status
+    const STATUS_ACTIVE = 'active';
+    const STATUS_PENDING = 'pending';
+    const STATUS_INACTIVE = 'inactive';
+    const STATUS_TRANSFERRED = 'transferred';
+    const STATUS_CANCELLED = 'cancelled';
 
-    // Relacionamentos
+    // Relações
     public function student()
     {
         return $this->belongsTo(Student::class);
@@ -53,14 +51,56 @@ class Enrollment extends Model
         return $this->hasMany(Payment::class);
     }
 
-    // Scopes
+    // Escopos
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->where('status', self::STATUS_ACTIVE);
     }
 
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
+
+    public function scopeForYear($query, $year)
+    {
+        return $query->where('school_year', $year);
+    }
+   
     public function scopeCurrentYear($query)
     {
-        return $query->where('school_year', date('Y'));
+        return $query->where('school_year', now()->year);
+    }
+
+    // Métodos de verificação de status
+    public function isActive()
+    {
+        return $this->status === self::STATUS_ACTIVE;
+    }
+
+    public function isPending()
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    public function isCancelled()
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
+    // Gera número de matrícula automático
+    public static function generateEnrollmentNumber()
+    {
+        $year = date('Y');
+        $lastEnrollment = self::where('school_year', $year)->latest()->first();
+        
+        if ($lastEnrollment) {
+            $lastNumber = intval(substr($lastEnrollment->enrollment_number, -4));
+            $nextNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);
+        } else {
+            $nextNumber = '0001';
+        }
+
+        return "MAT{$year}{$nextNumber}";
     }
 }

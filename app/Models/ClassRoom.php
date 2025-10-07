@@ -30,8 +30,9 @@ class ClassRoom extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logOnly(['name', 'grade_level', 'teacher_id', 'is_active'])
-            ->logOnlyDirty();
+            ->logOnly(['name', 'grade_level', 'teacher_id', 'is_active', 'school_year'])
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn(string $eventName) => "Turma {$eventName}");
     }
 
     // Relacionamentos
@@ -47,14 +48,16 @@ class ClassRoom extends Model
 
     public function students()
     {
-        return $this->hasManyThrough(Student::class, Enrollment::class, 'class_id', 'id', 'id', 'student_id')
-                    ->where('enrollments.status', 'active');
+        return $this->belongsToMany(Student::class, 'enrollments', 'class_id', 'student_id')
+                    ->wherePivot('status', 'active')
+                    ->withPivot('enrollment_date', 'monthly_fee')
+                    ->withTimestamps();
     }
 
     public function subjects()
     {
-        return $this->belongsToMany(Subject::class, 'class_subjects')
-                    ->withPivot(['teacher_id'])
+        return $this->belongsToMany(Subject::class, 'class_subjects', 'class_id', 'subject_id')
+                    ->withPivot('teacher_id')
                     ->withTimestamps();
     }
 
@@ -84,6 +87,13 @@ class ClassRoom extends Model
         return $query->where('grade_level', $grade);
     }
 
+    public function scopeWithTeacher($query)
+    {
+        return $query->with(['teacher' => function($q) {
+            $q->select('id', 'first_name', 'last_name', 'email');
+        }]);
+    }
+
     // Accessors
     public function getGradeLevelNameAttribute()
     {
@@ -105,5 +115,43 @@ class ClassRoom extends Model
     {
         if ($this->max_students == 0) return 0;
         return round(($this->current_students / $this->max_students) * 100, 1);
+    }
+
+    public function getStudentsCountAttribute()
+    {
+        return $this->enrollments()->where('status', 'active')->count();
+    }
+
+    public function getAvailableSlotsAttribute()
+    {
+        return max(0, $this->max_students - $this->current_students);
+    }
+
+    public function getIsFullAttribute()
+    {
+        return $this->current_students >= $this->max_students;
+    }
+
+    // Métodos
+    public function updateStudentsCount()
+    {
+        $this->update([
+            'current_students' => $this->enrollments()->where('status', 'active')->count()
+        ]);
+    }
+
+    public function canAcceptMoreStudents()
+    {
+        return $this->current_students < $this->max_students;
+    }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Atualizar contador de alunos quando uma matrícula for criada/atualizada/excluída
+        static::saved(function ($class) {
+            $class->updateStudentsCount();
+        });
     }
 }

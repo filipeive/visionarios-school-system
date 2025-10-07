@@ -1,5 +1,5 @@
 {{-- resources/views/profile/edit.blade.php --}}
-@extends('layouts.school')
+@extends('layouts.app')
 
 @section('title', 'Meu Perfil')
 @section('page-title', 'Meu Perfil')

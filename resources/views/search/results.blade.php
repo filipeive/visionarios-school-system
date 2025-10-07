@@ -1,5 +1,5 @@
 {{-- resources/views/search/results.blade.php --}}
-@extends('layouts.school')
+@extends('layouts.app')
 
 @section('title', 'Resultados da Pesquisa')
 @section('page-title', 'Resultados da Pesquisa')

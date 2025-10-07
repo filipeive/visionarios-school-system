@@ -26,10 +26,9 @@ class Subject extends Model
     // Relacionamentos
     public function classes()
     {
-        return $this->belongsToMany(ClassRoom::class, 'class_subjects')
-                    ->withPivot(['teacher_id'])
-                    ->withTimestamps();
+        return $this->belongsToMany(ClassRoom::class, 'class_subjects', 'subject_id', 'class_id');
     }
+
 
     public function classSubjects()
     {

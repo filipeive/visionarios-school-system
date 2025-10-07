@@ -52,12 +52,11 @@ class DemoDataSeeder extends Seeder
                 'name' => $teacherData['name'],
                 'email' => $teacherData['email'],
                 'password' => bcrypt('123456'),
-                'role' => 'teacher',
                 'status' => 'active',
                 'email_verified_at' => now(),
             ]);
 
-            $user->assignRole('teacher');
+            $user->assignRole('teacher'); // CORRIGIDO: Usar assignRole do Spatie
 
             $names = explode(' ', $teacherData['name']);
             $teacher = Teacher::create([
@@ -100,12 +99,11 @@ class DemoDataSeeder extends Seeder
                 'name' => $parentData['name'],
                 'email' => $parentData['email'],
                 'password' => bcrypt('123456'),
-                'role' => 'parent',
                 'status' => 'active',
                 'email_verified_at' => now(),
             ]);
 
-            $user->assignRole('parent');
+            $user->assignRole('parent'); // CORRIGIDO: Usar assignRole do Spatie
 
             $names = explode(' ', $parentData['name']);
             ParentModel::create([
@@ -293,7 +291,8 @@ class DemoDataSeeder extends Seeder
             ]
         ];
 
-        $admin = User::where('role', 'admin')->first();
+        // CORRIGIDO: Buscar admin pelo role do Spatie
+        $admin = User::role('admin')->first();
 
         foreach ($events as $eventData) {
             Event::create([

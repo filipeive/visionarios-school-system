@@ -1,19 +1,30 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class ClassSubject extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
+
+    protected $table = 'class_subjects';
 
     protected $fillable = [
         'class_id',
         'subject_id',
         'teacher_id',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['class_id', 'subject_id', 'teacher_id'])
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn(string $eventName) => "Disciplina da turma {$eventName}");
+    }
 
     // Relacionamentos
     public function class()
@@ -29,5 +40,21 @@ class ClassSubject extends Model
     public function teacher()
     {
         return $this->belongsTo(Teacher::class);
+    }
+
+    // Accessors
+    public function getSubjectNameAttribute()
+    {
+        return $this->subject ? $this->subject->name : 'N/A';
+    }
+
+    public function getTeacherNameAttribute()
+    {
+        return $this->teacher ? $this->teacher->full_name : 'Não atribuído';
+    }
+
+    public function getClassNameAttribute()
+    {
+        return $this->class ? $this->class->name : 'N/A';
     }
 }

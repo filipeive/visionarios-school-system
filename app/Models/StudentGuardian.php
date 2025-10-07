@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,8 +29,10 @@ class StudentGuardian extends Model
         return $this->belongsTo(Student::class);
     }
 
-    public function parent()
+   public function parent()
     {
         return $this->belongsTo(ParentModel::class, 'parent_id', 'user_id');
     }
+
+
 }

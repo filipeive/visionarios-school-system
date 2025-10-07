@@ -20,8 +20,22 @@
         </div>
         <div class="stat-content">
             <div class="stat-value">{{ number_format($stats['total_students']) }}</div>
-            <div class="stat-label">Alunos Matriculados</div>
+            <div class="stat-label">Alunos Cadastrados</div>
             <div class="stat-change positive">
+                <i class="fas fa-arrow-up"></i>
+                +{{ $stats['total_enrollments'] }} este ano
+            </div>
+        </div>
+    </div>
+
+    <div class="stat-card students">
+        <div class="stat-icon students">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-value">{{ number_format($stats['total_enrollments']) }}</div>
+            <div class="stat-label">Alunos Matriculados</div>
+            <div class="stat-change negative">
                 <i class="fas fa-arrow-up"></i>
                 +{{ $stats['total_enrollments'] }} este ano
             </div>
