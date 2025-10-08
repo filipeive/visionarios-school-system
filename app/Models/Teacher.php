@@ -66,6 +66,10 @@ class Teacher extends Model
         return $this->hasMany(StaffLeaveRequest::class, 'staff_id');
     }
 
+     public function schedules()
+    {
+        return $this->hasMany(ClassSchedule::class);
+    }
     // Scopes
     public function scopeActive($query)
     {
@@ -82,4 +86,14 @@ class Teacher extends Model
     {
         return $this->hire_date ? now()->diffInYears($this->hire_date) : 0;
     }
+
+    public function todaysSchedules()
+    {
+        return $this->schedules()
+            ->where('weekday', now()->dayOfWeek)
+            ->where('status', 'active')
+            ->with(['class', 'subject'])
+            ->orderBy('start_time')
+            ->get();
+}
 }

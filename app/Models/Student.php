@@ -66,6 +66,10 @@ class Student extends Model
                     ->where('status', 'active')
                     ->where('school_year', date('Y'));
     }
+    //current class
+    public function currentClass() {
+        return $this->currentEnrollment()->class;
+    }
 
     public function attendances()
     {

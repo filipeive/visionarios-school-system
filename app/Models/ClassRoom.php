@@ -70,13 +70,17 @@ class ClassRoom extends Model
     {
         return $this->hasMany(Attendance::class, 'class_id');
     }
+    public function schedules()
+    {
+        return $this->hasMany(ClassSchedule::class);
+    }
 
     // Scopes
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
-
+    
     public function scopeCurrentYear($query)
     {
         return $query->where('school_year', date('Y'));
@@ -154,4 +158,15 @@ class ClassRoom extends Model
             $class->updateStudentsCount();
         });
     }
+    public function weeklySchedule()
+    {
+        return $this->schedules()
+            ->where('status', 'active')
+            ->with(['subject', 'teacher'])
+            ->orderBy('weekday')
+            ->orderBy('start_time')
+            ->get()
+            ->groupBy('weekday');
+    }
+
 }

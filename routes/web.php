@@ -17,9 +17,11 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\TeacherPortalController;
 use App\Http\Controllers\ParentPortalController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 /*
@@ -45,6 +47,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     
     // Dashboard Principal
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    // API para contadores do dashboard
+    Route::get('/api/dashboard/counters', [DashboardController::class, 'counters'])->name('api.dashboard.counters');
     
     // Perfil do Usuário
     Route::prefix('profile')->name('profile.')->group(function () {
@@ -422,7 +426,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 
     // ========== BUSCA GLOBAL ==========
-    Route::get('/search', function (Illuminate\Http\Request $request) {
+   /*  Route::get('/search', function (Illuminate\Http\Request $request) {
         $query = $request->get('q');
         
         if (!$query || strlen($query) < 3) {
@@ -464,9 +468,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         }
 
         return view('search.results', compact('results', 'query'));
-    })->name('search');
-
-    // ========== AJAX/API ROUTES ==========
+    })->name('search'); */
+    // Pesquisa
+    Route::get('/search', [SearchController::class, 'search'])->name('search');
+    Route::get('/api/search/live', [SearchController::class, 'liveSearch'])->name('api.search.live');
+        // ========== AJAX/API ROUTES ==========
     Route::prefix('api')->name('api.')->group(function () {
         
         // Contadores do dashboard
@@ -498,7 +504,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Logs de erro JavaScript
         Route::post('/log-js-error', function(Illuminate\Http\Request $request) {
-            \Log::error('JavaScript Error', $request->all());
+            Log::error('JavaScript Error', $request->all());
             return response()->json(['status' => 'logged']);
         })->name('log-js-error');
     });
@@ -551,7 +557,7 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     // MPesa webhook
     Route::post('/mpesa', function (Illuminate\Http\Request $request) {
         // Processar callback do MPesa
-        \Log::info('MPesa Webhook', $request->all());
+        Log::info('MPesa Webhook', $request->all());
         
         // Lógica para processar pagamento via MPesa
         
@@ -561,7 +567,7 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     // eMola webhook
     Route::post('/emola', function (Illuminate\Http\Request $request) {
         // Processar callback do eMola
-        \Log::info('eMola Webhook', $request->all());
+        Log::info('eMola Webhook', $request->all());
         
         return response()->json(['status' => 'received']);
     })->name('emola');
@@ -569,7 +575,7 @@ Route::prefix('webhooks')->name('webhooks.')->group(function () {
     // Multicaixa webhook
     Route::post('/multicaixa', function (Illuminate\Http\Request $request) {
         // Processar callback do Multicaixa
-        \Log::info('Multicaixa Webhook', $request->all());
+        Log::info('Multicaixa Webhook', $request->all());
         
         return response()->json(['status' => 'received']);
     })->name('multicaixa');

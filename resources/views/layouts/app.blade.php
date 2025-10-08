@@ -1,63 +1,95 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-bs-theme="light">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="light">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>{{ config('app.name', 'Sistema Visionários') }} - @yield('title', 'Gestão Escolar')</title>
+    <title>{{ config('app.name', 'Visionários') }} - @yield('title', 'Dashboard')</title>
 
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link
-        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
-            --primary: #2E7D32;
-            --primary-dark: #1B5E20;
-            --primary-light: #4CAF50;
-            --secondary: #FF6F00;
-            --secondary-dark: #E65100;
-            --accent: #00ACC1;
-            --success: #4CAF50;
+            /* Cores do Logo Visionários */
+            --primary-blue: #0f60b0;
+            --primary-green: #7CB342;
+            --primary-orange: #FF9800;
+            --accent-yellow: #FDD835;
+
+            /* Gradientes */
+            --gradient-primary: linear-gradient(135deg, #0f60b0 0%, #1976D2 100%);
+            --gradient-success: linear-gradient(135deg, #7CB342 0%, #558B2F 100%);
+            --gradient-warning: linear-gradient(135deg, #FF9800 0%, #F57C00 100%);
+            --gradient-danger: linear-gradient(135deg, #E53935 0%, #C62828 100%);
+
+            /* Sistema de Cores */
+            --success: #7CB342;
+            --info: #0f60b0;
             --warning: #FF9800;
-            --danger: #F44336;
-            --info: #2196F3;
+            --danger: #E53935;
 
-            --sidebar-bg: linear-gradient(180deg, #2E7D32 0%, #1B5E20 100%);
-            --sidebar-text: #FFFFFF;
-            --sidebar-text-muted: rgba(255, 255, 255, 0.7);
-            --sidebar-active: rgba(255, 255, 255, 0.1);
-            --sidebar-hover: rgba(255, 255, 255, 0.05);
+            /* Neutrals Melhorados */
+            --gray-50: #FAFBFC;
+            --gray-100: #F5F7FA;
+            --gray-200: #E8ECF1;
+            --gray-300: #D1D9E2;
+            --gray-400: #B0BCC9;
+            --gray-500: #8896A6;
+            --gray-600: #677486;
+            --gray-700: #4A5568;
+            --gray-800: #2D3748;
+            --gray-900: #1A202C;
 
-            --content-bg: #F8FAF9;
-            --card-bg: #FFFFFF;
-            --border-color: #E0E0E0;
-            --text-primary: #1A1A1A;
-            --text-secondary: #666666;
-            --text-muted: #999999;
+            /* Layout */
+            --header-height: 64px;
+            --sidebar-width: 260px;
+            --sidebar-collapsed: 72px;
 
-            --sidebar-width: 280px;
-            --sidebar-collapsed-width: 70px;
-            --header-height: 70px;
+            /* Backgrounds */
+            --bg-app: linear-gradient(180deg, #F5F7FA 0%, #E8ECF1 100%);
+            --bg-card: #FFFFFF;
+            --bg-sidebar: #0c378d;
+            --bg-header: #FFFFFF;
+
+            /* Text */
+            --text-primary: #1A202C;
+            --text-secondary: #4A5568;
+            --text-muted: #8896A6;
+            --text-inverse: #FFFFFF;
+
+            /* Shadows Melhoradas */
+            --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
+            --shadow-xl: 0 16px 40px rgba(0, 0, 0, 0.16);
+
+            /* Border */
             --border-radius: 12px;
-            --shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 8px 30px rgba(0, 0, 0, 0.12);
+            --border-radius-sm: 8px;
+            --border-color: #E8ECF1;
         }
 
-        [data-bs-theme="dark"] {
-            --content-bg: #121212;
-            --card-bg: #1E1E1E;
-            --border-color: #333333;
+        [data-theme="dark"] {
+            --bg-app: linear-gradient(180deg, #1A202C 0%, #0D1117 100%);
+            --bg-card: #2D3748;
+            --bg-header: #1A202C;
+            --bg-sidebar: #0D1117;
             --text-primary: #FFFFFF;
-            --text-secondary: #CCCCCC;
-            --text-muted: #999999;
+            --text-secondary: #B0BCC9;
+            --text-muted: #8896A6;
+            --border-color: #4A5568;
+            --gray-100: #2D3748;
+            --gray-50: #1A202C;
+            --gray-200: #4A5568;
         }
 
         * {
@@ -67,519 +99,738 @@
         }
 
         body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background-color: var(--content-bg);
-            color: var(--text-primary);
-            line-height: 1.6;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 14px;
+            line-height: 1.6;
+            background: var(--bg-app);
+            color: var(--text-primary);
             overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* ===== SIDEBAR ESCOLAR ===== */
-        .school-sidebar {
+        /* ===== HEADER MELHORADO ===== */
+        .app-header {
             position: fixed;
             top: 0;
             left: 0;
-            width: var(--sidebar-width);
-            height: 100vh;
-            background: var(--sidebar-bg);
-            z-index: 1040;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--shadow-lg);
+            right: 0;
+            height: var(--header-height);
+            background: var(--bg-header);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            gap: 20px;
+            z-index: 1000;
+            box-shadow: var(--shadow-sm);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: var(--sidebar-width);
+            padding-right: 24px;
+        }
+
+        .logo-container {
+            width: 44px;
+            height: 44px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.3s ease;
+        }
+
+        .logo-container:hover {
+            transform: scale(1.05) rotate(-5deg);
+        }
+
+        .logo-container i {
+            color: white;
+            font-size: 20px;
+        }
+
+        .logo-text-container {
             display: flex;
             flex-direction: column;
         }
 
-        .school-sidebar.collapsed {
-            width: var(--sidebar-collapsed-width);
+        .logo-text {
+            font-weight: 800;
+            font-size: 16px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            line-height: 1;
+            letter-spacing: 0.5px;
         }
 
-        /* Header da Escola */
-        .school-header {
-            height: var(--header-height);
-            padding: 20px;
-            display: flex;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.1);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .school-logo {
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
-            border-radius: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            flex-shrink: 0;
-            box-shadow: 0 4px 15px rgba(255, 111, 0, 0.3);
-        }
-
-        .school-logo i {
-            color: white;
-            font-size: 24px;
-        }
-
-        .school-brand {
-            flex: 1;
-            min-width: 0;
-            transition: all 0.3s ease;
-        }
-
-        .school-sidebar.collapsed .school-brand {
-            opacity: 0;
-            width: 0;
-            overflow: hidden;
-        }
-
-        .school-name {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--sidebar-text);
-            margin: 0;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .school-subtitle {
-            font-size: 12px;
-            color: var(--sidebar-text-muted);
+        .logo-subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
             font-weight: 500;
-            margin-top: 2px;
         }
 
-        .sidebar-toggle {
-            width: 35px;
-            height: 35px;
-            border: none;
-            background: rgba(255, 255, 255, 0.1);
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .page-title i {
+            color: var(--primary-blue);
+            font-size: 20px;
+        }
+
+        .sidebar-toggle-desktop {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-card);
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--sidebar-text);
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-left: 10px;
-        }
-
-        .sidebar-toggle:hover {
-            background: rgba(255, 255, 255, 0.2);
-            transform: scale(1.05);
-        }
-
-        /* Navegação Escolar */
-        .school-nav {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px 0;
-        }
-
-        .nav-section {
-            margin-bottom: 30px;
-        }
-
-        .nav-section-title {
-            padding: 0 20px 12px;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--sidebar-text-muted);
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-            transition: all 0.3s ease;
-        }
-
-        .school-sidebar.collapsed .nav-section-title {
-            opacity: 0;
-            height: 0;
-            padding: 0;
-            margin: 0;
-        }
-
-        .nav-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .nav-item {
-            margin-bottom: 4px;
-        }
-
-        .nav-link {
-            display: flex;
-            align-items: center;
-            padding: 15px 20px;
-            color: var(--sidebar-text);
-            text-decoration: none;
-            transition: all 0.3s ease;
-            position: relative;
-            min-height: 50px;
-            font-weight: 500;
-        }
-
-        .school-sidebar.collapsed .nav-link {
-            justify-content: center;
-            padding: 15px;
-        }
-
-        .nav-link:hover {
-            background: var(--sidebar-hover);
-            color: var(--sidebar-text);
-            padding-left: 30px;
-        }
-
-        .school-sidebar.collapsed .nav-link:hover {
-            padding: 15px;
-        }
-
-        .nav-link.active {
-            background: var(--sidebar-active);
-            color: var(--sidebar-text);
-            border-right: 4px solid var(--secondary);
-            font-weight: 600;
-        }
-
-        .nav-icon {
-            width: 24px;
-            height: 24px;
-            margin-right: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            font-size: 18px;
-        }
-
-        .school-sidebar.collapsed .nav-icon {
-            margin-right: 0;
-        }
-
-        .nav-text {
-            flex: 1;
-            font-size: 14px;
-            white-space: nowrap;
-            transition: all 0.3s ease;
-        }
-
-        .school-sidebar.collapsed .nav-text {
-            opacity: 0;
-            width: 0;
-        }
-
-        .nav-badge {
+            transition: all 0.3s;
             margin-left: auto;
-            font-size: 10px;
-            padding: 4px 8px;
-            border-radius: 20px;
-            font-weight: 600;
-            min-width: 22px;
-            text-align: center;
-            transition: all 0.3s ease;
         }
 
-        .school-sidebar.collapsed .nav-badge {
-            opacity: 0;
-            transform: scale(0);
+        .sidebar-toggle-desktop:hover {
+            background: var(--gray-100);
+            border-color: var(--primary-blue);
+            transform: scale(1.1);
         }
 
-        .badge-primary {
-            background: var(--accent);
-            color: white;
-        }
-
-        .badge-success {
-            background: var(--success);
-            color: white;
-        }
-
-        .badge-warning {
-            background: var(--warning);
-            color: white;
-        }
-
-        .badge-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        /* Área do Usuário */
-        .user-area {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            background: rgba(0, 0, 0, 0.1);
-        }
-
-        .user-profile {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-
-        .school-sidebar.collapsed .user-profile {
-            justify-content: center;
-            margin-bottom: 10px;
-        }
-
-        .user-avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 12px;
-            font-size: 18px;
-            font-weight: 700;
-            flex-shrink: 0;
-            box-shadow: 0 4px 15px rgba(255, 111, 0, 0.3);
-        }
-
-        .school-sidebar.collapsed .user-avatar {
-            margin-right: 0;
-        }
-
-        .user-info {
-            flex: 1;
-            min-width: 0;
-            transition: all 0.3s ease;
-        }
-
-        .school-sidebar.collapsed .user-info {
-            opacity: 0;
-            width: 0;
-        }
-
-        .user-name {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--sidebar-text);
-            margin-bottom: 2px;
-        }
-
-        .user-role {
-            font-size: 12px;
-            color: var(--sidebar-text-muted);
-            font-weight: 500;
-        }
-
-        .logout-btn {
-            width: 100%;
-            padding: 12px 15px;
-            border: none;
-            background: rgba(244, 67, 54, 0.9);
-            color: white;
-            border-radius: var(--border-radius);
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .school-sidebar.collapsed .logout-btn {
-            padding: 12px;
-        }
-
-        .logout-btn:hover {
-            background: var(--danger);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
-        }
-
-        .logout-text {
-            margin-left: 8px;
-            transition: all 0.3s ease;
-        }
-
-        .school-sidebar.collapsed .logout-text {
-            opacity: 0;
-            width: 0;
-        }
-
-        /* ===== CONTEÚDO PRINCIPAL ===== */
-        .main-content {
-            margin-left: var(--sidebar-width);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            transition: all 0.3s ease;
-        }
-
-        .main-content.collapsed {
-            margin-left: var(--sidebar-collapsed-width);
-        }
-
-        .main-content.expanded {
-            margin-left: 0;
-        }
-
-        /* Header Principal */
-        .main-header {
-            height: var(--header-height);
-            background: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0 30px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 1030;
-            box-shadow: var(--shadow);
-        }
-
-        .header-left {
-            display: flex;
-            align-items: center;
-        }
-
-        .mobile-menu-btn {
-            width: 45px;
-            height: 45px;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
+        .mobile-toggle {
             display: none;
-            align-items: center;
-            justify-content: center;
-            margin-right: 15px;
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
 
-        .mobile-menu-btn:hover {
-            background: var(--content-bg);
-            color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .page-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin: 0;
+        /* ===== HEADER ACTIONS MELHORADAS ===== */
+        .header-actions {
             display: flex;
             align-items: center;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .page-title i {
-            margin-right: 12px;
-            color: var(--primary);
-            font-size: 22px;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+            gap: 12px;
+            margin-left: auto;
         }
 
         .header-search {
             position: relative;
+            width: 360px;
         }
 
         .search-input {
-            width: 350px;
-            padding: 12px 45px 12px 20px;
+            width: 100%;
+            height: 40px;
+            padding: 0 40px 0 40px;
             border: 1px solid var(--border-color);
-            border-radius: 25px;
+            border-radius: 20px;
             font-size: 14px;
-            background: var(--content-bg);
+            background: var(--gray-50);
             color: var(--text-primary);
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .search-input:focus {
             outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.1);
-            background: var(--card-bg);
-        }
-
-        .search-input::placeholder {
-            color: var(--text-muted);
+            background: var(--bg-card);
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 4px rgba(15, 96, 176, 0.1);
+            transform: translateY(-1px);
         }
 
         .search-icon {
             position: absolute;
-            right: 15px;
+            left: 14px;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
             font-size: 16px;
         }
 
-        .header-btn {
-            width: 45px;
-            height: 45px;
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
+        .action-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            background: transparent;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             color: var(--text-secondary);
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             position: relative;
         }
 
-        .header-btn:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
+        .action-btn:hover {
+            background: var(--gray-100);
+            color: var(--primary-blue);
+            transform: scale(1.1);
         }
 
-        .notification-badge {
+        .action-btn .badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
-            background: var(--danger);
+            top: 4px;
+            right: 4px;
+            min-width: 18px;
+            height: 18px;
+            background: var(--gradient-danger);
             color: white;
+            border-radius: 50%;
             font-size: 10px;
-            padding: 3px 7px;
-            border-radius: 15px;
-            min-width: 20px;
-            height: 20px;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
+            border: 2px solid var(--bg-header);
+            padding: 0 4px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 12px 6px 6px;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+
+        .user-menu:hover {
+            background: var(--gray-100);
+            border-color: var(--border-color);
+            transform: translateY(-1px);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .user-name {
+            font-size: 14px;
             font-weight: 600;
+            color: var(--text-primary);
         }
 
-        /* Área de Conteúdo */
-        .content-area {
+        /* ===== SIDEBAR MELHORADA ===== */
+        .app-sidebar {
+            position: fixed;
+            top: var(--header-height);
+            left: 0;
+            width: var(--sidebar-width);
+            height: calc(100vh - var(--header-height));
+            background: var(--bg-sidebar);
+            overflow-y: auto;
+            overflow-x: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .app-sidebar.collapsed {
+            width: var(--sidebar-collapsed);
+        }
+
+        .sidebar-nav {
+            padding: 16px 12px;
             flex: 1;
-            padding: 30px;
-            background: var(--content-bg);
         }
 
-        /* Cards de Estatísticas Escolares */
-        .school-stats {
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .section-title {
+            padding: 8px 16px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .app-sidebar.collapsed .section-title {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            margin-bottom: 4px;
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(4px);
+        }
+
+        .sidebar-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .sidebar-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--gradient-warning);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .sidebar-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-text {
+            flex: 1;
+            white-space: nowrap;
+            transition: all 0.3s;
+            overflow: hidden;
+        }
+
+        .app-sidebar.collapsed .sidebar-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            min-width: 20px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .app-sidebar.collapsed .sidebar-badge {
+            opacity: 0;
+            transform: scale(0);
+            width: 0;
+        }
+
+        .badge-orange {
+            background: var(--gradient-warning);
+            color: white;
+            box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+        }
+
+        .badge-green {
+            background: var(--gradient-success);
+            color: white;
+            box-shadow: 0 2px 8px rgba(124, 179, 66, 0.3);
+        }
+
+        .badge-red {
+            background: var(--gradient-danger);
+            color: white;
+            box-shadow: 0 2px 8px rgba(229, 57, 53, 0.3);
+        }
+
+        .badge-blue {
+            background: var(--gradient-primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(15, 96, 176, 0.3);
+        }
+
+        /* ===== SIDEBAR USER AREA ===== */
+        .sidebar-user {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 20px 16px;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .sidebar-user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            transition: all 0.3s;
+        }
+
+        .app-sidebar.collapsed .sidebar-user-profile {
+            justify-content: center;
+        }
+
+        .sidebar-user-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--gradient-warning);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: var(--shadow-md);
+        }
+
+        .sidebar-user-info {
+            flex: 1;
+            min-width: 0;
+            transition: all 0.3s;
+        }
+
+        .app-sidebar.collapsed .sidebar-user-info {
+            opacity: 0;
+            width: 0;
+        }
+
+        .sidebar-user-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 2px;
+        }
+
+        .sidebar-user-role {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .logout-btn {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            background: var(--gradient-danger);
+            color: white;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .logout-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .app-sidebar.collapsed .logout-btn {
+            padding: 12px;
+        }
+
+        .logout-text {
+            transition: all 0.3s;
+        }
+
+        .app-sidebar.collapsed .logout-text {
+            opacity: 0;
+            width: 0;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .app-main {
+            margin-left: var(--sidebar-width);
+            margin-top: var(--header-height);
+            padding: 32px;
+            min-height: calc(100vh - var(--header-height));
+            transition: all 0.3s;
+        }
+
+        .app-main.collapsed {
+            margin-left: var(--sidebar-collapsed);
+        }
+
+        /* ===== BREADCRUMB MELHORADO ===== */
+        .app-breadcrumb {
+            margin-bottom: 24px;
+        }
+
+        .breadcrumb {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            padding: 14px 20px;
+            margin-bottom: 0;
+            box-shadow: var(--shadow-xs);
+        }
+
+        .breadcrumb-item a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .breadcrumb-item a:hover {
+            color: var(--blue-light);
+        }
+
+        .breadcrumb-item.active {
+            color: var(--text-secondary);
+        }
+
+        /* ===== PAGE HEADER MELHORADO ===== */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .title-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--gradient-primary);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgb(56, 85, 214);
+            font-size: 20px;
+            box-shadow: var(--shadow-md);
+        }
+
+        /* ===== TOAST NOTIFICATIONS (NOVO) ===== */
+        .toast-container-custom {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 420px;
+        }
+
+        .toast-custom {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            padding: 20px;
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            min-width: 360px;
+            border-left: 4px solid;
+            animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast-custom.hiding {
+            animation: slideOutRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideOutRight {
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .toast-custom::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: currentColor;
+            animation: toastProgress 5s linear forwards;
+        }
+
+        @keyframes toastProgress {
+            from { width: 100%; }
+            to { width: 0%; }
+        }
+
+        .toast-custom.success {
+            border-left-color: var(--success);
+        }
+
+        .toast-custom.success::before {
+            background: var(--success);
+        }
+
+        .toast-custom.error {
+            border-left-color: var(--danger);
+        }
+
+        .toast-custom.error::before {
+            background: var(--danger);
+        }
+
+        .toast-custom.warning {
+            border-left-color: var(--warning);
+        }
+
+        .toast-custom.warning::before {
+            background: var(--warning);
+        }
+
+        .toast-custom.info {
+            border-left-color: var(--info);
+        }
+
+        .toast-custom.info::before {
+            background: var(--info);
+        }
+
+        .toast-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .toast-custom.success .toast-icon {
+            background: rgba(124, 179, 66, 0.15);
+            color: var(--success);
+        }
+
+        .toast-custom.error .toast-icon {
+            background: rgba(229, 57, 53, 0.15);
+            color: var(--danger);
+        }
+
+        .toast-custom.warning .toast-icon {
+            background: rgba(255, 152, 0, 0.15);
+            color: var(--warning);
+        }
+
+        .toast-custom.info .toast-icon {
+            background: rgba(15, 96, 176, 0.15);
+            color: var(--info);
+        }
+
+        .toast-content {
+            flex: 1;
+        }
+
+        .toast-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .toast-message {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .toast-close {
+            width: 24px;
+            height: 24px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .toast-close:hover {
+            background: var(--gray-100);
+            color: var(--text-primary);
+        }
+
+        /* ===== STATS CARDS MELHORADOS ===== */
+        .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
         }
 
         .stat-card {
-            background: var(--card-bg);
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
-            padding: 30px;
+            padding: 24px;
             display: flex;
             align-items: center;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow);
+            gap: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--shadow-sm);
             position: relative;
             overflow: hidden;
         }
@@ -590,421 +841,238 @@
             top: 0;
             left: 0;
             right: 0;
-            height: 5px;
-            background: var(--primary);
-        }
-
-        .stat-card.students::before {
-            background: var(--primary);
-        }
-
-        .stat-card.teachers::before {
-            background: var(--accent);
-        }
-
-        .stat-card.payments::before {
-            background: var(--success);
-        }
-
-        .stat-card.events::before {
-            background: var(--warning);
+            height: 4px;
+            background: var(--gradient-primary);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
 
         .stat-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-4px);
             box-shadow: var(--shadow-lg);
+            border-color: transparent;
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
         }
 
         .stat-icon {
-            width: 70px;
-            height: 70px;
-            border-radius: 20px;
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 25px;
-            font-size: 28px;
+            font-size: 24px;
             color: white;
             flex-shrink: 0;
+            box-shadow: var(--shadow-md);
         }
 
-        .stat-icon.students {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        .icon-blue {
+            background: var(--gradient-primary);
         }
 
-        .stat-icon.teachers {
-            background: linear-gradient(135deg, var(--accent), #0097A7);
+        .icon-green {
+            background: var(--gradient-success);
         }
 
-        .stat-icon.payments {
-            background: linear-gradient(135deg, var(--success), #388E3C);
+        .icon-orange {
+            background: var(--gradient-warning);
         }
 
-        .stat-icon.events {
-            background: linear-gradient(135deg, var(--warning), #F57C00);
+        .icon-red {
+            background: var(--gradient-danger);
         }
 
         .stat-content {
             flex: 1;
         }
 
-        .stat-value {
-            font-size: 32px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 5px;
-            line-height: 1;
-            font-family: 'Poppins', sans-serif;
+        .stat-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
 
-        .stat-label {
-            font-size: 16px;
-            color: var(--text-secondary);
-            font-weight: 500;
-            margin-bottom: 10px;
+        .stat-value {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+            margin-bottom: 8px;
         }
 
         .stat-change {
             font-size: 13px;
             font-weight: 600;
-            padding: 4px 10px;
-            border-radius: 20px;
             display: inline-flex;
             align-items: center;
+            gap: 4px;
         }
 
         .stat-change.positive {
-            background: rgba(76, 175, 80, 0.1);
             color: var(--success);
         }
 
         .stat-change.negative {
-            background: rgba(244, 67, 54, 0.1);
             color: var(--danger);
         }
 
-        .stat-change i {
-            margin-right: 4px;
-            font-size: 12px;
-        }
-
-        /* Breadcrumb Escolar */
-        .school-breadcrumb {
-            background: transparent;
-            padding: 0;
-            margin-bottom: 25px;
-        }
-
-        .breadcrumb {
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
-            padding: 15px 20px;
-            box-shadow: var(--shadow);
-        }
-
-        .breadcrumb-item a {
-            color: var(--primary);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .breadcrumb-item a:hover {
-            color: var(--primary-dark);
-        }
-
-        .breadcrumb-item.active {
-            color: var(--text-secondary);
-        }
-
-        /* Cards Escolares */
+        /* ===== SCHOOL CARDS MELHORADOS ===== */
         .school-card {
-            background: var(--card-bg);
+            background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 32px;
+            transition: all 0.3s;
             overflow: hidden;
         }
 
         .school-card:hover {
-            transform: translateY(-3px);
-            box-shadow: var(--shadow-lg);
+            box-shadow: var(--shadow-md);
         }
 
         .school-card-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 20px 25px;
-            font-weight: 600;
-            font-size: 18px;
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
-        }
-
-        .school-card-header i {
-            margin-right: 10px;
-            font-size: 20px;
+            gap: 12px;
+            background: var(--gray-50);
         }
 
         .school-card-body {
-            padding: 25px;
+            padding: 24px;
         }
 
-        /* Botões Escolares */
-        .btn-school {
-            border-radius: var(--border-radius);
+        /* ===== BUTTONS MELHORADOS ===== */
+        .btn-primary-visionarios {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
             font-weight: 600;
-            transition: all 0.3s ease;
-            padding: 12px 25px;
             font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: inline-flex;
             align-items: center;
-            text-decoration: none;
-            border: none;
-            cursor: pointer;
+            gap: 10px;
+            box-shadow: var(--shadow-md);
         }
 
-        .btn-school i {
-            margin-right: 8px;
-        }
-
-        .btn-school:hover {
+        .btn-primary-visionarios:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn-primary-school {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            box-shadow: var(--shadow-lg);
             color: white;
         }
 
-        .btn-primary-school:hover {
-            background: linear-gradient(135deg, var(--primary-dark), #0D4613);
+        .btn-success-visionarios {
+            background: var(--gradient-success);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-success-visionarios:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
             color: white;
         }
 
-        .btn-secondary-school {
-            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+        .btn-warning-visionarios {
+            background: var(--gradient-warning);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-warning-visionarios:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
             color: white;
         }
 
-        .btn-secondary-school:hover {
-            background: linear-gradient(135deg, var(--secondary-dark), #B53D00);
-            color: white;
-        }
-
-        .btn-success-school {
-            background: linear-gradient(135deg, var(--success), #388E3C);
-            color: white;
-        }
-
-        .btn-warning-school {
-            background: linear-gradient(135deg, var(--warning), #F57C00);
-            color: white;
-        }
-
-        /* Tabelas Escolares */
-        .school-table-container {
-            background: var(--card-bg);
+        /* ===== TABLES MELHORADAS ===== */
+        .school-table {
+            background: var(--bg-card);
             border-radius: var(--border-radius);
             overflow: hidden;
-            box-shadow: var(--shadow);
-            margin-bottom: 25px;
+            box-shadow: var(--shadow-sm);
         }
 
-        .school-table-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 20px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .school-table-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin: 0;
-            display: flex;
-            align-items: center;
-        }
-
-        .school-table-title i {
-            margin-right: 10px;
-        }
-
-        .table-school {
+        .school-table .table {
             margin-bottom: 0;
-            border-collapse: separate;
-            border-spacing: 0;
         }
 
-        .table-school th {
-            background: var(--content-bg);
-            color: var(--text-primary);
-            font-weight: 600;
+        .school-table .table thead th {
+            background: var(--gray-50);
             border-bottom: 2px solid var(--border-color);
-            padding: 18px 20px;
-            font-size: 14px;
+            font-weight: 700;
+            font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            padding: 16px 20px;
         }
 
-        .table-school td {
-            padding: 18px 20px;
+        .school-table .table tbody td {
+            padding: 16px 20px;
             vertical-align: middle;
-            border-bottom: 1px solid var(--border-color);
-            font-size: 14px;
+            border-color: var(--border-color);
+            color: var(--text-primary);
         }
 
-        .table-school tbody tr:hover {
-            background: var(--content-bg);
+        .school-table .table tbody tr {
+            transition: all 0.2s;
         }
 
-        /* Alertas Escolares */
-        .alert-school {
-            border: none;
-            border-radius: var(--border-radius);
-            padding: 18px 25px;
-            margin-bottom: 25px;
-            border-left: 5px solid;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
+        .school-table .table tbody tr:hover {
+            background: var(--gray-50);
+            transform: scale(1.01);
         }
 
-        .alert-school i {
-            margin-right: 12px;
-            font-size: 18px;
-        }
-
-        .alert-success-school {
-            background: rgba(76, 175, 80, 0.1);
-            color: var(--success);
-            border-left-color: var(--success);
-        }
-
-        .alert-warning-school {
-            background: rgba(255, 152, 0, 0.1);
-            color: var(--warning);
-            border-left-color: var(--warning);
-        }
-
-        .alert-danger-school {
-            background: rgba(244, 67, 54, 0.1);
-            color: var(--danger);
-            border-left-color: var(--danger);
-        }
-
-        .alert-info-school {
-            background: rgba(33, 150, 243, 0.1);
-            color: var(--info);
-            border-left-color: var(--info);
-        }
-
-        /* Footer Escolar */
-        .school-footer {
-            background: var(--card-bg);
-            border-top: 1px solid var(--border-color);
-            padding: 25px 0;
-            margin-top: auto;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Responsividade */
-        @media (max-width: 1199.98px) {
-            .main-content {
-                margin-left: 0 !important;
-            }
-
-            .school-sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
-            }
-
-            .school-sidebar.mobile-visible {
-                transform: translateX(0);
-            }
-
-            .sidebar-toggle-btn {
-                display: none !important;
-            }
-
-            .mobile-menu-btn {
-                display: flex !important;
-            }
-
-            .search-input {
-                width: 250px;
-            }
-        }
-
-        @media (max-width: 991.98px) {
-            .content-area {
-                padding: 20px;
-            }
-
-            .main-header {
-                padding: 0 20px;
-            }
-
-            .search-input {
-                width: 200px;
-            }
-
-            .page-title {
-                font-size: 20px;
-            }
-
-            .sidebar-toggle-btn {
-                display: none !important;
-            }
-        }
-
-        @media (max-width: 767.98px) {
-            .header-search {
-                display: none;
-            }
-
-            .sidebar-toggle-btn {
-                display: none !important;
-            }
-
-            .page-title {
-                font-size: 18px;
-            }
-
-            .stat-card {
-                padding: 20px;
-            }
-
-            .stat-icon {
-                width: 60px;
-                height: 60px;
-                font-size: 24px;
-            }
-
-            .stat-value {
-                font-size: 28px;
-            }
-
-            .sidebar-toggle-btn {
-                display: none !important;
-            }
-        }
-
-        /* Overlay para mobile */
+        /* ===== SIDEBAR OVERLAY ===== */
         .sidebar-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 1035;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 998;
             opacity: 0;
             visibility: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
+            backdrop-filter: blur(4px);
         }
 
         .sidebar-overlay.show {
@@ -1012,55 +1080,173 @@
             visibility: visible;
         }
 
-        /* Sistema de Toasts */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 9999;
+        /* ===== FOOTER MELHORADO ===== */
+        .app-footer {
+            background: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            padding: 24px 32px;
+            margin-top: auto;
+            box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.05);
         }
 
-        .toast-school {
-            border: none;
-            border-radius: var(--border-radius);
+        /* ===== DROPDOWN MELHORADO ===== */
+        .dropdown-menu {
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
             box-shadow: var(--shadow-lg);
-            background: var(--card-bg);
-            margin-bottom: 10px;
-            min-width: 350px;
-            overflow: hidden;
+            padding: 8px;
         }
 
-        .toast-school .toast-header {
-            background: var(--primary);
-            color: white;
-            font-weight: 600;
+        .dropdown-item {
+            border-radius: 6px;
+            padding: 10px 14px;
+            transition: all 0.2s;
+            color: var(--text-primary);
         }
 
-        /* Loading Animation */
-        .loading-school {
-            position: relative;
-            color: transparent !important;
+        .dropdown-item:hover {
+            background: var(--gray-100);
+            color: var(--primary-blue);
+            transform: translateX(4px);
         }
 
-        .loading-school::after {
-            content: "";
-            position: absolute;
-            width: 20px;
-            height: 20px;
-            top: 50%;
-            left: 50%;
-            margin-left: -10px;
-            margin-top: -10px;
-            border: 3px solid var(--primary);
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin-school 1s ease-in-out infinite;
+        .dropdown-header {
+            font-weight: 700;
+            color: var(--text-primary);
+            padding: 12px 14px;
         }
 
-        @keyframes spin-school {
-            to {
-                transform: rotate(360deg);
+        .dropdown-divider {
+            border-color: var(--border-color);
+            margin: 8px 0;
+        }
+
+        /* ===== SCROLLBAR MELHORADA ===== */
+        .app-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .app-sidebar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .app-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .app-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .app-sidebar {
+                transform: translateX(-100%);
             }
+
+            .app-sidebar.mobile-open {
+                transform: translateX(0);
+            }
+
+            .app-main {
+                margin-left: 0 !important;
+            }
+
+            .header-logo {
+                min-width: auto;
+                padding-right: 0;
+            }
+
+            .sidebar-toggle-desktop {
+                display: none;
+            }
+            .page-title{
+                display: none;
+            }
+
+            .mobile-toggle {
+                display: flex;
+                width: 36px;
+                height: 36px;
+                background: transparent;
+                border: 1px solid var(--border-color);
+                border-radius: 8px;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                color: var(--text-secondary);
+            }
+
+            .header-search {
+                width: 200px;
+            }
+
+            .logo-subtitle {
+                display: none;
+            }
+
+            .toast-container-custom {
+                right: 12px;
+                left: 12px;
+                max-width: none;
+            }
+
+            .toast-custom {
+                min-width: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-search {
+                display: none;
+            }
+
+            .user-name {
+                display: none;
+            }
+
+            .app-main {
+                padding: 20px 16px;
+            }
+
+            /* .page-title {
+                font-size: 18px;
+            } */
+             .page-title{
+                display: none;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .app-header {
+                padding: 0 16px;
+            }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease forwards;
+        }
+
+        /* ===== UTILITIES ===== */
+        .badge {
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
         }
     </style>
 
@@ -1068,413 +1254,358 @@
 </head>
 
 <body>
-    <!-- Toast Container -->
-    <div class="toast-container" id="toast-container"></div>
+    <!-- Toast Container (NOVO) -->
+    <div class="toast-container-custom" id="toastContainer"></div>
 
     <!-- Sidebar Overlay -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMobileSidebar()"></div>
 
-    <!-- Sidebar Escolar -->
-    <nav class="school-sidebar" id="sidebar">
-        <div class="school-header">
-            <div class="school-logo" style="margin: -10px;">
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-logo">
+            <button class="mobile-toggle" onclick="toggleMobileSidebar()">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="logo-container">
                 <i class="fas fa-graduation-cap"></i>
             </div>
-            <div class="school-brand" style="margin: 10% ">
-                <div class="school-name">VISIONÁRIOS</div>
-                <div class="school-subtitle">Sistema Escolar</div>
+            <div class="logo-text-container">
+                <div class="logo-text">VISIONÁRIOS</div>
+                <div class="logo-subtitle">Sistema Escolar</div>
             </div>
+            <button class="sidebar-toggle-desktop" onclick="toggleSidebar()" id="sidebar-toggle">
+                <i class="fas fa-chevron-left" id="toggle-icon"></i>
+            </button>
         </div>
+        <h1 class="page-title">
+            <i class="{{ $titleIcon ?? 'fas fa-tachometer-alt' }}"></i>
+            @yield('page-title', 'Dashboard')
+        </h1>
+        <div class="header-actions">
+            <div class="header-search">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Pesquisar alunos, professores...">
+            </div>
 
-        <div class="school-nav">
-            <!-- Dashboard Principal -->
-            <div class="nav-section">
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="{{ route('dashboard') }}"
-                            class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                            <span class="nav-icon">
-                                <i class="fas fa-tachometer-alt"></i>
-                            </span>
-                            <span class="nav-text">Dashboard</span>
+            <button class="action-btn" data-bs-toggle="dropdown" title="Notificações">
+                <i class="fas fa-bell"></i>
+                @if (auth()->user()->unreadNotifications->count() > 0)
+                    <span class="badge">{{ auth()->user()->unreadNotifications->count() }}</span>
+                @endif
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end shadow" style="width: 380px; max-height: 500px; overflow-y: auto;">
+                <li class="dropdown-header d-flex justify-content-between align-items-center">
+                    <strong>Notificações</strong>
+                    <a href="#" class="text-decoration-none small" style="color: var(--primary-blue);"
+                        onclick="markAllAsRead(event)">
+                        Marcar todas como lidas
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+
+                @forelse(auth()->user()->notifications->take(5) as $notification)
+                    <li>
+                        <a class="dropdown-item d-flex align-items-start py-3 {{ $notification->read_at ? '' : 'bg-light' }}"
+                            href="{{ $notification->data['action_url'] ?? '#' }}"
+                            onclick="markAsRead('{{ $notification->id }}', event)">
+                            <div class="flex-shrink-0 me-3">
+                                <i class="{{ $notification->data['icon'] ?? 'fas fa-bell' }}"
+                                    style="color: var(--primary-blue);"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold mb-1">{{ $notification->data['title'] ?? 'Notificação' }}</div>
+                                <div class="text-muted small mb-1">
+                                    {{ $notification->data['message'] ?? 'Nova notificação' }}</div>
+                                <small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
+                            </div>
+                            @if (!$notification->read_at)
+                                <div class="flex-shrink-0">
+                                    <span class="badge" style="background: var(--primary-orange);">NOVO</span>
+                                </div>
+                            @endif
                         </a>
                     </li>
-                </ul>
+                @empty
+                    <li class="dropdown-item-text text-center text-muted py-4">
+                        <i class="fas fa-bell-slash fs-3 mb-2 d-block"></i>
+                        Nenhuma notificação
+                    </li>
+                @endforelse
+
+                <li><hr class="dropdown-divider"></li>
+                <li class="text-center p-2">
+                    <a href="{{ route('notifications.index') }}" class="small text-decoration-none"
+                        style="color: var(--primary-blue);">
+                        Ver todas as notificações
+                    </a>
+                </li>
+            </ul>
+
+            <button class="action-btn" onclick="toggleTheme()" title="Alternar Tema">
+                <i class="fas fa-moon" id="theme-icon"></i>
+            </button>
+
+            <div class="user-menu" data-bs-toggle="dropdown">
+                <div class="user-avatar">{{ substr(auth()->user()->name, 0, 1) }}</div>
+                <span class="user-name">{{ explode(' ', auth()->user()->name)[0] }}</span>
+                <i class="fas fa-chevron-down" style="font-size: 10px; color: var(--text-muted);"></i>
             </div>
 
-            <!-- ========== PORTAL DO PROFESSOR (apenas para professores) ========== -->
-            @if (auth()->user()->role === 'teacher')
-                <div class="nav-section">
-                    <div class="nav-section-title">Meu Portal</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('teacher.dashboard') }}"
-                                class="nav-link {{ request()->routeIs('teacher.dashboard') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-home"></i>
-                                </span>
-                                <span class="nav-text">Início</span>
-                            </a>
-                        </li>
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+                <li class="dropdown-header">
+                    <strong>{{ explode(' ', auth()->user()->name)[0] }}</strong>
+                    <small class="d-block text-muted">
+                        @switch(auth()->user()->role)
+                            @case('admin') Administrador @break
+                            @case('secretary') Secretaria @break
+                            @case('pedagogy') Seção Pedagógica @break
+                            @case('teacher') Professor(a) @break
+                            @case('parent') Encarregado @break
+                            @default Usuário
+                        @endswitch
+                    </small>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <a class="dropdown-item" href="{{ route('profile.edit') }}">
+                        <i class="fas fa-user me-3"></i>Meu Perfil
+                    </a>
+                </li>
+                @if (auth()->user()->role === 'parent')
+                    <li>
+                        <a class="dropdown-item" href="{{ route('parent.dashboard') }}">
+                            <i class="fas fa-child me-3"></i>Portal dos Pais
+                        </a>
+                    </li>
+                @endif
+                @if (auth()->user()->role === 'teacher')
+                    <li>
+                        <a class="dropdown-item" href="{{ route('teacher.dashboard') }}">
+                            <i class="fas fa-chalkboard-teacher me-3"></i>Portal do Professor
+                        </a>
+                    </li>
+                @endif
+                <li>
+                    <a class="dropdown-item" href="#" onclick="toggleTheme(); return false;">
+                        <i class="fas fa-moon me-3" id="theme-icon-dropdown"></i>
+                        <span id="theme-text">Modo Escuro</span>
+                    </a>
+                </li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <button type="submit" class="dropdown-item">
+                            <i class="fas fa-sign-out-alt me-3"></i>Sair do Sistema
+                        </button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </header>
 
-                        <li class="nav-item">
-                            <a href="{{ route('teacher.classes') }}"
-                                class="nav-link {{ request()->routeIs('teacher.classes*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-chalkboard"></i>
-                                </span>
-                                <span class="nav-text">Minhas Turmas</span>
-                                @php
-                                    $classCount =
-                                        auth()->user()->teacher?->classes()->active()->currentYear()->count() ?? 0;
-                                @endphp
-                                @if ($classCount > 0)
-                                    <span class="nav-badge badge-primary">{{ $classCount }}</span>
-                                @endif
-                            </a>
-                        </li>
+    <!-- Sidebar -->
+    <aside class="app-sidebar" id="sidebar">
+        <nav class="sidebar-nav">
+            <!-- Dashboard -->
+            <div class="nav-section">
+                <a href="{{ route('dashboard') }}"
+                    class="sidebar-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                    <span class="sidebar-icon"><i class="fas fa-th-large"></i></span>
+                    <span class="sidebar-text">Dashboard</span>
+                </a>
+            </div>
 
-                        <li class="nav-item">
-                            @php
-                                // Pega a primeira turma ativa do professor logado
-                                $teacher = auth()->user()->teacher ?? null;
-                                $classId = $teacher?->classes()->active()->currentYear()->first()?->id;
-                            @endphp
-
-                            @if ($classId)
-                                <a href="{{ route('teacher-portal.attendance', ['classId' => $classId]) }}"
-                                    class="nav-link {{ request()->routeIs('teacher-portal.attendance*') ? 'active' : '' }}">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-calendar-check"></i>
-                                    </span>
-                                    <span class="nav-text">Presenças</span>
-                                    <span class="nav-badge badge-success">Hoje</span>
-                                </a>
-                            @else
-                                <a href="#" class="nav-link disabled text-muted">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-calendar-check"></i>
-                                    </span>
-                                    <span class="nav-text">Sem turma</span>
-                                </a>
-                            @endif
-                        </li>
-
-
-                        <li class="nav-item">
-                            <a href="{{ route('teacher.grades') }}"
-                                class="nav-link {{ request()->routeIs('teacher.grades*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-medal"></i>
-                                </span>
-                                <span class="nav-text">Avaliações</span>
-                                <span class="nav-badge badge-warning">Novo</span>
-                            </a>
-                        </li>
-
-                        {{-- <li class="nav-item">
-                            <a href="{{-- route('teacher-portal.communications') }}#"
-                                class="nav-link {{ request()->routeIs('teacher-portal.communications') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-bullhorn"></i>
-                                </span>
-                                <span class="nav-text">Comunicados</span>
-                                @if ($newCommsCount > 0)
-                                    <span class="nav-badge badge-danger">{{ $newCommsCount }}</span>
-                                @endif
-                            </a>
-                        </li> --}}
-                    </ul>
-                </div>
-            @endif
-
-            <!-- ========== MENUS DE GESTÃO (com permissões) ========== -->
+            <!-- Gestão de Alunos -->
             @canany(['manage_students', 'view_students'])
                 <div class="nav-section">
-                    <div class="nav-section-title">Gestão de Alunos</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('students.index') }}"
-                                class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-user-graduate"></i>
-                                </span>
-                                <span class="nav-text">Alunos</span>
-                                @can('create_students')
-                                    <span class="nav-badge badge-primary">Gerir</span>
-                                @else
-                                    <span class="nav-badge badge-warning">Ver</span>
-                                @endcan
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('enrollments.index') }}"
-                                class="nav-link {{ request()->routeIs('enrollments.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-clipboard-list"></i>
-                                </span>
-                                <span class="nav-text">Matrículas</span>
-                                @php
-                                    $pendingEnrollments = \App\Models\Enrollment::where('status', 'pending')->count();
-                                @endphp
-                                @if ($pendingEnrollments > 0)
-                                    <span class="nav-badge badge-danger">{{ $pendingEnrollments }}</span>
-                                @endif
-                            </a>
-                        </li>
-                    </ul>
+                    <div class="section-title">Gestão de Alunos</div>
+                    <a href="{{ route('students.index') }}"
+                        class="sidebar-item {{ request()->routeIs('students.*') ? 'active' : '' }}">
+                        <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
+                        <span class="sidebar-text">Alunos</span>
+                        @can('create_students')
+                            <span class="sidebar-badge badge-green">Gerir</span>
+                        @else
+                            <span class="sidebar-badge badge-orange">Ver</span>
+                        @endcan
+                    </a>
+
+                    <a href="{{ route('enrollments.index') }}"
+                        class="sidebar-item {{ request()->routeIs('enrollments.*') ? 'active' : '' }}">
+                        <span class="sidebar-icon"><i class="fas fa-clipboard-list"></i></span>
+                        <span class="sidebar-text">Matrículas</span>
+                        @php
+                            $pendingEnrollments = \App\Models\Enrollment::where('status', 'pending')->count();
+                        @endphp
+                        @if ($pendingEnrollments > 0)
+                            <span class="sidebar-badge badge-orange">{{ $pendingEnrollments }}</span>
+                        @endif
+                    </a>
                 </div>
             @endcanany
 
+            <!-- Gestão Acadêmica -->
             @canany(['manage_classes', 'view_classes', 'manage_subjects'])
                 <div class="nav-section">
-                    <div class="nav-section-title">Gestão Acadêmica</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('classes.index') }}"
-                                class="nav-link {{ request()->routeIs('classes.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-chalkboard"></i>
-                                </span>
-                                <span class="nav-text">Turmas</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('subjects.index') }}"
-                                class="nav-link {{ request()->routeIs('subjects.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-book"></i>
-                                </span>
-                                <span class="nav-text">Disciplinas</span>
-                            </a>
-                        </li>
-                        @can('manage_attendances')
-                            <li class="nav-item">
-                                <a href="{{ route('attendances.index') }}"
-                                    class="nav-link {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-calendar-check"></i>
-                                    </span>
-                                    <span class="nav-text">Presenças</span>
-                                </a>
-                            </li>
-                        @endcan
-                        @can('manage_grades')
-                            <li class="nav-item">
-                                <a href="{{ route('grades.index') }}"
-                                    class="nav-link {{ request()->routeIs('grades.*') ? 'active' : '' }}">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-medal"></i>
-                                    </span>
-                                    <span class="nav-text">Avaliações</span>
-                                </a>
-                            </li>
-                        @endcan
-                    </ul>
+                    <div class="section-title">Gestão Acadêmica</div>
+                    <a href="{{ route('classes.index') }}"
+                        class="sidebar-item {{ request()->routeIs('classes.*') ? 'active' : '' }}">
+                        <span class="sidebar-icon"><i class="fas fa-chalkboard"></i></span>
+                        <span class="sidebar-text">Turmas</span>
+                    </a>
+
+                    <a href="{{ route('subjects.index') }}"
+                        class="sidebar-item {{ request()->routeIs('subjects.*') ? 'active' : '' }}">
+                        <span class="sidebar-icon"><i class="fas fa-book"></i></span>
+                        <span class="sidebar-text">Disciplinas</span>
+                    </a>
+
+                    @can('manage_attendances')
+                        <a href="{{ route('attendances.index') }}"
+                            class="sidebar-item {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
+                            <span class="sidebar-icon"><i class="fas fa-calendar-check"></i></span>
+                            <span class="sidebar-text">Presenças</span>
+                        </a>
+                    @endcan
+
+                    @can('manage_grades')
+                        <a href="{{ route('grades.index') }}"
+                            class="sidebar-item {{ request()->routeIs('grades.*') ? 'active' : '' }}">
+                            <span class="sidebar-icon"><i class="fas fa-star"></i></span>
+                            <span class="sidebar-text">Avaliações</span>
+                        </a>
+                    @endcan
                 </div>
             @endcanany
 
+            <!-- Gestão Financeira -->
             @canany(['manage_payments', 'view_payments'])
                 <div class="nav-section">
-                    <div class="nav-section-title">Gestão Financeira</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('payments.index') }}"
-                                class="nav-link {{ request()->routeIs('payments.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                </span>
-                                <span class="nav-text">Mensalidades</span>
-                                @php
-                                    $overduePayments = \App\Models\Payment::where('status', 'overdue')->count();
-                                @endphp
-                                @if ($overduePayments > 0)
-                                    <span class="nav-badge badge-danger">{{ $overduePayments }}</span>
-                                @endif
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('payments.references') }}"
-                                class="nav-link {{ request()->routeIs('payment-references.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-receipt"></i>
-                                </span>
-                                <span class="nav-text">Referências</span>
-                            </a>
-                        </li>
-                    </ul>
+                    <div class="section-title">Gestão Financeira</div>
+                    <a href="{{ route('payments.index') }}"
+                        class="sidebar-item {{ request()->routeIs('payments.*') ? 'active' : '' }}">
+                        <span class="sidebar-icon"><i class="fas fa-money-bill-wave"></i></span>
+                        <span class="sidebar-text">Mensalidades</span>
+                        @php
+                            $overduePayments = \App\Models\Payment::where('status', 'overdue')->count();
+                        @endphp
+                        @if ($overduePayments > 0)
+                            <span class="sidebar-badge badge-red">{{ $overduePayments }}</span>
+                        @endif
+                    </a>
+
+                    <a href="{{ route('payments.references') }}" class="sidebar-item">
+                        <span class="sidebar-icon"><i class="fas fa-receipt"></i></span>
+                        <span class="sidebar-text">Referências</span>
+                    </a>
                 </div>
             @endcanany
 
+            <!-- Gestão de Pessoal -->
             @canany(['manage_teachers', 'view_teachers'])
                 <div class="nav-section">
-                    <div class="nav-section-title">Gestão de Pessoal</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('teachers.index') }}"
-                                class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-chalkboard-teacher"></i>
-                                </span>
-                                <span class="nav-text">Professores</span>
-                            </a>
-                        </li>
-                        @can('manage_leave_requests')
-                            <li class="nav-item">
-                                <a href="{{ route('teacher.leave-requests') }}"
-                                    class="nav-link {{ request()->routeIs('leave-requests.*') ? 'active' : '' }}">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-calendar-times"></i>
-                                    </span>
-                                    <span class="nav-text">Licenças</span>
-                                    @php
-                                        $pendingRequests = \App\Models\StaffLeaveRequest::where(
-                                            'status',
-                                            'pending',
-                                        )->count();
-                                    @endphp
-                                    @if ($pendingRequests > 0)
-                                        <span class="nav-badge badge-warning">{{ $pendingRequests }}</span>
-                                    @endif
-                                </a>
-                            </li>
-                        @endcan
-                    </ul>
+                    <div class="section-title">Gestão de Pessoal</div>
+                    <a href="{{ route('teachers.index') }}"
+                        class="sidebar-item {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
+                        <span class="sidebar-icon"><i class="fas fa-chalkboard-teacher"></i></span>
+                        <span class="sidebar-text">Professores</span>
+                    </a>
+
+                    @can('manage_leave_requests')
+                        <a href="{{ route('teacher.leave-requests') }}"
+                            class="sidebar-item {{ request()->routeIs('leave-requests.*') ? 'active' : '' }}">
+                            <span class="sidebar-icon"><i class="fas fa-calendar-times"></i></span>
+                            <span class="sidebar-text">Licenças</span>
+                            @php
+                                $pendingRequests = \App\Models\StaffLeaveRequest::where('status', 'pending')->count();
+                            @endphp
+                            @if ($pendingRequests > 0)
+                                <span class="sidebar-badge badge-orange">{{ $pendingRequests }}</span>
+                            @endif
+                        </a>
+                    @endcan
                 </div>
             @endcanany
 
+            <!-- Comunicação -->
             @can('manage_events')
                 <div class="nav-section">
-                    <div class="nav-section-title">Comunicação</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('events.index') }}"
-                                class="nav-link {{ request()->routeIs('events.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-calendar-alt"></i>
-                                </span>
-                                <span class="nav-text">Eventos</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('communications.index') }}"
-                                class="nav-link {{ request()->routeIs('communications.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-bullhorn"></i>
-                                </span>
-                                <span class="nav-text">Comunicados</span>
-                            </a>
-                        </li>
-                    </ul>
+                    <div class="section-title">Comunicação</div>
+                    <a href="{{ route('events.index') }}"
+                        class="sidebar-item {{ request()->routeIs('events.*') ? 'active' : '' }}">
+                        <span class="sidebar-icon"><i class="fas fa-calendar-alt"></i></span>
+                        <span class="sidebar-text">Eventos</span>
+                    </a>
+
+                    <a href="{{ route('communications.index') }}"
+                        class="sidebar-item {{ request()->routeIs('communications.*') ? 'active' : '' }}">
+                        <span class="sidebar-icon"><i class="fas fa-bullhorn"></i></span>
+                        <span class="sidebar-text">Comunicados</span>
+                    </a>
                 </div>
             @endcan
 
+            <!-- Relatórios -->
             @canany(['view_reports', 'export_reports'])
                 <div class="nav-section">
-                    <div class="nav-section-title">Relatórios</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('reports.index') }}"
-                                class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-chart-bar"></i>
-                                </span>
-                                <span class="nav-text">Relatórios</span>
-                                @can('export_reports')
-                                    <span class="nav-badge badge-success">Export</span>
-                                @endcan
-                            </a>
-                        </li>
-                    </ul>
+                    <div class="section-title">Relatórios</div>
+                    <a href="{{ route('reports.index') }}"
+                        class="sidebar-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                        <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
+                        <span class="sidebar-text">Relatórios</span>
+                        @can('export_reports')
+                            <span class="sidebar-badge badge-blue">Export</span>
+                        @endcan
+                    </a>
                 </div>
             @endcanany
 
+            <!-- Administração -->
             @can('manage_users')
                 <div class="nav-section">
-                    <div class="nav-section-title">Administração</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('admin.users.index') }}"
-                                class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-users-cog"></i>
-                                </span>
-                                <span class="nav-text">Usuários</span>
-                                <span class="nav-badge badge-danger">Admin</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('admin.settings.index') }}"
-                                class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-cog"></i>
-                                </span>
-                                <span class="nav-text">Configurações</span>
-                            </a>
-                        </li>
-                    </ul>
+                    <div class="section-title">Administração</div>
+                    <a href="{{ route('admin.users.index') }}"
+                        class="sidebar-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                        <span class="sidebar-icon"><i class="fas fa-users-cog"></i></span>
+                        <span class="sidebar-text">Usuários</span>
+                        <span class="sidebar-badge badge-red">Admin</span>
+                    </a>
+
+                    <a href="{{ route('admin.settings.index') }}"
+                        class="sidebar-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                        <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
+                        <span class="sidebar-text">Configurações</span>
+                    </a>
                 </div>
             @endcan
 
-            <!-- Minha Conta (sempre visível) -->
+            <!-- Minha Conta -->
             <div class="nav-section">
-                <div class="nav-section-title">Minha Conta</div>
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="{{ route('profile.edit') }}"
-                            class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                            <span class="nav-icon">
-                                <i class="fas fa-user-circle"></i>
-                            </span>
-                            <span class="nav-text">Meu Perfil</span>
-                        </a>
-                    </li>
-                    @if (auth()->user()->role === 'teacher')
-                        <li class="nav-item">
-                            <a href="{{ route('teacher.leave-requests') }}"
-                                class="nav-link {{ request()->routeIs('teacher.leave-requests') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-calendar-times"></i>
-                                </span>
-                                <span class="nav-text">Minhas Licenças</span>
-                            </a>
-                        </li>
-                    @endif
-                </ul>
+                <div class="section-title">Minha Conta</div>
+                <a href="{{ route('profile.edit') }}"
+                    class="sidebar-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                    <span class="sidebar-icon"><i class="fas fa-user-circle"></i></span>
+                    <span class="sidebar-text">Meu Perfil</span>
+                </a>
             </div>
-        </div>
+        </nav>
 
-        <div class="user-area">
-            <div class="user-profile">
-                <div class="user-avatar">
-                    {{ substr(auth()->user()->name, 0, 1) }}
-                </div>
-                <div class="user-info">
-                    <div class="user-name">{{ explode(' ', auth()->user()->name)[0] }}</div>
-                    <div class="user-role">
+        <!-- User Area -->
+        <div class="sidebar-user">
+            <div class="sidebar-user-profile">
+                <div class="sidebar-user-avatar">{{ substr(auth()->user()->name, 0, 1) }}</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name">{{ explode(' ', auth()->user()->name)[0] }}</div>
+                    <div class="sidebar-user-role">
                         @switch(auth()->user()->role)
-                            @case('admin')
-                                Administrador
-                            @break
-
-                            @case('secretary')
-                                Secretaria
-                            @break
-
-                            @case('pedagogy')
-                                Seção Pedagógica
-                            @break
-
-                            @case('teacher')
-                                Professor(a)
-                            @break
-
-                            @case('parent')
-                                Encarregado
-                            @break
-
-                            @default
-                                Usuário
+                            @case('admin') Administrador @break
+                            @case('secretary') Secretaria @break
+                            @case('pedagogy') Pedagógico @break
+                            @case('teacher') Professor @break
+                            @case('parent') Encarregado @break
+                            @default Usuário
                         @endswitch
                     </div>
                 </div>
@@ -1488,302 +1619,86 @@
                 </button>
             </form>
         </div>
-    </nav>
+    </aside>
 
-    <!-- Conteúdo Principal -->
-    <div class="main-content" id="main-content">
-        <!-- Header Principal -->
-        <header class="main-header">
-            <div class="header-left">
-                <button class="sidebar-toggle" onclick="toggleSidebar()" id="sidebar-toggle-btn"
-                    style="backdrop-filter: blur(10px); background: #FF6F00; border: 1px solid var(--border-color); margin: 0px 15px 0 -15px; color:white;">
-                    <i class="fas fa-chevron-left" id="toggle-icon"></i>
-                </button>
-                <button class="mobile-menu-btn" onclick="toggleMobileMenu()">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <h1 class="page-title">
-                    <i class="{{ $titleIcon ?? 'fas fa-tachometer-alt' }}"></i>
-                    @yield('page-title', 'Dashboard')
-                </h1>
-            </div>
+    <!-- Main Content -->
+    <main class="app-main" id="main-content">
+        <!-- Breadcrumb -->
+        <nav class="app-breadcrumb" aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{{ route('dashboard') }}">
+                        <i class="fas fa-home"></i> Início
+                    </a>
+                </li>
+                @yield('breadcrumbs')
+                @if (!View::hasSection('breadcrumbs'))
+                    <li class="breadcrumb-item active">Dashboard</li>
+                @endif
+            </ol>
+        </nav>
 
-            <div class="header-right">
-                <div class="header-search">
-                    <input type="text" class="search-input"
-                        placeholder="Pesquisar alunos, professores, turmas...">
-                    <i class="fas fa-search search-icon"></i>
+        <!-- Page Header -->
+        {{-- <div class="page-header">
+            <div class="page-title">
+                <div class="title-icon" style="background-color: wheat !important">
+                    <i class="@yield('title-icon', 'fas fa-tachometer-alt')"></i>
                 </div>
-
-                <button class="header-btn" id="notification-btn" data-bs-toggle="dropdown" title="Notificações">
-                    <i class="fas fa-bell"></i>
-                    @if (auth()->user()->unreadNotifications->count() > 0)
-                        <span class="notification-badge">
-                            {{ auth()->user()->unreadNotifications->count() }}
-                        </span>
+                <div>
+                    <h1 class="mb-0">@yield('page-title', 'Dashboard')</h1>
+                    @hasSection('page-subtitle')
+                        <small class="text-muted">@yield('page-subtitle')</small>
                     @endif
-                </button>
-
-                <ul class="dropdown-menu dropdown-menu-end shadow-lg" style="width: 400px;">
-                    <li class="dropdown-header d-flex justify-content-between align-items-center p-3">
-                        <strong>Notificações</strong>
-                        <a href="#" class="text-decoration-none text-primary small"
-                            onclick="markAllAsRead(event)">
-                            Marcar todas como lidas
-                        </a>
-                    </li>
-                    <li>
-                        <hr class="dropdown-divider m-0">
-                    </li>
-
-                    @forelse(auth()->user()->notifications->take(5) as $notification)
-                        <li>
-                            <a class="dropdown-item d-flex align-items-start py-3 {{ $notification->read_at ? '' : 'bg-light' }}"
-                                href="{{ $notification->data['action_url'] ?? '#' }}"
-                                onclick="markAsRead('{{ $notification->id }}', event)">
-                                <div class="flex-shrink-0 me-3">
-                                    <i
-                                        class="{{ $notification->data['icon'] ?? 'fas fa-bell' }} text-{{ $notification->data['type'] ?? 'info' }}"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <div class="fw-semibold mb-1">{{ $notification->data['title'] ?? 'Notificação' }}
-                                    </div>
-                                    <div class="text-muted small mb-1">
-                                        {{ $notification->data['message'] ?? 'Nova notificação' }}</div>
-                                    <small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
-                                </div>
-                                @if (!$notification->read_at)
-                                    <div class="flex-shrink-0">
-                                        <span class="badge bg-primary">NOVO</span>
-                                    </div>
-                                @endif
-                            </a>
-                        </li>
-                    @empty
-                        <li class="dropdown-item-text text-center text-muted py-4">
-                            <i class="fas fa-bell-slash fs-3 mb-2 d-block"></i>
-                            Nenhuma notificação
-                        </li>
-                    @endforelse
-
-                    <li>
-                        <hr class="dropdown-divider m-0">
-                    </li>
-                    <li class="text-center p-2">
-                        <a href="{{ route('notifications.index') }}" class="small text-decoration-none">
-                            Ver todas as notificações
-                        </a>
-                    </li>
-                </ul>
-
-                <button class="header-btn" onclick="toggleTheme()" title="Alternar Tema">
-                    <i class="fas fa-moon" id="theme-icon"></i>
-                </button>
-
-                <div class="dropdown">
-                    <button class="header-btn" data-bs-toggle="dropdown" title="Menu do Usuário">
-                        <div class="user-avatar"
-                            style="width: 35px; height: 35px; font-size: 14px; margin: 0; background: var(--primary);">
-                            {{ substr(auth()->user()->name, 0, 1) }}
-                        </div>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow">
-                        <li class="dropdown-header">
-                            <strong>{{ explode(' ', auth()->user()->name)[0] }}</strong>
-                            <small class="d-block text-muted">
-                                @switch(auth()->user()->role)
-                                    @case('admin')
-                                        Administrador do Sistema
-                                    @break
-
-                                    @case('secretary')
-                                        Secretaria Escolar
-                                    @break
-
-                                    @case('pedagogy')
-                                        Seção Pedagógica
-                                    @break
-
-                                    @case('teacher')
-                                        Professor(a)
-                                    @break
-
-                                    @case('parent')
-                                        Encarregado de Educação
-                                    @break
-
-                                    @default
-                                        Usuário do Sistema
-                                @endswitch
-                            </small>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{{ route('profile.edit') }}">
-                                <i class="fas fa-user me-3"></i>Meu Perfil
-                            </a>
-                        </li>
-                        @if (auth()->user()->role === 'parent')
-                            <li>
-                                <a class="dropdown-item" href="{{ route('parent.dashboard') }}">
-                                    <i class="fas fa-child me-3"></i>Portal dos Pais
-                                </a>
-                            </li>
-                        @endif
-                        @if (auth()->user()->role === 'teacher')
-                            <li>
-                                <a class="dropdown-item" href="{{ route('teacher.dashboard') }}">
-                                    <i class="fas fa-chalkboard-teacher me-3"></i>Portal do Professor
-                                </a>
-                            </li>
-                        @endif
-                        <li>
-                            <a class="dropdown-item" href="#" onclick="toggleTheme()">
-                                <i class="fas fa-moon me-3" id="theme-icon-dropdown"></i>
-                                <span id="theme-text">Modo Escuro</span>
-                            </a>
-                        </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li>
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fas fa-sign-out-alt me-3"></i>Sair do Sistema
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
                 </div>
             </div>
-        </header>
+            <div class="page-actions">
+                @yield('page-actions')
+            </div>
+        </div> --}}
 
-        <!-- Área de Conteúdo -->
-        <div class="content-area">
-            <!-- Breadcrumb -->
-            <nav class="school-breadcrumb" aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item">
-                        <a href="{{ route('dashboard') }}">
-                            <i class="fas fa-home"></i> Início
-                        </a>
-                    </li>
-                    @yield('breadcrumbs')
-                    @if (!View::hasSection('breadcrumbs'))
-                        <li class="breadcrumb-item active">Dashboard</li>
-                    @endif
-                </ol>
-            </nav>
+        <!-- Page Content -->
+        @yield('content')
 
-            <!-- Alertas do Sistema -->
-            @if (session('success'))
-                <div class="alert-school alert-success-school alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle"></i>
-                    <div>
-                        <strong>Sucesso!</strong> {{ session('success') }}
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <!-- Footer -->
+        <footer class="app-footer">
+            <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center">
+                <div class="text-center text-sm-start mb-2 mb-sm-0">
+                    <small class="text-muted">
+                        © {{ date('Y') }} <strong style="color: var(--primary-blue);">Escola dos Visionários</strong> - Sistema de Gestão Escolar
+                    </small>
+                    <br>
+                    <small class="text-muted">
+                        Quelimane, Província da Zambézia - Moçambique
+                    </small>
                 </div>
-            @endif
-
-            @if (session('error'))
-                <div class="alert-school alert-danger-school alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <div>
-                        <strong>Erro!</strong> {{ session('error') }}
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if (session('warning'))
-                <div class="alert-school alert-warning-school alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <div>
-                        <strong>Atenção!</strong> {{ session('warning') }}
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if (session('info'))
-                <div class="alert-school alert-info-school alert-dismissible fade show" role="alert">
-                    <i class="fas fa-info-circle"></i>
-                    <div>
-                        <strong>Informação!</strong> {{ session('info') }}
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if ($errors->any())
-                <div class="alert-school alert-danger-school alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <div>
-                        <strong>Erros encontrados:</strong>
-                        <ul class="mb-0 mt-2">
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            <!-- Conteúdo da Página -->
-            @yield('content')
-        </div>
-
-        <!-- Footer Escolar -->
-        <footer class="school-footer">
-            <div class="content-area">
-                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center py-3">
-                    <div class="text-center text-sm-start mb-2 mb-sm-0">
-                        <small class="text-muted">
-                            © {{ date('Y') }} <strong class="text-primary">Escola dos Visionários</strong> -
-                            Sistema de Gestão Escolar
-                        </small>
-                        <br class="d-block d-sm-none">
-                        <small class="text-muted">
-                            Quelimane, Província da Zambézia - Moçambique
-                        </small>
-                    </div>
-                    <div class="text-center text-sm-end">
-                        <small class="text-muted">
-                            <span class="badge" style="background: var(--success);">v1.0.0</span>
-                            <a href="mailto:suporte@visionarios.co.mz" class="text-decoration-none me-2">Suporte
-                                Técnico</a>
-                            <a href="#" class="text-decoration-none" onclick="showHelpModal()">Manual do
-                                Sistema</a>
-                        </small>
-                    </div>
+                <div class="text-center text-sm-end">
+                    <small class="text-muted">
+                        <span class="badge" style="background: var(--success);">v1.0.0</span>
+                        <a href="mailto:suporte@visionarios.co.mz" class="text-decoration-none me-2"
+                            style="color: var(--primary-blue);">Suporte Técnico</a>
+                        <a href="#" class="text-decoration-none" style="color: var(--primary-blue);">Manual do Sistema</a>
+                    </small>
                 </div>
             </div>
         </footer>
-    </div>
-
-    <!-- Bootstrap JS -->
+    </main>
+<!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.3.0/chart.min.js"></script>
 
     <script>
-        // ===== VARIÁVEIS GLOBAIS =====
-        let sidebarCollapsed = localStorage.getItem('school-sidebar-collapsed') === 'true';
-        let mobileMenuOpen = false;
+        // Estado do sidebar
+        let sidebarCollapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+        let mobileSidebarOpen = false;
 
-        // ===== GERENCIADOR DE SIDEBAR =====
+        // Toggle Sidebar Desktop
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('main-content');
             const toggleIcon = document.getElementById('toggle-icon');
 
-            if (window.innerWidth >= 1200) {
+            if (window.innerWidth >= 1024) {
                 sidebarCollapsed = !sidebarCollapsed;
-                localStorage.setItem('school-sidebar-collapsed', sidebarCollapsed);
+                localStorage.setItem('sidebar-collapsed', sidebarCollapsed);
 
                 if (sidebarCollapsed) {
                     sidebar.classList.add('collapsed');
@@ -1797,30 +1712,32 @@
             }
         }
 
-        function toggleMobileMenu() {
+        // Toggle Sidebar Mobile
+        function toggleMobileSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebar-overlay');
 
-            mobileMenuOpen = !mobileMenuOpen;
+            mobileSidebarOpen = !mobileSidebarOpen;
 
-            if (mobileMenuOpen) {
-                sidebar.classList.add('mobile-visible');
+            if (mobileSidebarOpen) {
+                sidebar.classList.add('mobile-open');
                 overlay.classList.add('show');
                 document.body.style.overflow = 'hidden';
             } else {
-                sidebar.classList.remove('mobile-visible');
+                sidebar.classList.remove('mobile-open');
                 overlay.classList.remove('show');
                 document.body.style.overflow = '';
             }
         }
 
-        // ===== GERENCIADOR DE TEMA =====
+        // Toggle Theme
         function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+            const html = document.documentElement;
+            const currentTheme = html.getAttribute('data-theme') || 'light';
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
 
-            document.documentElement.setAttribute('data-bs-theme', newTheme);
-            localStorage.setItem('school-theme', newTheme);
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
 
             const icons = document.querySelectorAll('#theme-icon, #theme-icon-dropdown');
             const text = document.getElementById('theme-text');
@@ -1834,244 +1751,470 @@
             }
         }
 
-        // ===== SISTEMA DE NOTIFICAÇÕES =====
-        async function markAsRead(notificationId, event) {
-            if (event) event.preventDefault();
-
-            try {
-                const response = await fetch(`/notifications/${notificationId}/read`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    const badge = document.querySelector('.notification-badge');
-                    if (badge) {
-                        const count = parseInt(badge.textContent) - 1;
-                        if (count <= 0) {
-                            badge.remove();
-                        } else {
-                            badge.textContent = count;
-                        }
-                    }
-
-                    const item = event.target.closest('.dropdown-item');
-                    if (item) {
-                        item.classList.remove('bg-light');
-                        const newBadge = item.querySelector('.badge.bg-primary');
-                        if (newBadge) newBadge.remove();
-                    }
-                }
-            } catch (error) {
-                console.error('Erro ao marcar notificação:', error);
-            }
-        }
-
-        async function markAllAsRead(event) {
-            if (event) event.preventDefault();
-
-            try {
-                const response = await fetch('/notifications/mark-all-read', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-                        'Accept': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    const badge = document.querySelector('.notification-badge');
-                    if (badge) badge.remove();
-
-                    document.querySelectorAll('.dropdown-item.bg-light').forEach(item => {
-                        item.classList.remove('bg-light');
-                    });
-                    document.querySelectorAll('.badge.bg-primary').forEach(badge => badge.remove());
-
-                    showToast('Todas as notificações foram marcadas como lidas', 'success');
-                }
-            } catch (error) {
-                console.error('Erro:', error);
-                showToast('Erro ao marcar notificações', 'error');
-            }
-        }
-
-        // ===== SISTEMA DE TOAST =====
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            if (!container) return;
-
-            const iconMap = {
-                success: 'check-circle',
-                error: 'exclamation-circle',
-                warning: 'exclamation-triangle',
-                info: 'info-circle'
+        // Sistema de Toast Notifications
+        function showToast(type, title, message) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast-custom ${type}`;
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-times-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
             };
-
-            const colorMap = {
-                success: 'text-bg-success',
-                error: 'text-bg-danger',
-                warning: 'text-bg-warning',
-                info: 'text-bg-primary'
-            };
-
-            const toastId = 'toast-' + Date.now();
-            const toastHtml = `
-                <div class="toast ${colorMap[type]} toast-school" role="alert" id="${toastId}">
-                    <div class="toast-body d-flex align-items-center">
-                        <i class="fas fa-${iconMap[type]} me-2"></i>
-                        <span class="flex-grow-1">${message}</span>
-                        <button type="button" class="btn-close btn-close-white ms-2" data-bs-dismiss="toast"></button>
-                    </div>
+            
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas ${icons[type] || icons.info}"></i>
                 </div>
+                <div class="toast-content">
+                    <div class="toast-title">${title}</div>
+                    <div class="toast-message">${message}</div>
+                </div>
+                <button class="toast-close" onclick="closeToast(this)">
+                    <i class="fas fa-times"></i>
+                </button>
             `;
+            
+            container.appendChild(toast);
+            
+            // Auto-remover após 5 segundos
+            setTimeout(() => {
+                closeToast(toast.querySelector('.toast-close'));
+            }, 5000);
+        }
 
-            container.insertAdjacentHTML('beforeend', toastHtml);
+        function closeToast(button) {
+            const toast = button.closest('.toast-custom');
+            if (toast) {
+                toast.classList.add('hiding');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }
+        }
 
-            const toastElement = document.getElementById(toastId);
-            const toast = new bootstrap.Toast(toastElement);
-            toast.show();
+        // Marcar notificação como lida
+        function markAsRead(notificationId, event) {
+            event.preventDefault();
+            
+            fetch(`/notifications/${notificationId}/read`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Redirecionar para a URL da notificação
+                    const link = event.target.closest('a');
+                    if (link && link.href) {
+                        window.location.href = link.href;
+                    }
+                }
+            })
+            .catch(error => console.error('Erro ao marcar notificação como lida:', error));
+        }
 
-            toastElement.addEventListener('hidden.bs.toast', () => {
-                toastElement.remove();
+        // Marcar todas as notificações como lidas
+        function markAllAsRead(event) {
+            event.preventDefault();
+            
+            if (!confirm('Deseja marcar todas as notificações como lidas?')) {
+                return;
+            }
+            
+            fetch('/notifications/mark-all-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showToast('success', 'Sucesso', 'Todas as notificações foram marcadas como lidas');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao marcar todas como lidas:', error);
+                showToast('error', 'Erro', 'Não foi possível marcar as notificações como lidas');
             });
         }
 
-        // ===== MODAL DE AJUDA =====
-        function showHelpModal() {
-            const modalHtml = `
-                <div class="modal fade" id="helpModal" tabindex="-1">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header" style="background: var(--primary); color: white;">
-                                <h5 class="modal-title">
-                                    <i class="fas fa-question-circle me-2"></i>
-                                    Manual do Sistema Visionários
-                                </h5>
-                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <h6><i class="fas fa-user-graduate text-primary me-2"></i>Para Encarregados</h6>
-                                        <ul class="list-unstyled">
-                                            <li>• Acompanhar notas dos filhos</li>
-                                            <li>• Visualizar presenças</li>
-                                            <li>• Efetuar pagamentos</li>
-                                            <li>• Receber comunicados</li>
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <h6><i class="fas fa-chalkboard-teacher text-primary me-2"></i>Para Professores</h6>
-                                        <ul class="list-unstyled">
-                                            <li>• Marcar presenças</li>
-                                            <li>• Lançar avaliações</li>
-                                            <li>• Comunicar com pais</li>
-                                            <li>• Solicitar licenças</li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <hr>
-                                <div class="text-center">
-                                    <p class="text-muted">
-                                        Para mais informações, entre em contato com o suporte técnico:
-                                        <br><strong>suporte@visionarios.co.mz</strong>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            const existingModal = document.getElementById('helpModal');
-            if (existingModal) existingModal.remove();
-
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            const modal = new bootstrap.Modal(document.getElementById('helpModal'));
-            modal.show();
-        }
-
-        // ===== PESQUISA GLOBAL =====
-        document.querySelector('.search-input')?.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                const query = this.value.trim();
-                if (query.length > 2) {
-                    window.location.href = `/search?q=${encodeURIComponent(query)}`;
-                }
-            }
-        });
-
-        // ===== INICIALIZAÇÃO =====
+        // Inicializar estado do sidebar ao carregar a página
         document.addEventListener('DOMContentLoaded', function() {
-            // Aplicar tema salvo
-            const savedTheme = localStorage.getItem('school-theme') || 'light';
-            document.documentElement.setAttribute('data-bs-theme', savedTheme);
-
-            const icons = document.querySelectorAll('#theme-icon, #theme-icon-dropdown');
-            const text = document.getElementById('theme-text');
-
-            icons.forEach(icon => {
-                icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-            });
-
-            if (text) {
-                text.textContent = savedTheme === 'dark' ? 'Modo Claro' : 'Modo Escuro';
-            }
-
-            // Aplicar estado do sidebar
             const sidebar = document.getElementById('sidebar');
             const mainContent = document.getElementById('main-content');
             const toggleIcon = document.getElementById('toggle-icon');
 
-            if (window.innerWidth >= 1200 && sidebarCollapsed) {
+            // Restaurar estado do sidebar
+            if (window.innerWidth >= 1024 && sidebarCollapsed) {
                 sidebar.classList.add('collapsed');
                 mainContent.classList.add('collapsed');
-                toggleIcon.className = 'fas fa-chevron-right';
+                if (toggleIcon) {
+                    toggleIcon.className = 'fas fa-chevron-right';
+                }
             }
 
-            // Event listeners
-            document.getElementById('sidebar-overlay')?.addEventListener('click', () => {
-                toggleMobileMenu();
+            // Restaurar tema
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            const icons = document.querySelectorAll('#theme-icon, #theme-icon-dropdown');
+            const text = document.getElementById('theme-text');
+            
+            icons.forEach(icon => {
+                icon.className = savedTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
             });
+            
+            if (text) {
+                text.textContent = savedTheme === 'dark' ? 'Modo Claro' : 'Modo Escuro';
+            }
 
-            window.addEventListener('resize', function() {
-                if (window.innerWidth >= 1200) {
-                    if (mobileMenuOpen) toggleMobileMenu();
-                    if (mainContent) mainContent.classList.remove('expanded');
-                } else {
-                    if (mainContent) mainContent.classList.add('expanded');
-                }
-            });
-
-            // Auto-hide alerts
-            setTimeout(() => {
-                document.querySelectorAll('.alert-school').forEach(alert => {
-                    const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
-                    bsAlert?.close();
+            // Fechar sidebar mobile ao clicar em um link
+            const sidebarLinks = document.querySelectorAll('.sidebar-item');
+            sidebarLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth < 1024 && mobileSidebarOpen) {
+                        toggleMobileSidebar();
+                    }
                 });
-            }, 8000);
+            });
 
-            console.log('✅ Sistema Escolar Visionários iniciado com sucesso!');
+            // Mostrar mensagens flash como toast
+            @if(session('success'))
+                showToast('success', 'Sucesso', '{{ session('success') }}');
+            @endif
+
+            @if(session('error'))
+                showToast('error', 'Erro', '{{ session('error') }}');
+            @endif
+
+            @if(session('warning'))
+                showToast('warning', 'Atenção', '{{ session('warning') }}');
+            @endif
+
+            @if(session('info'))
+                showToast('info', 'Informação', '{{ session('info') }}');
+            @endif
+
+            // Verificar notificações a cada 60 segundos
+            setInterval(updateNotificationBadge, 60000);
         });
 
-        // ===== API GLOBAL =====
-        window.VisionariosSchool = {
-            showToast,
-            toggleSidebar,
-            toggleTheme,
-            markAsRead,
-            markAllAsRead,
-            showHelpModal,
-            version: '1.0.0'
-        };
+        // Atualizar badge de notificações
+        function updateNotificationBadge() {
+            fetch('/api/dashboard/counters')
+                .then(response => response.json())
+                .then(data => {
+                    const badges = document.querySelectorAll('.action-btn .badge');
+                    badges.forEach(badge => {
+                        if (data.notifications !== undefined) {
+                            badge.textContent = data.notifications;
+                            if (data.notifications === 0) {
+                                badge.style.display = 'none';
+                            } else {
+                                badge.style.display = 'flex';
+                            }
+                        }
+                    });
+                })
+                .catch(error => console.error('Erro ao atualizar badge:', error));
+        }
+
+        // Função para confirmar exclusão
+        function confirmDelete(message) {
+            return confirm(message || 'Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.');
+        }
+
+        // Função para formatar valores monetários
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-MZ', {
+                style: 'decimal',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(value) + ' MT';
+        }
+
+        // Função para formatar datas
+        function formatDate(date) {
+            return new Intl.DateTimeFormat('pt-MZ', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            }).format(new Date(date));
+        }
+
+        // Prevenir múltiplos submits de formulários
+        document.addEventListener('DOMContentLoaded', function() {
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                let isSubmitting = false;
+                
+                form.addEventListener('submit', function(e) {
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    
+                    if (isSubmitting) {
+                        e.preventDefault();
+                        return false;
+                    }
+                    
+                    if (submitBtn && !submitBtn.disabled) {
+                        isSubmitting = true;
+                        
+                        // Guardar texto original
+                        if (!submitBtn.dataset.originalText) {
+                            submitBtn.dataset.originalText = submitBtn.innerHTML;
+                        }
+                        
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Processando...';
+                        
+                        // Reativar após 10 segundos (caso haja erro de validação)
+                        setTimeout(() => {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = submitBtn.dataset.originalText;
+                            isSubmitting = false;
+                        }, 10000);
+                    }
+                });
+            });
+        });
+
+        // Função para busca ao vivo
+        let searchTimeout;
+        function liveSearch(input) {
+            clearTimeout(searchTimeout);
+            const query = input.value.trim();
+            
+            if (query.length < 3) {
+                return;
+            }
+            
+            searchTimeout = setTimeout(() => {
+                console.log('Buscando:', query);
+                // Implementar busca ao vivo aqui se necessário
+            }, 500);
+        }
+
+        // Adicionar listener para campo de busca
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchInput = document.querySelector('.search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function() {
+                    liveSearch(this);
+                });
+                
+                searchInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const query = this.value.trim();
+                        if (query.length >= 3) {
+                            window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                        } else {
+                            showToast('warning', 'Atenção', 'Digite pelo menos 3 caracteres para pesquisar');
+                        }
+                    }
+                });
+            }
+        });
+
+        // Função para copiar texto para clipboard
+        function copyToClipboard(text, showMessage = true) {
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(text).then(() => {
+                    if (showMessage) {
+                        showToast('success', 'Copiado', 'Texto copiado para a área de transferência');
+                    }
+                }).catch(err => {
+                    console.error('Erro ao copiar:', err);
+                    if (showMessage) {
+                        showToast('error', 'Erro', 'Não foi possível copiar o texto');
+                    }
+                });
+            } else {
+                // Fallback para navegadores antigos
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.left = '-999999px';
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    if (showMessage) {
+                        showToast('success', 'Copiado', 'Texto copiado para a área de transferência');
+                    }
+                } catch (err) {
+                    console.error('Erro ao copiar:', err);
+                    if (showMessage) {
+                        showToast('error', 'Erro', 'Não foi possível copiar o texto');
+                    }
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
+        // Função para imprimir
+        function printPage() {
+            window.print();
+        }
+
+        // Função para exportar tabela para CSV
+        function exportTable(tableId, filename) {
+            const table = document.getElementById(tableId);
+            if (!table) {
+                showToast('error', 'Erro', 'Tabela não encontrada');
+                return;
+            }
+            
+            let csv = [];
+            const rows = table.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const cols = row.querySelectorAll('td, th');
+                const csvRow = [];
+                cols.forEach(col => {
+                    // Limpar o texto e escapar vírgulas
+                    let text = col.innerText.trim().replace(/"/g, '""');
+                    if (text.includes(',') || text.includes('\n')) {
+                        text = `"${text}"`;
+                    }
+                    csvRow.push(text);
+                });
+                csv.push(csvRow.join(','));
+            });
+            
+            const csvContent = '\uFEFF' + csv.join('\n'); // BOM para UTF-8
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (filename || 'export') + '.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            showToast('success', 'Sucesso', 'Arquivo CSV exportado com sucesso');
+        }
+
+        // Função para fazer scroll suave
+        function smoothScrollTo(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        }
+
+        // Função para loading em botões
+        function setButtonLoading(button, loading = true) {
+            if (!button) return;
+            
+            if (loading) {
+                if (!button.dataset.originalText) {
+                    button.dataset.originalText = button.innerHTML;
+                }
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Carregando...';
+            } else {
+                button.disabled = false;
+                button.innerHTML = button.dataset.originalText || 'Enviar';
+            }
+        }
+
+        // Função para validar email
+        function isValidEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+
+        // Função para validar telefone moçambicano
+        function isValidMozambiquePhone(phone) {
+            // Remove espaços e caracteres especiais
+            const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+            // Valida formatos: 84XXXXXXX ou +25884XXXXXXX
+            const re = /^(\+258)?(8[2-7])\d{7}$/;
+            return re.test(cleaned);
+        }
+
+        // Função para formatar número de telefone
+        function formatPhoneNumber(phone) {
+            const cleaned = phone.replace(/[\s\-\(\)]/g, '');
+            if (cleaned.length === 9) {
+                return `${cleaned.substr(0, 2)} ${cleaned.substr(2, 3)} ${cleaned.substr(5, 4)}`;
+            }
+            return phone;
+        }
+
+        // Função para debounce
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Listener para redimensionamento da janela
+        window.addEventListener('resize', debounce(function() {
+            // Fechar sidebar mobile se a tela ficar maior
+            if (window.innerWidth >= 1024 && mobileSidebarOpen) {
+                toggleMobileSidebar();
+            }
+            
+            // Ajustar sidebar desktop
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.getElementById('main-content');
+            
+            if (window.innerWidth < 1024) {
+                sidebar.classList.remove('collapsed');
+                mainContent.classList.remove('collapsed');
+            } else if (sidebarCollapsed) {
+                sidebar.classList.add('collapsed');
+                mainContent.classList.add('collapsed');
+            }
+        }, 250));
+
+        // Log de erros JavaScript para o servidor (opcional)
+        window.addEventListener('error', function(e) {
+            if (typeof console !== 'undefined' && console.error) {
+                console.error('JavaScript Error:', e.message, e.filename, e.lineno);
+            }
+            
+            // Opcional: enviar para o servidor
+            // fetch('/api/log-js-error', {
+            //     method: 'POST',
+            //     headers: {
+            //         'Content-Type': 'application/json',
+            //         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            //     },
+            //     body: JSON.stringify({
+            //         message: e.message,
+            //         filename: e.filename,
+            //         lineno: e.lineno,
+            //         colno: e.colno,
+            //         stack: e.error ? e.error.stack : null
+            //     })
+            // });
+        });
     </script>
 
     @stack('scripts')
 </body>
-
 </html>

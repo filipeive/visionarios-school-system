@@ -280,78 +280,795 @@
 </html> --}}
 {{-- resources/views/auth/login.blade.php --}}
 <x-guest-layout>
-    <div class="auth-card">
-        <div class="auth-header">
-            <div class="auth-logo">
-                <i class="fas fa-graduation-cap"></i>
+    <style>
+        :root {
+            /* Cores do Logo - Extraídas da imagem */
+            --primary-blue: #2B5A8A;
+            --secondary-blue: #4A90C8;
+            --accent-green: #7CB342;
+            --accent-orange: #FF9800;
+            --sun-yellow: #FDB913;
+            --earth-green: #8BC34A;
+            
+            /* Gradientes do Logo */
+            --gradient-sky: linear-gradient(135deg, #FDB913 0%, #FF9800 100%);
+            --gradient-earth: linear-gradient(135deg, #7CB342 0%, #8BC34A 100%);
+            --gradient-book: linear-gradient(135deg, #2B5A8A 0%, #4A90C8 100%);
+            --gradient-main: linear-gradient(135deg, #2B5A8A 0%, #4A90C8 50%, #7CB342 100%);
+            
+            /* UI Colors */
+            --bg-primary: #F8F9FD;
+            --bg-card: #FFFFFF;
+            --text-primary: #1A202C;
+            --text-secondary: #64748B;
+            --border-color: #E2E8F0;
+            --shadow: 0 10px 40px rgba(43, 90, 138, 0.1);
+            --shadow-hover: 0 20px 60px rgba(43, 90, 138, 0.15);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Animated Background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(124, 179, 66, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(43, 90, 138, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 152, 0, 0.03) 0%, transparent 50%);
+            animation: backgroundFloat 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes backgroundFloat {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -50px) rotate(5deg); }
+            66% { transform: translate(-20px, 20px) rotate(-5deg); }
+        }
+
+        /* Login Container */
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 450px;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Logo Section */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 32px;
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        .logo-wrapper {
+            display: inline-block;
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .logo-image {
+            width: 120px;
+            height: auto;
+            filter: drop-shadow(0 8px 16px rgba(43, 90, 138, 0.15));
+            transition: all 0.3s ease;
+            animation: floatLogo 3s ease-in-out infinite;
+        }
+
+        @keyframes floatLogo {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .logo-wrapper:hover .logo-image {
+            transform: scale(1.05);
+            filter: drop-shadow(0 12px 24px rgba(43, 90, 138, 0.2));
+        }
+
+        .logo-title {
+            font-size: 28px;
+            font-weight: 800;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-subtitle {
+            font-size: 15px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Auth Card */
+        .auth-card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .auth-card:hover {
+            box-shadow: var(--shadow-hover);
+        }
+
+        .auth-header {
+            background: var(--gradient-main);
+            padding: 32px 32px 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: ripple 4s ease-out infinite;
+        }
+
+        @keyframes ripple {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { opacity: 0.5; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        .auth-header h1 {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            font-weight: 500;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Auth Body */
+        .auth-body {
+            padding: 0 32px 32px;
+            margin-top: -50px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .welcome-card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+            border: 1px solid var(--border-color);
+        }
+
+        .welcome-text {
+            font-size: 16px;
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .welcome-subtext {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .form-label i {
+            color: var(--primary-blue);
+            font-size: 16px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            position: relative;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            font-size: 16px;
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(43, 90, 138, 0.1);
+        }
+
+        .form-control:focus + .input-icon {
+            color: var(--primary-blue);
+        }
+
+        .form-control.is-invalid {
+            border-color: #E53935;
+        }
+
+        .invalid-feedback {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #E53935;
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        /* Checkbox */
+        .form-check {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .form-check-input {
+            width: 18px;
+            height: 18px;
+            border: 2px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .form-check-input:checked {
+            background: var(--gradient-main);
+            border-color: var(--primary-blue);
+        }
+
+        .form-check-label {
+            font-size: 14px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Button */
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: var(--gradient-main);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 16px rgba(43, 90, 138, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-login:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(43, 90, 138, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .btn-login span {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Links */
+        .forgot-password {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .forgot-password a {
+            color: var(--primary-blue);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .forgot-password a:hover {
+            color: var(--accent-orange);
+            gap: 8px;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            border: none;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: rgba(124, 179, 66, 0.1);
+            color: var(--accent-green);
+            border-left: 4px solid var(--accent-green);
+        }
+
+        .alert-danger {
+            background: rgba(229, 57, 53, 0.1);
+            color: #E53935;
+            border-left: 4px solid #E53935;
+        }
+
+        .alert i {
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .alert ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .alert li {
+            margin-bottom: 4px;
+        }
+
+        .alert li:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Footer */
+        .auth-footer {
+            text-align: center;
+            margin-top: 24px;
+            padding: 20px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        .auth-footer strong {
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        /* Loading State */
+        .btn-login.loading {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn-login.loading::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 576px) {
+            .login-container {
+                max-width: 100%;
+            }
+
+            .auth-body {
+                padding: 0 24px 24px;
+            }
+
+            .logo-title {
+                font-size: 24px;
+            }
+
+            .auth-header {
+                padding: 24px 24px 60px;
+            }
+
+            .auth-header h1 {
+                font-size: 20px;
+            }
+        }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+        }
+
+        .toast-notification {
+            min-width: 320px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            margin-bottom: 12px;
+            overflow: hidden;
+            animation: slideInRight 0.4s ease-out;
+            border-left: 4px solid;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast-notification.success {
+            border-left-color: var(--accent-green);
+        }
+
+        .toast-notification.error {
+            border-left-color: #E53935;
+        }
+
+        .toast-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .toast-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .toast-body {
+            padding: 12px 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .toast-close {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .toast-close:hover {
+            color: var(--text-primary);
+            transform: scale(1.1);
+        }
+    </style>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="login-container">
+        <!-- Logo Section -->
+        <div class="logo-section">
+            <div class="logo-wrapper">
+                <img src="/images/logo.png" alt="Escola dos Visionários" class="logo-image" 
+                     onerror="this.style.display='none'">
             </div>
-            <h2 class="mb-0">VISIONÁRIOS</h2>
-            <p class="mb-0">Sistema de Gestão Escolar</p>
+            <h2 class="logo-title">ESCOLA DOS VISIONÁRIOS</h2>
+            <p class="logo-subtitle">Sistema de Gestão Escolar</p>
         </div>
 
-        <div class="auth-body">
-            <h4 class="text-center mb-4">Entrar no Sistema</h4>
+        <!-- Auth Card -->
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>Bem-vindo de volta!</h1>
+                <p>Entre com suas credenciais para acessar o sistema</p>
+            </div>
 
-            @if (session('status'))
-                <div class="alert alert-success mb-4">{{ session('status') }}</div>
-            @endif
-
-            @if ($errors->any())
-                <div class="alert alert-danger mb-4">
-                    <ul class="mb-0">
-                        @foreach ($errors->all() as $error)
-                            <li>{{ $error }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-
-            <form method="POST" action="{{ route('login') }}">
-                @csrf
-
-                <div class="mb-3">
-                    <label for="email" class="form-label">
-                        <i class="fas fa-envelope me-2"></i>Email
-                    </label>
-                    <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" 
-                           name="email" value="{{ old('email') }}" required autofocus>
-                    @error('email')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
+            <div class="auth-body">
+                <div class="welcome-card">
+                    <div class="welcome-text">Portal Administrativo</div>
+                    <div class="welcome-subtext">Acesso seguro ao sistema de gestão</div>
                 </div>
 
-                <div class="mb-3">
-                    <label for="password" class="form-label">
-                        <i class="fas fa-lock me-2"></i>Senha
-                    </label>
-                    <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" 
-                           name="password" required>
-                    @error('password')
-                        <div class="invalid-feedback">{{ $message }}</div>
-                    @enderror
-                </div>
-
-                <div class="mb-3 form-check">
-                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                    <label class="form-check-label" for="remember">Lembrar-me</label>
-                </div>
-
-                <button type="submit" class="btn btn-primary-auth">
-                    <i class="fas fa-sign-in-alt me-2"></i>Entrar
-                </button>
-
-                @if (Route::has('password.request'))
-                    <div class="text-center mt-3">
-                        <a href="{{ route('password.request') }}" class="text-decoration-none">
-                            Esqueceu a senha?
-                        </a>
+                @if (session('status'))
+                    <div class="alert alert-success">
+                        <i class="fas fa-check-circle"></i>
+                        <span>{{ session('status') }}</span>
                     </div>
                 @endif
-            </form>
+
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div>
+                            @if ($errors->count() === 1)
+                                {{ $errors->first() }}
+                            @else
+                                <ul>
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('login') }}" id="loginForm">
+                    @csrf
+
+                    <!-- Email -->
+                    <div class="form-group">
+                        <label for="email" class="form-label">
+                            <i class="fas fa-envelope"></i>
+                            <span>Endereço de Email</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input 
+                                id="email" 
+                                type="email" 
+                                class="form-control @error('email') is-invalid @enderror"
+                                name="email" 
+                                value="{{ old('email') }}" 
+                                required 
+                                autofocus
+                                autocomplete="email"
+                                placeholder="seu@email.com">
+                            <i class="fas fa-envelope input-icon"></i>
+                        </div>
+                        @error('email')
+                            <div class="invalid-feedback">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock"></i>
+                            <span>Senha</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input 
+                                id="password" 
+                                type="password" 
+                                class="form-control @error('password') is-invalid @enderror"
+                                name="password" 
+                                required
+                                autocomplete="current-password"
+                                placeholder="Digite sua senha">
+                            <i class="fas fa-lock input-icon"></i>
+                        </div>
+                        @error('password')
+                            <div class="invalid-feedback">
+                                <i class="fas fa-exclamation-circle"></i>
+                                {{ $message }}
+                            </div>
+                        @enderror
+                    </div>
+
+                    <!-- Remember Me -->
+                    <div class="form-check">
+                        <input 
+                            type="checkbox" 
+                            class="form-check-input" 
+                            id="remember" 
+                            name="remember"
+                            {{ old('remember') ? 'checked' : '' }}>
+                        <label class="form-check-label" for="remember">
+                            Manter-me conectado
+                        </label>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn-login" id="loginBtn">
+                        <span>
+                            <i class="fas fa-sign-in-alt"></i>
+                            Entrar no Sistema
+                        </span>
+                    </button>
+
+                    <!-- Forgot Password -->
+                    @if (Route::has('password.request'))
+                        <div class="forgot-password">
+                            <a href="{{ route('password.request') }}">
+                                <i class="fas fa-key"></i>
+                                Esqueceu sua senha?
+                            </a>
+                        </div>
+                    @endif
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="auth-footer">
+            <p>© {{ date('Y') }} <strong>Escola dos Visionários</strong></p>
+            <p>Quelimane, Província da Zambézia - Moçambique</p>
         </div>
     </div>
 
-    <div class="text-center mt-4 text-white">
-        <small>© {{ date('Y') }} Escola dos Visionários - Quelimane, Zambézia</small>
-    </div>
+    <script>
+        // Toast Notification System
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast-notification ${type}`;
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            const title = type === 'success' ? 'Sucesso!' : 'Erro!';
+            
+            toast.innerHTML = `
+                <div class="toast-header">
+                    <div class="toast-title">
+                        <i class="fas ${icon}"></i>
+                        <span>${title}</span>
+                    </div>
+                    <button class="toast-close" onclick="this.parentElement.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="toast-body">${message}</div>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOutRight 0.4s ease-out';
+                setTimeout(() => toast.remove(), 400);
+            }, 5000);
+        }
+
+        // Form Submission Handler
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            const btn = document.getElementById('loginBtn');
+            btn.classList.add('loading');
+            btn.querySelector('span').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+        });
+
+        // Auto-hide alerts
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                alert.style.animation = 'slideUp 0.4s ease-out reverse';
+                setTimeout(() => alert.remove(), 400);
+            });
+        }, 5000);
+
+        // Input animations
+        document.querySelectorAll('.form-control').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'scale(1.02)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'scale(1)';
+            });
+        });
+
+        console.log('🎓 Sistema Visionários - Login carregado com sucesso!');
+    </script>
 </x-guest-layout>

@@ -40,6 +40,10 @@ class Subject extends Model
         return $this->hasMany(Grade::class);
     }
 
+    public function schedules()
+    {
+        return $this->hasMany(ClassSchedule::class);
+    }
     // Scopes
     public function scopeActive($query)
     {

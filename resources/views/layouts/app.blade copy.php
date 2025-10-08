@@ -1,36 +1,35 @@
-// Window resize handler
-        window.addEventListener('resize', function() {
-            if (window.innerWidth >= 1024) {
-                if (mobileSidebarOpen) toggleMobileSidebar();
-         <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme="light">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ config('app.name', 'Visionários') }} - @yield('title', 'Dashboard')</title>
-    
+
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet">
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
         :root {
             /* Cores do Logo Visionários */
             --primary-green: #7CB342;
-            --primary-blue: #2E5C8A;
+            --primary-blue: #0f60b0;
             --primary-orange: #FF9800;
             --accent-yellow: #FDD835;
-            
+
             /* Sistema de Cores */
             --success: #7CB342;
             --info: #2E5C8A;
             --warning: #FF9800;
             --danger: #E53935;
-            
+
             /* Neutrals */
             --gray-50: #FAFAFA;
             --gray-100: #F5F5F5;
@@ -42,29 +41,29 @@
             --gray-700: #616161;
             --gray-800: #424242;
             --gray-900: #212121;
-            
+
             /* Layout */
             --header-height: 56px;
             --sidebar-width: 240px;
             --sidebar-collapsed: 60px;
-            
+
             /* Backgrounds */
             --bg-app: #F8F9FA;
             --bg-card: #FFFFFF;
             --bg-sidebar: #2E5C8A;
             --bg-header: #FFFFFF;
-            
+
             /* Text */
             --text-primary: #212121;
             --text-secondary: #616161;
             --text-muted: #9E9E9E;
             --text-inverse: #FFFFFF;
-            
+
             /* Shadows */
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
-            --shadow-md: 0 2px 8px rgba(0,0,0,0.1);
-            --shadow-lg: 0 4px 16px rgba(0,0,0,0.12);
-            
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+            --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.12);
+
             /* Border */
             --border-radius: 8px;
             --border-color: #E0E0E0;
@@ -121,6 +120,21 @@
             gap: 10px;
             min-width: var(--sidebar-width);
             padding-right: 16px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .page-title i {
+            margin-right: 10px;
+            color: var(--primary-blue);
+            font-size: 18px;
         }
 
         .logo-container {
@@ -425,10 +439,25 @@
             width: 0;
         }
 
-        .badge-orange { background: var(--primary-orange); color: white; }
-        .badge-green { background: var(--primary-green); color: white; }
-        .badge-red { background: var(--danger); color: white; }
-        .badge-blue { background: var(--info); color: white; }
+        .badge-orange {
+            background: var(--primary-orange);
+            color: white;
+        }
+
+        .badge-green {
+            background: var(--primary-green);
+            color: white;
+        }
+
+        .badge-red {
+            background: var(--danger);
+            color: white;
+        }
+
+        .badge-blue {
+            background: var(--info);
+            color: white;
+        }
 
         /* Área do Usuário na Sidebar */
         .sidebar-user {
@@ -627,7 +656,6 @@
             border-left: 4px solid var(--info);
         }
 
-
         /* ===== STATS CARDS ===== */
         .stats-grid {
             display: grid;
@@ -665,10 +693,21 @@
             flex-shrink: 0;
         }
 
-        .icon-blue { background: linear-gradient(135deg, #2E5C8A, #1E3A52); }
-        .icon-green { background: linear-gradient(135deg, #7CB342, #558B2F); }
-        .icon-orange { background: linear-gradient(135deg, #FF9800, #F57C00); }
-        .icon-red { background: linear-gradient(135deg, #E53935, #C62828); }
+        .icon-blue {
+            background: linear-gradient(135deg, #2E5C8A, #1E3A52);
+        }
+
+        .icon-green {
+            background: linear-gradient(135deg, #7CB342, #558B2F);
+        }
+
+        .icon-orange {
+            background: linear-gradient(135deg, #FF9800, #F57C00);
+        }
+
+        .icon-red {
+            background: linear-gradient(135deg, #E53935, #C62828);
+        }
 
         .stat-content {
             flex: 1;
@@ -696,8 +735,41 @@
             margin-top: 4px;
         }
 
-        .stat-change.positive { color: var(--success); }
-        .stat-change.negative { color: var(--danger); }
+        .stat-change.positive {
+            color: var(--success);
+        }
+
+        .stat-change.negative {
+            color: var(--danger);
+        }
+
+        /* ===== SCHOOL CARDS ===== */
+        .school-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+            transition: all 0.2s;
+        }
+
+        .school-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .school-card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .school-card-body {
+            padding: 20px;
+        }
 
         /* ===== BUTTONS ===== */
         .btn-primary-visionarios {
@@ -719,6 +791,69 @@
             transform: translateY(-1px);
             box-shadow: var(--shadow-md);
             color: white;
+        }
+
+        .btn-success-visionarios {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-warning-visionarios {
+            background: var(--warning);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ===== TABLES ===== */
+        .school-table {
+            background: var(--bg-card);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .school-table .table {
+            margin-bottom: 0;
+        }
+
+        .school-table .table thead th {
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--border-color);
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            padding: 12px 16px;
+        }
+
+        .school-table .table tbody td {
+            padding: 12px 16px;
+            vertical-align: middle;
+            border-color: var(--border-color);
+        }
+
+        .school-table .table tbody tr:hover {
+            background: var(--gray-50);
         }
 
         /* ===== SIDEBAR OVERLAY ===== */
@@ -754,28 +889,28 @@
             .app-sidebar {
                 transform: translateX(-100%);
             }
-            
+
             .app-sidebar.mobile-open {
                 transform: translateX(0);
             }
-            
+
             .app-main {
                 margin-left: 0 !important;
             }
-            
+
             .header-logo {
                 min-width: auto;
                 padding-right: 0;
             }
-            
+
             .sidebar-toggle-desktop {
                 display: none;
             }
-            
+
             .mobile-toggle {
                 display: flex;
             }
-            
+
             .header-search {
                 width: 200px;
             }
@@ -789,15 +924,15 @@
             .header-search {
                 display: none;
             }
-            
+
             .user-name {
                 display: none;
             }
-            
+
             .app-main {
                 padding: 16px;
             }
-            
+
             .page-title {
                 font-size: 20px;
             }
@@ -905,6 +1040,7 @@
 
     @stack('styles')
 </head>
+
 <body>
     <!-- Toast Container -->
     <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 9999;" id="toast-container"></div>
@@ -929,7 +1065,10 @@
                 <i class="fas fa-chevron-left" id="toggle-icon"></i>
             </button>
         </div>
-
+        <h1 class="page-title">
+            <i class="{{ $titleIcon ?? 'fas fa-tachometer-alt' }}"></i>
+            @yield('page-title', 'Dashboard')
+        </h1>
         <div class="header-actions">
             <div class="header-search">
                 <i class="fas fa-search search-icon"></i>
@@ -943,14 +1082,18 @@
                 @endif
             </button>
 
-            <ul class="dropdown-menu dropdown-menu-end shadow" style="width: 380px; max-height: 500px; overflow-y: auto;">
+            <ul class="dropdown-menu dropdown-menu-end shadow"
+                style="width: 380px; max-height: 500px; overflow-y: auto;">
                 <li class="dropdown-header d-flex justify-content-between align-items-center p-3">
                     <strong>Notificações</strong>
-                    <a href="#" class="text-decoration-none small" style="color: var(--primary-blue);" onclick="markAllAsRead(event)">
+                    <a href="#" class="text-decoration-none small" style="color: var(--primary-blue);"
+                        onclick="markAllAsRead(event)">
                         Marcar todas como lidas
                     </a>
                 </li>
-                <li><hr class="dropdown-divider m-0"></li>
+                <li>
+                    <hr class="dropdown-divider m-0">
+                </li>
 
                 @forelse(auth()->user()->notifications->take(5) as $notification)
                     <li>
@@ -958,11 +1101,13 @@
                             href="{{ $notification->data['action_url'] ?? '#' }}"
                             onclick="markAsRead('{{ $notification->id }}', event)">
                             <div class="flex-shrink-0 me-3">
-                                <i class="{{ $notification->data['icon'] ?? 'fas fa-bell' }}" style="color: var(--primary-blue);"></i>
+                                <i class="{{ $notification->data['icon'] ?? 'fas fa-bell' }}"
+                                    style="color: var(--primary-blue);"></i>
                             </div>
                             <div class="flex-grow-1">
                                 <div class="fw-semibold mb-1">{{ $notification->data['title'] ?? 'Notificação' }}</div>
-                                <div class="text-muted small mb-1">{{ $notification->data['message'] ?? 'Nova notificação' }}</div>
+                                <div class="text-muted small mb-1">
+                                    {{ $notification->data['message'] ?? 'Nova notificação' }}</div>
                                 <small class="text-muted">{{ $notification->created_at->diffForHumans() }}</small>
                             </div>
                             @if (!$notification->read_at)
@@ -979,9 +1124,12 @@
                     </li>
                 @endforelse
 
-                <li><hr class="dropdown-divider m-0"></li>
+                <li>
+                    <hr class="dropdown-divider m-0">
+                </li>
                 <li class="text-center p-2">
-                    <a href="{{ route('notifications.index') }}" class="small text-decoration-none" style="color: var(--primary-blue);">
+                    <a href="{{ route('notifications.index') }}" class="small text-decoration-none"
+                        style="color: var(--primary-blue);">
                         Ver todas as notificações
                     </a>
                 </li>
@@ -1002,16 +1150,34 @@
                     <strong>{{ explode(' ', auth()->user()->name)[0] }}</strong>
                     <small class="d-block text-muted">
                         @switch(auth()->user()->role)
-                            @case('admin') Administrador @break
-                            @case('secretary') Secretaria @break
-                            @case('pedagogy') Seção Pedagógica @break
-                            @case('teacher') Professor(a) @break
-                            @case('parent') Encarregado @break
-                            @default Usuário
+                            @case('admin')
+                                Administrador
+                            @break
+
+                            @case('secretary')
+                                Secretaria
+                            @break
+
+                            @case('pedagogy')
+                                Seção Pedagógica
+                            @break
+
+                            @case('teacher')
+                                Professor(a)
+                            @break
+
+                            @case('parent')
+                                Encarregado
+                            @break
+
+                            @default
+                                Usuário
                         @endswitch
                     </small>
                 </li>
-                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
                 <li>
                     <a class="dropdown-item" href="{{ route('profile.edit') }}">
                         <i class="fas fa-user me-3"></i>Meu Perfil
@@ -1037,7 +1203,9 @@
                         <span id="theme-text">Modo Escuro</span>
                     </a>
                 </li>
-                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
                 <li>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf
@@ -1055,7 +1223,8 @@
         <nav class="sidebar-nav">
             <!-- Dashboard -->
             <div class="nav-section">
-                <a href="{{ route('dashboard') }}" class="sidebar-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                <a href="{{ route('dashboard') }}"
+                    class="sidebar-item {{ request()->routeIs('dashboard') ? 'active' : '' }}">
                     <span class="sidebar-icon"><i class="fas fa-th-large"></i></span>
                     <span class="sidebar-text">Dashboard</span>
                 </a>
@@ -1065,7 +1234,8 @@
             @canany(['manage_students', 'view_students'])
                 <div class="nav-section">
                     <div class="section-title">Gestão de Alunos</div>
-                    <a href="{{ route('students.index') }}" class="sidebar-item {{ request()->routeIs('students.*') ? 'active' : '' }}">
+                    <a href="{{ route('students.index') }}"
+                        class="sidebar-item {{ request()->routeIs('students.*') ? 'active' : '' }}">
                         <span class="sidebar-icon"><i class="fas fa-user-graduate"></i></span>
                         <span class="sidebar-text">Alunos</span>
                         @can('create_students')
@@ -1075,7 +1245,8 @@
                         @endcan
                     </a>
 
-                    <a href="{{ route('enrollments.index') }}" class="sidebar-item {{ request()->routeIs('enrollments.*') ? 'active' : '' }}">
+                    <a href="{{ route('enrollments.index') }}"
+                        class="sidebar-item {{ request()->routeIs('enrollments.*') ? 'active' : '' }}">
                         <span class="sidebar-icon"><i class="fas fa-clipboard-list"></i></span>
                         <span class="sidebar-text">Matrículas</span>
                         @php
@@ -1092,25 +1263,29 @@
             @canany(['manage_classes', 'view_classes', 'manage_subjects'])
                 <div class="nav-section">
                     <div class="section-title">Gestão Acadêmica</div>
-                    <a href="{{ route('classes.index') }}" class="sidebar-item {{ request()->routeIs('classes.*') ? 'active' : '' }}">
+                    <a href="{{ route('classes.index') }}"
+                        class="sidebar-item {{ request()->routeIs('classes.*') ? 'active' : '' }}">
                         <span class="sidebar-icon"><i class="fas fa-chalkboard"></i></span>
                         <span class="sidebar-text">Turmas</span>
                     </a>
 
-                    <a href="{{ route('subjects.index') }}" class="sidebar-item {{ request()->routeIs('subjects.*') ? 'active' : '' }}">
+                    <a href="{{ route('subjects.index') }}"
+                        class="sidebar-item {{ request()->routeIs('subjects.*') ? 'active' : '' }}">
                         <span class="sidebar-icon"><i class="fas fa-book"></i></span>
                         <span class="sidebar-text">Disciplinas</span>
                     </a>
 
                     @can('manage_attendances')
-                        <a href="{{ route('attendances.index') }}" class="sidebar-item {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
+                        <a href="{{ route('attendances.index') }}"
+                            class="sidebar-item {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
                             <span class="sidebar-icon"><i class="fas fa-calendar-check"></i></span>
                             <span class="sidebar-text">Presenças</span>
                         </a>
                     @endcan
 
                     @can('manage_grades')
-                        <a href="{{ route('grades.index') }}" class="sidebar-item {{ request()->routeIs('grades.*') ? 'active' : '' }}">
+                        <a href="{{ route('grades.index') }}"
+                            class="sidebar-item {{ request()->routeIs('grades.*') ? 'active' : '' }}">
                             <span class="sidebar-icon"><i class="fas fa-star"></i></span>
                             <span class="sidebar-text">Avaliações</span>
                         </a>
@@ -1122,7 +1297,8 @@
             @canany(['manage_payments', 'view_payments'])
                 <div class="nav-section">
                     <div class="section-title">Gestão Financeira</div>
-                    <a href="{{ route('payments.index') }}" class="sidebar-item {{ request()->routeIs('payments.*') ? 'active' : '' }}">
+                    <a href="{{ route('payments.index') }}"
+                        class="sidebar-item {{ request()->routeIs('payments.*') ? 'active' : '' }}">
                         <span class="sidebar-icon"><i class="fas fa-money-bill-wave"></i></span>
                         <span class="sidebar-text">Mensalidades</span>
                         @php
@@ -1144,13 +1320,15 @@
             @canany(['manage_teachers', 'view_teachers'])
                 <div class="nav-section">
                     <div class="section-title">Gestão de Pessoal</div>
-                    <a href="{{ route('teachers.index') }}" class="sidebar-item {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
+                    <a href="{{ route('teachers.index') }}"
+                        class="sidebar-item {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
                         <span class="sidebar-icon"><i class="fas fa-chalkboard-teacher"></i></span>
                         <span class="sidebar-text">Professores</span>
                     </a>
 
                     @can('manage_leave_requests')
-                        <a href="{{ route('teacher.leave-requests') }}" class="sidebar-item {{ request()->routeIs('leave-requests.*') ? 'active' : '' }}">
+                        <a href="{{ route('teacher.leave-requests') }}"
+                            class="sidebar-item {{ request()->routeIs('leave-requests.*') ? 'active' : '' }}">
                             <span class="sidebar-icon"><i class="fas fa-calendar-times"></i></span>
                             <span class="sidebar-text">Licenças</span>
                             @php
@@ -1168,12 +1346,14 @@
             @can('manage_events')
                 <div class="nav-section">
                     <div class="section-title">Comunicação</div>
-                    <a href="{{ route('events.index') }}" class="sidebar-item {{ request()->routeIs('events.*') ? 'active' : '' }}">
+                    <a href="{{ route('events.index') }}"
+                        class="sidebar-item {{ request()->routeIs('events.*') ? 'active' : '' }}">
                         <span class="sidebar-icon"><i class="fas fa-calendar-alt"></i></span>
                         <span class="sidebar-text">Eventos</span>
                     </a>
 
-                    <a href="{{ route('communications.index') }}" class="sidebar-item {{ request()->routeIs('communications.*') ? 'active' : '' }}">
+                    <a href="{{ route('communications.index') }}"
+                        class="sidebar-item {{ request()->routeIs('communications.*') ? 'active' : '' }}">
                         <span class="sidebar-icon"><i class="fas fa-bullhorn"></i></span>
                         <span class="sidebar-text">Comunicados</span>
                     </a>
@@ -1184,7 +1364,8 @@
             @canany(['view_reports', 'export_reports'])
                 <div class="nav-section">
                     <div class="section-title">Relatórios</div>
-                    <a href="{{ route('reports.index') }}" class="sidebar-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                    <a href="{{ route('reports.index') }}"
+                        class="sidebar-item {{ request()->routeIs('reports.*') ? 'active' : '' }}">
                         <span class="sidebar-icon"><i class="fas fa-chart-bar"></i></span>
                         <span class="sidebar-text">Relatórios</span>
                         @can('export_reports')
@@ -1198,13 +1379,15 @@
             @can('manage_users')
                 <div class="nav-section">
                     <div class="section-title">Administração</div>
-                    <a href="{{ route('admin.users.index') }}" class="sidebar-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.users.index') }}"
+                        class="sidebar-item {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                         <span class="sidebar-icon"><i class="fas fa-users-cog"></i></span>
                         <span class="sidebar-text">Usuários</span>
                         <span class="sidebar-badge badge-red">Admin</span>
                     </a>
 
-                    <a href="{{ route('admin.settings.index') }}" class="sidebar-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                    <a href="{{ route('admin.settings.index') }}"
+                        class="sidebar-item {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
                         <span class="sidebar-icon"><i class="fas fa-cog"></i></span>
                         <span class="sidebar-text">Configurações</span>
                     </a>
@@ -1214,7 +1397,8 @@
             <!-- Minha Conta -->
             <div class="nav-section">
                 <div class="section-title">Minha Conta</div>
-                <a href="{{ route('profile.edit') }}" class="sidebar-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                <a href="{{ route('profile.edit') }}"
+                    class="sidebar-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
                     <span class="sidebar-icon"><i class="fas fa-user-circle"></i></span>
                     <span class="sidebar-text">Meu Perfil</span>
                 </a>
@@ -1229,12 +1413,28 @@
                     <div class="sidebar-user-name">{{ explode(' ', auth()->user()->name)[0] }}</div>
                     <div class="sidebar-user-role">
                         @switch(auth()->user()->role)
-                            @case('admin') Administrador @break
-                            @case('secretary') Secretaria @break
-                            @case('pedagogy') Pedagógico @break
-                            @case('teacher') Professor @break
-                            @case('parent') Encarregado @break
-                            @default Usuário
+                            @case('admin')
+                                Administrador
+                            @break
+
+                            @case('secretary')
+                                Secretaria
+                            @break
+
+                            @case('pedagogy')
+                                Pedagógico
+                            @break
+
+                            @case('teacher')
+                                Professor
+                            @break
+
+                            @case('parent')
+                                Encarregado
+                            @break
+
+                            @default
+                                Usuário
                         @endswitch
                     </div>
                 </div>
@@ -1323,6 +1523,24 @@
             </div>
         @endif
 
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="page-title">
+                <div class="title-icon">
+                    <i class="@yield('title-icon', 'fas fa-tachometer-alt')"></i>
+                </div>
+                <div>
+                    <h1 class="mb-0">@yield('page-title', 'Dashboard')</h1>
+                    @hasSection('page-subtitle')
+                        <small class="text-muted">@yield('page-subtitle')</small>
+                    @endif
+                </div>
+            </div>
+            <div class="page-actions">
+                @yield('page-actions')
+            </div>
+        </div>
+
         <!-- Page Content -->
         @yield('content')
 
@@ -1331,7 +1549,8 @@
             <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center">
                 <div class="text-center text-sm-start mb-2 mb-sm-0">
                     <small class="text-muted">
-                        © {{ date('Y') }} <strong style="color: var(--primary-blue);">Escola dos Visionários</strong> - Sistema de Gestão Escolar
+                        © {{ date('Y') }} <strong style="color: var(--primary-blue);">Escola dos
+                            Visionários</strong> - Sistema de Gestão Escolar
                     </small>
                     <br>
                     <small class="text-muted">
@@ -1341,8 +1560,10 @@
                 <div class="text-center text-sm-end">
                     <small class="text-muted">
                         <span class="badge" style="background: var(--success);">v1.0.0</span>
-                        <a href="mailto:suporte@visionarios.co.mz" class="text-decoration-none me-2" style="color: var(--primary-blue);">Suporte Técnico</a>
-                        <a href="#" class="text-decoration-none" style="color: var(--primary-blue);">Manual do Sistema</a>
+                        <a href="mailto:suporte@visionarios.co.mz" class="text-decoration-none me-2"
+                            style="color: var(--primary-blue);">Suporte Técnico</a>
+                        <a href="#" class="text-decoration-none" style="color: var(--primary-blue);">Manual do
+                            Sistema</a>
                     </small>
                 </div>
             </div>
@@ -1541,4 +1762,5 @@
 
     @stack('scripts')
 </body>
+
 </html>
