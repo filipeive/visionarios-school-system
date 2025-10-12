@@ -12,8 +12,8 @@ use App\Models\Event;
 use App\Models\Attendance;
 use App\Models\Grade;
 use App\Models\StaffLeaveRequest;
-use Carbon\Carbon; 
-use Illuminate\Support\Facades\Schema;    
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
 
 class DashboardController extends Controller
@@ -21,7 +21,7 @@ class DashboardController extends Controller
     public function index()
     {
         $user = auth()->user();
-        
+
         // Dashboard baseado no tipo de usuário
         switch ($user->role) {
             case 'admin':
@@ -60,9 +60,9 @@ class DashboardController extends Controller
                 ->whereMonth('created_at', now()->month)
                 ->count(),
             'revenue_change' => $this->calculateRevenueChange(),
-            'pending_actions' => Payment::overdue()->count() + 
-                               Enrollment::where('status', 'pending')->count() +
-                               StaffLeaveRequest::where('status', 'pending')->count()
+            'pending_actions' => Payment::overdue()->count() +
+                Enrollment::where('status', 'pending')->count() +
+                StaffLeaveRequest::where('status', 'pending')->count()
         ];
 
         $recentActivities = $this->getRecentActivities();
@@ -77,9 +77,9 @@ class DashboardController extends Controller
         $studentsDistribution = $this->getStudentsDistribution();
 
         return view('dashboard.admin', compact(
-            'stats', 
-            'recentActivities', 
-            'upcomingEvents', 
+            'stats',
+            'recentActivities',
+            'upcomingEvents',
             'revenueData',
             'studentsDistribution'
         ));
@@ -112,7 +112,7 @@ class DashboardController extends Controller
             ->latest()
             ->take(10)
             ->get();
-            
+
         $overduePayments = Payment::overdue()
             ->with(['student'])
             ->take(10)
@@ -125,8 +125,8 @@ class DashboardController extends Controller
             ->get();
 
         return view('dashboard.secretary', compact(
-            'stats', 
-            'recentPayments', 
+            'stats',
+            'recentPayments',
             'overduePayments',
             'pendingEnrollments'
         ));
@@ -155,9 +155,9 @@ class DashboardController extends Controller
             ->get();
 
         return view('dashboard.pedagogy', compact(
-            'stats', 
-            'classPerformance', 
-            'attendanceStats', 
+            'stats',
+            'classPerformance',
+            'attendanceStats',
             'teacherStats',
             'upcomingExams'
         ));
@@ -166,7 +166,7 @@ class DashboardController extends Controller
     private function teacherDashboard()
     {
         $teacher = Teacher::where('user_id', auth()->id())->first();
-        
+
         if (!$teacher) {
             return redirect()->route('profile.edit')
                 ->with('warning', 'Complete seu perfil de professor para acessar o dashboard.');
@@ -180,7 +180,7 @@ class DashboardController extends Controller
 
         $stats = [
             'my_classes' => $myClasses->count(),
-            'total_students' => $myClasses->sum(function($class) {
+            'total_students' => $myClasses->sum(function ($class) {
                 return $class->students->count();
             }),
             'todays_attendance' => Attendance::whereIn('class_id', $myClasses->pluck('id'))
@@ -189,7 +189,7 @@ class DashboardController extends Controller
             'pending_grades' => Grade::where('teacher_id', $teacher->id)
                 ->whereNull('grade')
                 ->count(),
-            'total_subjects' => $myClasses->sum(function($class) {
+            'total_subjects' => $myClasses->sum(function ($class) {
                 return $class->subjects->count();
             }),
             'classes_with_attendance' => Attendance::whereIn('class_id', $myClasses->pluck('id'))
@@ -206,17 +206,17 @@ class DashboardController extends Controller
             ->get();
 
         $myStudents = Student::active()
-            ->whereHas('enrollments', function($q) use ($myClasses) {
-            $q->whereIn('class_id', $myClasses->pluck('id'))
-              ->where('status', 'active');
+            ->whereHas('enrollments', function ($q) use ($myClasses) {
+                $q->whereIn('class_id', $myClasses->pluck('id'))
+                    ->where('status', 'active');
             })
-            ->with(['currentClass'])
+            ->with(['currentEnrollment.class']) // 🔥 carrega a matrícula e a classe juntas
             ->get();
 
         return view('dashboard.teacher', compact(
-            'stats', 
-            'myClasses', 
-            'todaysSchedule', 
+            'stats',
+            'myClasses',
+            'todaysSchedule',
             'recentGrades',
             'myStudents',
             'teacher'
@@ -226,7 +226,7 @@ class DashboardController extends Controller
     private function parentDashboard()
     {
         $parent = auth()->user()->parent;
-        
+
         if (!$parent) {
             return redirect()->route('profile.edit')
                 ->with('warning', 'Complete seu perfil para acessar as informações dos seus filhos.');
@@ -234,13 +234,13 @@ class DashboardController extends Controller
 
         $children = $parent->students()->with([
             'currentEnrollment.class',
-            'grades' => function($q) { 
-                $q->currentYear()->with('subject'); 
+            'grades' => function ($q) {
+                $q->currentYear()->with('subject');
             },
-            'payments' => function($q) { 
-                $q->whereYear('year', now()->year); 
+            'payments' => function ($q) {
+                $q->whereYear('year', now()->year);
             },
-            'attendances' => function($q) {
+            'attendances' => function ($q) {
                 $q->whereDate('attendance_date', '>=', now()->subDays(30));
             }
         ])->get();
@@ -258,27 +258,27 @@ class DashboardController extends Controller
                 ->whereYear('year', now()->year)
                 ->sum('amount'),
             'children_in_school' => $children->where('status', 'active')->count(),
-            'average_grades' => $children->avg(function($child) {
+            'average_grades' => $children->avg(function ($child) {
                 return $child->grades->avg('grade');
             }),
             'attendance_rate' => $this->calculateChildrenAttendanceRate($children),
         ];
 
-        $upcomingEvents = Event::where(function($query) {
-                $query->where('target_audience', 'parents')
-                      ->orWhere('target_audience', 'all');
-            })
+        $upcomingEvents = Event::where(function ($query) {
+            $query->where('target_audience', 'parents')
+                ->orWhere('target_audience', 'all');
+        })
             ->upcoming()
             ->take(5)
             ->get();
 
-        $recentGrades = $children->flatMap(function($child) {
+        $recentGrades = $children->flatMap(function ($child) {
             return $child->grades->take(3);
         })->sortByDesc('created_at')->take(5);
 
         return view('dashboard.parent', compact(
-            'stats', 
-            'children', 
+            'stats',
+            'children',
             'upcomingEvents',
             'recentGrades'
         ));
@@ -324,12 +324,12 @@ class DashboardController extends Controller
         for ($i = 5; $i >= 0; $i--) {
             $date = now()->subMonths($i);
             $months[] = $date->format('M/Y');
-            
+
             $revenue = Payment::paid()
                 ->whereMonth('payment_date', $date->month)
                 ->whereYear('payment_date', $date->year)
                 ->sum('amount');
-                
+
             $amounts[] = $revenue;
         }
 
@@ -341,12 +341,12 @@ class DashboardController extends Controller
 
     private function getStudentsDistribution()
     {
-        $distribution = ClassRoom::withCount(['students as students_count' => function($query) {
-        $query->where('enrollments.status', 'active');
+        $distribution = ClassRoom::withCount(['students as students_count' => function ($query) {
+            $query->where('enrollments.status', 'active');
         }])
-        ->where('is_active', true)
-        ->where('school_year', 2025)
-        ->get();
+            ->where('is_active', true)
+            ->where('school_year', 2025)
+            ->get();
 
 
         return [
@@ -359,13 +359,13 @@ class DashboardController extends Controller
     {
         // Atividades recentes - você pode substituir por um sistema de logs real
         $activities = collect();
-        
+
         // Pagamentos recentes
         $recentPayments = Payment::with(['student'])
             ->latest()
             ->take(3)
             ->get()
-            ->map(function($payment) {
+            ->map(function ($payment) {
                 return (object)[
                     'type' => 'payment',
                     'icon' => 'money-bill-wave',
@@ -382,7 +382,7 @@ class DashboardController extends Controller
             ->latest()
             ->take(3)
             ->get()
-            ->map(function($enrollment) {
+            ->map(function ($enrollment) {
                 return (object)[
                     'type' => 'enrollment',
                     'icon' => 'user-plus',
@@ -401,21 +401,21 @@ class DashboardController extends Controller
         $totalAttendances = Attendance::whereMonth('attendance_date', now()->month)
             ->whereYear('attendance_date', now()->year)
             ->count();
-            
+
         $presentAttendances = Attendance::whereMonth('attendance_date', now()->month)
             ->whereYear('attendance_date', now()->year)
             ->where('status', 'present')
             ->count();
-        
+
         if ($totalAttendances == 0) return 0;
-        
+
         return round(($presentAttendances / $totalAttendances) * 100, 1);
     }
 
     private function getPendingGradesCount()
     {
         return Grade::whereNull('grade')
-            ->whereHas('assessment', function($query) {
+            ->whereHas('assessment', function ($query) {
                 $query->where('due_date', '>=', now());
             })
             ->count();
@@ -425,7 +425,7 @@ class DashboardController extends Controller
     {
         $average = Grade::whereYear('created_at', now()->year)
             ->avg('grade');
-            
+
         return round($average ?? 0, 1);
     }
 
@@ -433,14 +433,14 @@ class DashboardController extends Controller
     {
         return ClassRoom::active()
             ->currentYear()
-            ->with(['students.grades' => function($q) {
+            ->with(['students.grades' => function ($q) {
                 $q->whereYear('created_at', now()->year);
             }])
             ->get()
-            ->map(function($class) {
+            ->map(function ($class) {
                 $grades = $class->students->flatMap->grades;
                 $averageGrade = $grades->avg('grade');
-                    
+
                 return [
                     'class_name' => $class->name,
                     'average_grade' => round($averageGrade ?? 0, 1),
@@ -453,17 +453,17 @@ class DashboardController extends Controller
     private function getAttendanceStats()
     {
         $last7Days = [];
-        
+
         for ($i = 6; $i >= 0; $i--) {
             $date = now()->subDays($i);
             $totalAttendances = Attendance::whereDate('attendance_date', $date)->count();
             $presentAttendances = Attendance::whereDate('attendance_date', $date)
                 ->where('status', 'present')
                 ->count();
-                
-            $percentage = $totalAttendances > 0 ? 
+
+            $percentage = $totalAttendances > 0 ?
                 round(($presentAttendances / $totalAttendances) * 100, 1) : 0;
-                
+
             $last7Days[] = [
                 'date' => $date->format('d/m'),
                 'percentage' => $percentage,
@@ -471,23 +471,23 @@ class DashboardController extends Controller
                 'present' => $presentAttendances
             ];
         }
-        
+
         return $last7Days;
     }
 
     private function getTeacherStats()
     {
         return Teacher::active()
-            ->withCount(['classes' => function($q) {
+            ->withCount(['classes' => function ($q) {
                 $q->active()->currentYear();
             }])
-            ->with(['classes' => function($q) {
+            ->with(['classes' => function ($q) {
                 $q->active()->currentYear()->withCount('students');
             }])
             ->get()
-            ->map(function($teacher) {
+            ->map(function ($teacher) {
                 $totalStudents = $teacher->classes->sum('students_count');
-                
+
                 return [
                     'name' => $teacher->full_name,
                     'classes_count' => $teacher->classes_count,
@@ -513,9 +513,9 @@ class DashboardController extends Controller
                 ->where('academic_year', now()->year)
                 ->orderBy('start_time')
                 ->get()
-                ->map(function($schedule) {
+                ->map(function ($schedule) {
                     $isCurrent = $schedule->isHappeningNow();
-                    
+
                     return [
                         'id' => $schedule->id,
                         'class_name' => $schedule->class->name ?? 'Turma não encontrada',
@@ -532,7 +532,6 @@ class DashboardController extends Controller
                 });
 
             return $schedules;
-
         } catch (\Exception $e) {
             // Fallback: buscar turmas do professor e criar horários fictícios
             Log::error('Erro ao buscar horário do professor: ' . $e->getMessage());
@@ -555,13 +554,13 @@ class DashboardController extends Controller
         $schedules = [];
         $startTimes = ['08:00', '09:30', '11:00', '14:00', '15:30'];
         $weekdayNames = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-        
+
         foreach ($teacherClasses as $index => $class) {
             if ($class->subjects->isNotEmpty()) {
                 $subject = $class->subjects->first();
                 $startTime = $startTimes[$index % count($startTimes)];
                 $endTime = date('H:i', strtotime($startTime . ' +90 minutes'));
-                
+
                 $schedules[] = [
                     'class_name' => $class->name,
                     'grade_level' => $class->grade_level,
@@ -584,15 +583,15 @@ class DashboardController extends Controller
     {
         $totalAttendances = 0;
         $presentAttendances = 0;
-        
+
         foreach ($children as $child) {
             $childAttendances = $child->attendances->where('attendance_date', '>=', now()->subDays(30));
             $totalAttendances += $childAttendances->count();
             $presentAttendances += $childAttendances->where('status', 'present')->count();
         }
-        
+
         if ($totalAttendances == 0) return 0;
-        
+
         return round(($presentAttendances / $totalAttendances) * 100, 1);
     }
 
@@ -611,7 +610,7 @@ class DashboardController extends Controller
                     'pending_leave_requests' => StaffLeaveRequest::where('status', 'pending')->count(),
                 ];
                 break;
-                
+
             case 'secretary':
                 $data = [
                     'notifications' => $user->unreadNotifications->count(),
@@ -620,7 +619,7 @@ class DashboardController extends Controller
                     'todays_payments' => Payment::paid()->whereDate('payment_date', today())->count(),
                 ];
                 break;
-                
+
             case 'teacher':
                 $teacher = Teacher::where('user_id', $user->id)->first();
                 if ($teacher) {
@@ -633,7 +632,7 @@ class DashboardController extends Controller
                     ];
                 }
                 break;
-                
+
             case 'parent':
                 $parent = $user->parent;
                 if ($parent) {

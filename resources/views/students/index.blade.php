@@ -257,7 +257,7 @@
                         <div class="text-muted small">
                             Mostrando {{ $students->firstItem() }} a {{ $students->lastItem() }} de {{ $students->total() }} registros
                         </div>
-                        {{ $students->links() }}
+                        {{ $students->links('pagination::bootstrap-5') }}
                     </div>
                 </div>
             @endif

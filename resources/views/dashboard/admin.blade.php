@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-{{-- @section('title', 'Dashboard Administrativo') --}}
-{{-- @section('page-title', 'Dashboard Administrativo') --}}
+@section('title', 'Dashboard Administrativo')
+@section('page-title', 'Dashboard Administrativo')
 @section('title-icon', 'fas fa-tachometer-alt')
 
 @section('breadcrumbs')
@@ -10,10 +10,10 @@
 
 @section('page-actions')
     <div class="btn-group">
-        <button class="btn btn-primary-visionarios">
+        <button class="btn btn-school btn-primary-school" onclick="refreshDashboard()">
             <i class="fas fa-sync-alt"></i> Atualizar
         </button>
-        <button class="btn btn-primary-visionarios dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
+        <button class="btn btn-school btn-primary-school dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown">
             <span class="visually-hidden">Toggle Dropdown</span>
         </button>
         <ul class="dropdown-menu">
@@ -25,9 +25,9 @@
 
 @section('content')
 <!-- Cards de Estatísticas -->
-<div class="stats-grid">
-    <div class="stat-card">
-        <div class="stat-icon icon-blue">
+<div class="school-stats">
+    <div class="stat-card students">
+        <div class="stat-icon students">
             <i class="fas fa-user-graduate"></i>
         </div>
         <div class="stat-content">
@@ -40,8 +40,8 @@
         </div>
     </div>
 
-    <div class="stat-card">
-        <div class="stat-icon icon-green">
+    <div class="stat-card teachers">
+        <div class="stat-icon teachers">
             <i class="fas fa-chalkboard-teacher"></i>
         </div>
         <div class="stat-content">
@@ -54,8 +54,8 @@
         </div>
     </div>
 
-    <div class="stat-card">
-        <div class="stat-icon icon-orange">
+    <div class="stat-card payments">
+        <div class="stat-icon payments">
             <i class="fas fa-money-bill-wave"></i>
         </div>
         <div class="stat-content">
@@ -68,8 +68,8 @@
         </div>
     </div>
 
-    <div class="stat-card">
-        <div class="stat-icon icon-red">
+    <div class="stat-card events">
+        <div class="stat-icon events">
             <i class="fas fa-exclamation-triangle"></i>
         </div>
         <div class="stat-content">
@@ -92,7 +92,9 @@
                 Receitas dos Últimos 6 Meses
             </div>
             <div class="school-card-body">
-                <canvas id="revenueChart" height="120"></canvas>
+                <div style="height: 300px;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -104,7 +106,9 @@
                 Distribuição de Alunos por Classe
             </div>
             <div class="school-card-body">
-                <canvas id="studentsChart" height="200"></canvas>
+                <div style="height: 300px;">
+                    <canvas id="studentsChart"></canvas>
+                </div>
             </div>
         </div>
     </div>
@@ -119,7 +123,7 @@
                     <i class="fas fa-calendar-alt"></i>
                     Próximos Eventos
                 </div>
-                <a href="{{ route('events.index') }}" class="btn btn-sm btn-primary-visionarios">
+                <a href="{{ route('events.index') }}" class="btn btn-school btn-primary-school btn-sm">
                     <i class="fas fa-plus"></i> Novo
                 </a>
             </div>
@@ -157,7 +161,7 @@
                 
                 @if(count($upcomingEvents) > 0)
                     <div class="text-center mt-3">
-                        <a href="{{ route('events.index') }}" class="btn btn-sm btn-outline-primary">
+                        <a href="{{ route('events.index') }}" class="btn btn-school btn-outline-primary btn-sm">
                             Ver Todos os Eventos
                         </a>
                     </div>
@@ -173,20 +177,20 @@
                     <i class="fas fa-exclamation-circle"></i>
                     Ações Necessárias
                     @if($stats['pending_actions'] > 0)
-                        <span class="badge bg-danger ms-2">{{ $stats['pending_actions'] }}</span>
+                        <span class="nav-badge badge-danger ms-2">{{ $stats['pending_actions'] }}</span>
                     @endif
                 </div>
             </div>
             <div class="school-card-body">
                 <!-- Alertas de Pagamentos -->
                 @if($stats['overdue_payments'] > 0)
-                    <div class="alert-visionarios alert-danger-visionarios mb-3">
-                        <i class="fas fa-exclamation-triangle"></i>
+                    <div class="alert-school alert-danger-school mb-3 d-flex align-items-center">
+                        <i class="fas fa-exclamation-triangle me-3"></i>
                         <div class="flex-grow-1">
                             <strong>{{ $stats['overdue_payments'] }} pagamentos em atraso</strong>
                             <div class="small">Valor total: {{ number_format($stats['overdue_amount'], 0, ',', '.') }} MT</div>
                         </div>
-                        <a href="{{ route('payments.overdue') }}" class="btn btn-sm btn-outline-danger">
+                        <a href="{{ route('payments.index') }}?status=overdue" class="btn btn-school btn-outline-danger btn-sm">
                             Resolver
                         </a>
                     </div>
@@ -194,13 +198,13 @@
 
                 <!-- Alertas de Matrículas Pendentes -->
                 @if($stats['pending_enrollments'] > 0)
-                    <div class="alert-visionarios alert-warning-visionarios mb-3">
-                        <i class="fas fa-clipboard-list"></i>
+                    <div class="alert-school alert-warning-school mb-3 d-flex align-items-center">
+                        <i class="fas fa-clipboard-list me-3"></i>
                         <div class="flex-grow-1">
                             <strong>{{ $stats['pending_enrollments'] }} matrículas pendentes</strong>
                             <div class="small">Aguardando aprovação</div>
                         </div>
-                        <a href="{{ route('enrollments.index') }}" class="btn btn-sm btn-outline-warning">
+                        <a href="{{ route('enrollments.index') }}?status=pending" class="btn btn-school btn-outline-warning btn-sm">
                             Revisar
                         </a>
                     </div>
@@ -208,13 +212,13 @@
 
                 <!-- Alertas de Licenças -->
                 @if($stats['pending_leave_requests'] > 0)
-                    <div class="alert-visionarios alert-info-visionarios mb-3">
-                        <i class="fas fa-calendar-times"></i>
+                    <div class="alert-school alert-info-school mb-3 d-flex align-items-center">
+                        <i class="fas fa-calendar-times me-3"></i>
                         <div class="flex-grow-1">
                             <strong>{{ $stats['pending_leave_requests'] }} pedidos de licença</strong>
                             <div class="small">Necessitam de atenção</div>
                         </div>
-                        <a href="{{ route('teacher.leave-requests') }}" class="btn btn-sm btn-outline-info">
+                        <a href="{{ route('teacher.leave-requests') }}" class="btn btn-school btn-outline-info btn-sm">
                             Analisar
                         </a>
                     </div>
@@ -225,25 +229,25 @@
                     <h6 class="fw-semibold mb-3">Ações Rápidas</h6>
                     <div class="row g-2">
                         <div class="col-6">
-                            <a href="{{ route('students.create') }}" class="btn btn-outline-primary w-100 d-flex align-items-center justify-content-center py-2">
+                            <a href="{{ route('students.create') }}" class="btn btn-school btn-outline-primary w-100 d-flex align-items-center justify-content-center py-2">
                                 <i class="fas fa-user-plus me-2"></i>
                                 Novo Aluno
                             </a>
                         </div>
                         <div class="col-6">
-                            <a href="{{ route('payments.create') }}" class="btn btn-outline-success w-100 d-flex align-items-center justify-content-center py-2">
+                            <a href="{{ route('payments.create') }}" class="btn btn-school btn-outline-success w-100 d-flex align-items-center justify-content-center py-2">
                                 <i class="fas fa-money-bill me-2"></i>
                                 Receber Pagamento
                             </a>
                         </div>
                         <div class="col-6">
-                            <a href="{{ route('reports.financial') }}" class="btn btn-outline-warning w-100 d-flex align-items-center justify-content-center py-2">
+                            <a href="{{ route('reports.index') }}" class="btn btn-school btn-outline-warning w-100 d-flex align-items-center justify-content-center py-2">
                                 <i class="fas fa-chart-bar me-2"></i>
                                 Relatório Financeiro
                             </a>
                         </div>
                         <div class="col-6">
-                            <a href="{{ route('communications.create') }}" class="btn btn-outline-info w-100 d-flex align-items-center justify-content-center py-2">
+                            <a href="{{ route('communications.create') }}" class="btn btn-school btn-outline-info w-100 d-flex align-items-center justify-content-center py-2">
                                 <i class="fas fa-bullhorn me-2"></i>
                                 Enviar Comunicado
                             </a>
@@ -264,13 +268,13 @@
                     <i class="fas fa-history"></i>
                     Últimas Atividades
                 </div>
-                <a href="{{ route('admin.logs') }}" class="btn btn-sm btn-outline-secondary">
+                <a href="#" class="btn btn-school btn-outline-secondary btn-sm">
                     Ver Log Completo
                 </a>
             </div>
             <div class="school-card-body p-0">
-                <div class="school-table">
-                    <table class="table table-hover mb-0">
+                <div class="school-table-container">
+                    <table class="table-school table-hover mb-0">
                         <thead>
                             <tr>
                                 <th width="60">Tipo</th>
@@ -309,7 +313,7 @@
                                         </small>
                                     </td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary" title="Ver detalhes">
+                                        <button class="btn btn-school btn-outline-primary btn-sm" title="Ver detalhes">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </td>
@@ -335,18 +339,19 @@
 <style>
     .event-item {
         transition: all 0.2s;
+        border-left-color: var(--primary) !important;
     }
     
     .event-item:hover {
         transform: translateX(4px);
-        background: var(--gray-50) !important;
+        background: var(--content-bg) !important;
     }
     
     .user-avatar-sm {
         width: 24px;
         height: 24px;
         border-radius: 50%;
-        background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
         color: white;
         display: flex;
         align-items: center;
@@ -356,42 +361,76 @@
         flex-shrink: 0;
     }
     
-    .quick-actions .btn {
-        border-radius: 6px;
+    .quick-actions .btn-school {
+        border-radius: var(--border-radius);
         font-size: 12px;
         transition: all 0.2s;
+        padding: 8px 12px;
     }
     
-    .quick-actions .btn:hover {
+    .quick-actions .btn-school:hover {
         transform: translateY(-1px);
+    }
+
+    .alert-school.d-flex {
+        padding: 15px 20px;
+        border-radius: var(--border-radius);
+        margin-bottom: 15px;
+    }
+
+    .alert-school.d-flex i {
+        font-size: 18px;
+        margin-right: 12px;
+    }
+
+    .school-card-body > div[style*="height"] {
+        position: relative;
     }
 </style>
 @endpush
 
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+// Variáveis globais para os gráficos
+let revenueChartInstance = null;
+let studentsChartInstance = null;
+
+// Dados reais do controller
+const chartData = {
+    revenue: @json($revenueData),
+    students: @json($studentsDistribution)
+};
+
+function initializeCharts() {
+    // Destruir gráficos existentes
+    if (revenueChartInstance) {
+        revenueChartInstance.destroy();
+    }
+    if (studentsChartInstance) {
+        studentsChartInstance.destroy();
+    }
+
     // Gráfico de Receitas
     const revenueCtx = document.getElementById('revenueChart');
-    if (revenueCtx) {
-        const revenueData = @json($revenueData);
-        
-        new Chart(revenueCtx.getContext('2d'), {
+    if (revenueCtx && chartData.revenue) {
+        revenueChartInstance = new Chart(revenueCtx, {
             type: 'line',
             data: {
-                labels: revenueData.months,
+                labels: chartData.revenue.months,
                 datasets: [{
                     label: 'Receitas (MT)',
-                    data: revenueData.amounts,
-                    borderColor: '#2E5C8A',
-                    backgroundColor: 'rgba(46, 92, 138, 0.1)',
+                    data: chartData.revenue.amounts,
+                    borderColor: '#1a365d',
+                    backgroundColor: 'rgba(26, 54, 93, 0.1)',
                     borderWidth: 3,
                     fill: true,
                     tension: 0.4,
-                    pointBackgroundColor: '#2E5C8A',
+                    pointBackgroundColor: '#1a365d',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 2,
-                    pointRadius: 5
+                    pointRadius: 6,
+                    pointHoverRadius: 8
                 }]
             },
             options: {
@@ -402,6 +441,11 @@ document.addEventListener('DOMContentLoaded', function() {
                         display: false
                     },
                     tooltip: {
+                        backgroundColor: 'rgba(26, 54, 93, 0.9)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#d4af37',
+                        borderWidth: 1,
                         callbacks: {
                             label: function(context) {
                                 return `Receita: ${context.parsed.y.toLocaleString('pt-MZ')} MT`;
@@ -412,13 +456,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 scales: {
                     y: {
                         beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        },
                         ticks: {
                             callback: function(value) {
                                 return value.toLocaleString('pt-MZ') + ' MT';
                             }
-                        },
-                        grid: {
-                            color: 'rgba(0, 0, 0, 0.1)'
                         }
                     },
                     x: {
@@ -426,28 +470,33 @@ document.addEventListener('DOMContentLoaded', function() {
                             display: false
                         }
                     }
+                },
+                interaction: {
+                    intersect: false,
+                    mode: 'index'
                 }
             }
         });
+    } else {
+        console.warn('Dados de receita não disponíveis para o gráfico');
     }
 
     // Gráfico de Distribuição de Alunos
     const studentsCtx = document.getElementById('studentsChart');
-    if (studentsCtx) {
-        const studentsData = @json($studentsDistribution);
-        
-        new Chart(studentsCtx.getContext('2d'), {
+    if (studentsCtx && chartData.students) {
+        studentsChartInstance = new Chart(studentsCtx, {
             type: 'doughnut',
             data: {
-                labels: studentsData.labels,
+                labels: chartData.students.labels,
                 datasets: [{
-                    data: studentsData.data,
+                    data: chartData.students.data,
                     backgroundColor: [
-                        '#2E5C8A', '#7CB342', '#FF9800', '#E53935',
-                        '#9C27B0', '#00ACC1', '#8BC34A', '#FF5722'
+                        '#1a365d', '#d4af37', '#e53e3e', '#38a169',
+                        '#dd6b20', '#3182ce', '#805ad5', '#d53f8c'
                     ],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
+                    borderWidth: 3,
+                    borderColor: '#ffffff',
+                    hoverOffset: 15
                 }]
             },
             options: {
@@ -461,14 +510,20 @@ document.addEventListener('DOMContentLoaded', function() {
                             padding: 15,
                             font: {
                                 size: 11
-                            }
+                            },
+                            color: 'var(--text-primary)'
                         }
                     },
                     tooltip: {
+                        backgroundColor: 'rgba(26, 54, 93, 0.9)',
+                        titleColor: '#ffffff',
+                        bodyColor: '#ffffff',
+                        borderColor: '#d4af37',
+                        borderWidth: 1,
                         callbacks: {
                             label: function(context) {
                                 const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const percentage = Math.round((context.parsed / total) * 100);
+                                const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
                                 return `${context.label}: ${context.parsed} alunos (${percentage}%)`;
                             }
                         }
@@ -477,33 +532,51 @@ document.addEventListener('DOMContentLoaded', function() {
                 cutout: '60%'
             }
         });
+    } else {
+        console.warn('Dados de distribuição de alunos não disponíveis para o gráfico');
     }
+}
 
-    // Atualizar contadores em tempo real
-    function updateLiveCounters() {
-        fetch('/api/dashboard/counters')
-            .then(response => response.json())
-            .then(data => {
-                // Atualizar badge de notificações
-                const notificationBadge = document.querySelector('.action-btn .badge');
-                if (notificationBadge) {
-                    if (data.notifications > 0) {
-                        notificationBadge.textContent = data.notifications;
-                    } else {
-                        notificationBadge.remove();
-                    }
-                }
-                
-                // Atualizar contadores específicos se necessário
-                console.log('Contadores atualizados:', data);
-            })
-            .catch(error => console.error('Erro ao atualizar contadores:', error));
+function refreshDashboard() {
+    const btn = document.querySelector('.btn-school.btn-primary-school');
+    const originalHtml = btn.innerHTML;
+    
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
+    btn.disabled = true;
+
+    // Fazer requisição para atualizar os dados
+    fetch('/api/dashboard/counters')
+        .then(response => response.json())
+        .then(data => {
+            // Atualizar badges e contadores
+            updateLiveCounters(data);
+            
+            // Recarregar a página para obter dados atualizados
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        })
+        .catch(error => {
+            console.error('Erro ao atualizar dashboard:', error);
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+            window.VisionariosSchool.showToast('Erro ao atualizar dashboard', 'error');
+        });
+}
+
+function updateLiveCounters(data) {
+    // Atualizar badge de notificações no header
+    const notificationBadge = document.querySelector('.notification-badge');
+    if (notificationBadge && data.notifications !== undefined) {
+        if (data.notifications > 0) {
+            notificationBadge.textContent = data.notifications;
+        } else {
+            notificationBadge.remove();
+        }
     }
+}
 
-    // Atualizar a cada 30 segundos
-    setInterval(updateLiveCounters, 30000);
-
-    // Animação de entrada para os cards
+function initializeAnimations() {
     const observerOptions = {
         threshold: 0.1,
         rootMargin: '0px 0px -50px 0px'
@@ -518,13 +591,31 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }, observerOptions);
 
-    // Aplicar animação aos cards de estatísticas
     document.querySelectorAll('.stat-card').forEach((card, index) => {
         card.style.opacity = '0';
         card.style.transform = 'translateY(20px)';
         card.style.transition = `all 0.5s ease ${index * 0.1}s`;
         observer.observe(card);
     });
+}
+
+// Inicialização quando o DOM estiver pronto
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCharts();
+    initializeAnimations();
+
+    // Configurar atualização automática a cada 2 minutos
+    setInterval(() => {
+        fetch('/api/dashboard/counters')
+            .then(response => response.json())
+            .then(data => updateLiveCounters(data))
+            .catch(error => console.error('Erro ao atualizar contadores:', error));
+    }, 120000);
+});
+
+// Re-inicializar gráficos quando a janela for redimensionada
+window.addEventListener('resize', function() {
+    initializeCharts();
 });
 </script>
 @endpush

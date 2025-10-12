@@ -5,7 +5,7 @@
 @section('page-title-icon', 'fas fa-chalkboard')
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('teacher-portal.dashboard') }}">Portal</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('teacher.dashboard') }}">Portal</a></li>
     <li class="breadcrumb-item active">Minhas Turmas</li>
 @endsection
 
@@ -54,11 +54,11 @@
 
                                 <div class="class-actions">
                                     <div class="d-grid gap-2">
-                                        <a href="{{ route('teacher-portal.class-students', $class->id) }}" 
+                                        <a href="{{ route('teacher.classes.students', $class->id) }}" 
                                            class="btn btn-primary-school">
                                             <i class="fas fa-user-graduate"></i> Ver Alunos
                                         </a>
-                                        <a href="{{ route('teacher-portal.gradebook', $class->id) }}" 
+                                        <a href="{{ route('teacher.gradebook', $class->id) }}" 
                                            class="btn btn-secondary-school">
                                             <i class="fas fa-tasks"></i> Caderno de Notas
                                         </a>

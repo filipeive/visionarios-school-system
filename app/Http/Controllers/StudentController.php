@@ -46,7 +46,7 @@ class StudentController extends Controller
             $query->where('gender', $request->gender);
         }
 
-        $students = $query->latest()->paginate(20);
+        $students = $query->latest()->paginate(10);
         $classes = ClassRoom::active()->get();
         $totalStudents = Student::count();
         $activeStudents = Student::active()->count();

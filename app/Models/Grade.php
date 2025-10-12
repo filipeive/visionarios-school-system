@@ -15,13 +15,14 @@ class Grade extends Model
     protected $fillable = [
         'student_id',
         'subject_id',
+        'assessment_id', // NOVO
         'grade',
         'assessment_type',
         'term',
         'year',
         'date_recorded',
         'teacher_id',
-        'comments',
+        'comments'
     ];
 
     protected $casts = [
@@ -51,17 +52,28 @@ class Grade extends Model
     {
         return $this->belongsTo(Teacher::class);
     }
-
-    // Scopes
-    public function scopeByTerm($query, $term)
+       public function assessment() // NOVO RELACIONAMENTO
     {
-        return $query->where('term', $term);
+        return $this->belongsTo(Assessment::class);
     }
 
+    
+    // Scopes
     public function scopeCurrentYear($query)
     {
         return $query->where('year', date('Y'));
     }
+
+    public function scopeForTerm($query, $term)
+    {
+        return $query->where('term', $term);
+    }
+
+    public function scopeForAssessment($query, $assessmentId)
+    {
+        return $query->where('assessment_id', $assessmentId);
+    }
+
 
     // Accessors
     public function getGradeStatusAttribute()
@@ -70,5 +82,9 @@ class Grade extends Model
         if ($this->grade >= 12) return 'Bom';
         if ($this->grade >= 10) return 'Suficiente';
         return 'Insuficiente';
+    }
+       public function getFormattedGradeAttribute()
+    {
+        return number_format($this->grade, 1);
     }
 }

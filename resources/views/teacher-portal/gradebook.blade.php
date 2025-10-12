@@ -5,9 +5,9 @@
 @section('page-title-icon', 'fas fa-tasks')
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('teacher-portal.dashboard') }}">Portal</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('teacher-portal.classes') }}">Minhas Turmas</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('teacher-portal.class-detail', $class->id) }}">{{ $class->name }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('teacher.dashboard') }}">Portal</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('teacher.classes.index') }}">Minhas Turmas</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('teacher.classes.detail', $class->id) }}">{{ $class->name }}</a></li>
     <li class="breadcrumb-item active">Notas</li>
 @endsection
 
@@ -22,8 +22,8 @@
                         <h3>Caderno de Notas</h3>
                         <p class="text-muted mb-0">
                             Turma: <strong>{{ $class->name }}</strong> | 
-                            {{ $class->grade_level_name }} | 
-                            {{ $class->students_count }} alunos
+                            {{ $class->grade_level_name ?? 'N/A' }} | 
+                            {{ $class->students->count() }} alunos
                         </p>
                     </div>
                     <div class="col-md-6">
@@ -57,9 +57,9 @@
                 <div class="school-card-header d-flex justify-content-between align-items-center">
                     <div>
                         <i class="fas fa-book"></i>
-                        Lançamento de Notas - {{ $class->subjects->find($selectedSubject)->name }}
+                        Lançamento de Notas - {{ $class->subjects->find($selectedSubject)->name ?? 'Disciplina' }}
                     </div>
-                    <button type="button" class="btn btn-primary-school btn-sm" data-bs-toggle="modal" data-bs-target="#addGradeModal">
+                    <button type="button" class="btn btn-school btn-primary-school btn-sm" data-bs-toggle="modal" data-bs-target="#addGradeModal">
                         <i class="fas fa-plus"></i> Nova Nota
                     </button>
                 </div>
@@ -80,24 +80,39 @@
                                 <tbody>
                                     @foreach($class->students as $student)
                                         @php
+                                            // CORREÇÃO: Verificar se a estrutura do array existe
                                             $studentGrades = $grades[$student->id] ?? [];
-                                            $testGrade = $studentGrades['test']->first()->grade ?? null;
-                                            $homeworkGrade = $studentGrades['homework']->first()->grade ?? null;
-                                            $projectGrade = $studentGrades['project']->first()->grade ?? null;
-                                            $participationGrade = $studentGrades['participation']->first()->grade ?? null;
                                             
-                                            // Calcular média (pesos: teste 40%, trabalho 25%, projeto 25%, participação 10%)
+                                            // CORREÇÃO: Verificar se cada tipo de avaliação existe no array
+                                            $testGrade = isset($studentGrades['test']) && $studentGrades['test']->isNotEmpty() 
+                                                ? $studentGrades['test']->first()->grade 
+                                                : null;
+                                                
+                                            $homeworkGrade = isset($studentGrades['homework']) && $studentGrades['homework']->isNotEmpty()
+                                                ? $studentGrades['homework']->first()->grade 
+                                                : null;
+                                                
+                                            $projectGrade = isset($studentGrades['project']) && $studentGrades['project']->isNotEmpty()
+                                                ? $studentGrades['project']->first()->grade 
+                                                : null;
+                                                
+                                            $participationGrade = isset($studentGrades['participation']) && $studentGrades['participation']->isNotEmpty()
+                                                ? $studentGrades['participation']->first()->grade 
+                                                : null;
+                                            
+                                            // Calcular média
                                             $average = null;
-                                            if ($testGrade || $homeworkGrade || $projectGrade || $participationGrade) {
-                                                $sum = 0;
-                                                $weights = 0;
-                                                
-                                                if ($testGrade) { $sum += $testGrade * 0.4; $weights += 0.4; }
-                                                if ($homeworkGrade) { $sum += $homeworkGrade * 0.25; $weights += 0.25; }
-                                                if ($projectGrade) { $sum += $projectGrade * 0.25; $weights += 0.25; }
-                                                if ($participationGrade) { $sum += $participationGrade * 0.1; $weights += 0.1; }
-                                                
-                                                $average = $weights > 0 ? round($sum / $weights, 1) : null;
+                                            $gradesArray = array_filter([
+                                                $testGrade, 
+                                                $homeworkGrade, 
+                                                $projectGrade, 
+                                                $participationGrade
+                                            ], function($grade) {
+                                                return !is_null($grade) && $grade !== '';
+                                            });
+                                            
+                                            if (count($gradesArray) > 0) {
+                                                $average = round(array_sum($gradesArray) / count($gradesArray), 1);
                                             }
                                         @endphp
                                         <tr>
@@ -109,31 +124,31 @@
                                                     <div>
                                                         <strong>{{ $student->first_name }} {{ $student->last_name }}</strong>
                                                         <br>
-                                                        <small class="text-muted">{{ $student->student_number }}</small>
+                                                        <small class="text-muted">{{ $student->student_number ?? 'N/A' }}</small>
                                                     </div>
                                                 </div>
                                             </td>
                                             <td>
                                                 <span class="grade-badge {{ $testGrade ? 'has-grade' : 'no-grade' }}" 
-                                                      onclick="editGrade({{ $student->id }}, 'test', {{ $testGrade }})">
+                                                      onclick="editGrade({{ $student->id }}, 'test', {{ $testGrade ?? 'null' }})">
                                                     {{ $testGrade ?? '-' }}
                                                 </span>
                                             </td>
                                             <td>
                                                 <span class="grade-badge {{ $homeworkGrade ? 'has-grade' : 'no-grade' }}"
-                                                      onclick="editGrade({{ $student->id }}, 'homework', {{ $homeworkGrade }})">
+                                                      onclick="editGrade({{ $student->id }}, 'homework', {{ $homeworkGrade ?? 'null' }})">
                                                     {{ $homeworkGrade ?? '-' }}
                                                 </span>
                                             </td>
                                             <td>
                                                 <span class="grade-badge {{ $projectGrade ? 'has-grade' : 'no-grade' }}"
-                                                      onclick="editGrade({{ $student->id }}, 'project', {{ $projectGrade }})">
+                                                      onclick="editGrade({{ $student->id }}, 'project', {{ $projectGrade ?? 'null' }})">
                                                     {{ $projectGrade ?? '-' }}
                                                 </span>
                                             </td>
                                             <td>
                                                 <span class="grade-badge {{ $participationGrade ? 'has-grade' : 'no-grade' }}"
-                                                      onclick="editGrade({{ $student->id }}, 'participation', {{ $participationGrade }})">
+                                                      onclick="editGrade({{ $student->id }}, 'participation', {{ $participationGrade ?? 'null' }})">
                                                     {{ $participationGrade ?? '-' }}
                                                 </span>
                                             </td>
@@ -215,7 +230,7 @@
                 <h5 class="modal-title" id="gradeModalTitle">Lançar Nova Nota</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form action="{{ route('teacher-portal.store-grade') }}" method="POST" id="grade-form">
+            <form action="{{ route('teacher.grades.store') }}" method="POST" id="grade-form">
                 @csrf
                 <input type="hidden" name="class_id" value="{{ $class->id }}">
                 <input type="hidden" name="subject_id" value="{{ $selectedSubject }}">
@@ -250,8 +265,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-primary-school">Salvar Nota</button>
+                    <button type="button" class="btn btn-school btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-school btn-primary-school">Salvar Nota</button>
                 </div>
             </form>
         </div>
@@ -259,33 +274,27 @@
 </div>
 
 <style>
-.table-grades th {
-    background: var(--content-bg);
-    font-weight: 600;
-    text-align: center;
-}
-
 .grade-badge {
     display: inline-block;
-    padding: 8px 12px;
-    border-radius: 6px;
+    padding: 6px 12px;
+    border-radius: 20px;
     font-weight: 600;
-    text-align: center;
-    min-width: 50px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
+    min-width: 40px;
+    text-align: center;
 }
 
 .grade-badge.has-grade {
-    background: rgba(var(--success-rgb), 0.1);
-    border: 2px solid var(--success);
-    color: var(--success);
+    background: #e3f2fd;
+    color: #1976d2;
+    border: 1px solid #1976d2;
 }
 
 .grade-badge.no-grade {
-    background: rgba(var(--secondary-rgb), 0.1);
-    border: 2px dashed var(--border-color);
-    color: var(--text-muted);
+    background: #f5f5f5;
+    color: #757575;
+    border: 1px dashed #bdbdbd;
 }
 
 .grade-badge:hover {
@@ -294,35 +303,37 @@
 
 .average-badge {
     display: inline-block;
-    padding: 6px 10px;
+    padding: 6px 12px;
     border-radius: 20px;
     font-weight: 700;
     font-size: 14px;
 }
 
 .grade-success {
-    background: var(--success);
-    color: white;
+    background: #e8f5e8;
+    color: #2e7d32;
+    border: 1px solid #2e7d32;
 }
 
 .grade-danger {
-    background: var(--danger);
-    color: white;
+    background: #ffebee;
+    color: #c62828;
+    border: 1px solid #c62828;
 }
 
 .grade-stat {
     padding: 15px;
 }
 
-.grade-stat .stat-number {
-    font-size: 32px;
+.stat-number {
+    font-size: 28px;
     font-weight: 700;
     margin-bottom: 5px;
 }
 
-.grade-stat .stat-label {
+.stat-label {
     font-size: 12px;
-    color: var(--text-muted);
+    color: #6c757d;
     text-transform: uppercase;
     font-weight: 600;
 }
@@ -330,7 +341,7 @@
 .user-avatar-sm {
     width: 35px;
     height: 35px;
-    background: var(--accent);
+    background: #e74c3c;
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -357,9 +368,13 @@ function updateTerm(term) {
 function editGrade(studentId, assessmentType, currentGrade) {
     document.getElementById('student-select').value = studentId;
     document.getElementById('assessment-type').value = assessmentType;
-    document.getElementById('grade-input').value = currentGrade || '';
+    
+    // CORREÇÃO: Lidar com valores null corretamente
+    const gradeValue = (currentGrade && currentGrade !== 'null') ? currentGrade : '';
+    document.getElementById('grade-input').value = gradeValue;
+    
     document.getElementById('grade-comments').value = '';
-    document.getElementById('gradeModalTitle').textContent = currentGrade ? 'Editar Nota' : 'Lançar Nova Nota';
+    document.getElementById('gradeModalTitle').textContent = gradeValue ? 'Editar Nota' : 'Lançar Nova Nota';
     
     const modal = new bootstrap.Modal(document.getElementById('addGradeModal'));
     modal.show();

@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -66,7 +67,7 @@ class Teacher extends Model
         return $this->hasMany(StaffLeaveRequest::class, 'staff_id');
     }
 
-     public function schedules()
+    public function schedules()
     {
         return $this->hasMany(ClassSchedule::class);
     }
@@ -95,5 +96,20 @@ class Teacher extends Model
             ->with(['class', 'subject'])
             ->orderBy('start_time')
             ->get();
-}
+    }
+    // Adicionar este método ao modelo Teacher
+    public function getTotalStudents()
+    {
+        return $this->classes()
+            ->active()
+            ->currentYear()
+            ->withCount('students')
+            ->get()
+            ->sum('students_count');
+    }
+
+    public function getPendingAssessmentsCount()
+    {
+        return $this->classes()->active()->currentYear()->count() * 2;
+    }
 }

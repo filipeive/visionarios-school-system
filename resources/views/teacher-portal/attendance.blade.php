@@ -5,9 +5,9 @@
 @section('page-title-icon', 'fas fa-clipboard-check')
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('teacher-portal.dashboard') }}">Portal</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('teacher-portal.classes') }}">Minhas Turmas</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('teacher-portal.class-detail', $class->id) }}">{{ $class->name }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('teacher.dashboard') }}">Portal</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('teacher.classes.index') }}">Minhas Turmas</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('teacher.classes.detail', $class->id) }}">{{ $class->name }}</a></li>
     <li class="breadcrumb-item active">Presenças</li>
 @endsection
 
@@ -52,7 +52,7 @@
                 </div>
             </div>
             <div class="school-card-body">
-                <form action="{{ route('teacher-portal.store-attendance', $class->id) }}" method="POST" id="attendance-form">
+                <form action="{{ route('teacher.attendance.store', $class->id) }}" method="POST" id="attendance-form">
                     @csrf
                     <input type="hidden" name="attendance_date" value="{{ $attendanceDate }}">
 
@@ -121,7 +121,7 @@
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ route('teacher-portal.class-detail', $class->id) }}" class="btn btn-secondary">
+                            <a href="{{ route('teacher.classes.detail', $class->id) }}" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Voltar
                             </a>
                             <div>
