@@ -66,7 +66,7 @@ class DashboardController extends Controller
         ];
 
         $recentActivities = $this->getRecentActivities();
-        $upcomingEvents = Event::with('createdBy')
+        $upcomingEvents = Event::with('creator')
             ->where('event_date', '>=', now())
             ->where('event_date', '<=', now()->addDays(7))
             ->orderBy('event_date')

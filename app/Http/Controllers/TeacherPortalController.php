@@ -238,7 +238,7 @@ class TeacherPortalController extends Controller
         // Buscar comunicados reais do banco
         $communications = Communication::forTeachers()
             ->published()
-            ->with('createdBy')
+            ->with('creator')
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 

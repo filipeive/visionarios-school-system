@@ -29,7 +29,7 @@ class Event extends Model
     ];
 
     // Relacionamentos
-    public function creator()
+    public function createdBy()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
@@ -52,4 +52,6 @@ class Event extends Model
             now()->endOfWeek()
         ]);
     }
+    //createdby
+    
 }

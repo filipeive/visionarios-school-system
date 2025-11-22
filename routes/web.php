@@ -253,45 +253,58 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
 
     /*
-    |--------------------------------------------------------------------------
-    | Gestão Financeira
-    |--------------------------------------------------------------------------
-    */
+|--------------------------------------------------------------------------
+| Gestão Financeira
+|--------------------------------------------------------------------------
+*/
+/*
+|--------------------------------------------------------------------------
+| Gestão Financeira
+|--------------------------------------------------------------------------
+*/
 
-    Route::middleware('permission:view_payments')
-        ->prefix('payments')
-        ->name('payments.')
-        ->controller(PaymentController::class)
-        ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/{payment}', 'show')->name('show');
-            Route::get('/reports', 'reports')->name('reports');
-            Route::get('/overdue', 'overdue')->name('overdue');
+Route::middleware('permission:view_payments')
+    ->prefix('payments')
+    ->name('payments.')
+    ->group(function () {
+        
+        // Rotas principais (GET)
+        Route::get('/', [App\Http\Controllers\PaymentController::class, 'index'])->name('index');
+        Route::get('/references', [App\Http\Controllers\PaymentController::class, 'references'])->name('references');
+        Route::get('/reports', [App\Http\Controllers\PaymentController::class, 'reports'])->name('reports');
+        Route::get('/overdue', [App\Http\Controllers\PaymentController::class, 'overdue'])->name('overdue');
+        Route::get('/with-penalties', [App\Http\Controllers\PaymentController::class, 'withPenalties'])->name('with-penalties');
+        Route::get('/{payment}', [App\Http\Controllers\PaymentController::class, 'show'])->name('show');
+        Route::get('/print-bulk', [App\Http\Controllers\PaymentController::class, 'printBulk'])->name('print-bulk');
 
-            Route::middleware('permission:create_payments')->group(function () {
-                Route::get('/create', 'create')->name('create');
-                Route::post('/', 'store')->name('store');
-            });
-
-            Route::middleware('permission:process_payments')->group(function () {
-                Route::post('/{payment}/process', 'process')->name('process');
-                Route::post('/{payment}/cancel', 'cancel')->name('cancel');
-            });
-
-            Route::middleware('permission:generate_payment_references')->group(function () {
-                Route::get('/references', 'references')->name('references');
-                Route::post('/generate-reference', 'generateReference')->name('generate-reference');
-                Route::get('/reference/{reference}/download', 'downloadReference')->name('download-reference');
-            });
+        // Rotas de criação
+        Route::middleware('permission:create_payments')->group(function () {
+            Route::get('/create', [App\Http\Controllers\PaymentController::class, 'create'])->name('create');
+            Route::post('/', [App\Http\Controllers\PaymentController::class, 'store'])->name('store');
         });
 
+        // Rotas de processamento
+        Route::middleware('permission:process_payments')->group(function () {
+            Route::post('/{payment}/process', [App\Http\Controllers\PaymentController::class, 'process'])->name('process');
+            Route::post('/{payment}/cancel', [App\Http\Controllers\PaymentController::class, 'cancel'])->name('cancel');
+            Route::post('/{payment}/apply-penalty', [App\Http\Controllers\PaymentController::class, 'applyPenalty'])->name('apply-penalty');
+            Route::post('/{payment}/remove-penalty', [App\Http\Controllers\PaymentController::class, 'removePenalty'])->name('remove-penalty');
+            Route::post('/apply-bulk-penalties', [App\Http\Controllers\PaymentController::class, 'applyBulkPenalties'])->name('apply-bulk-penalties');
+        });
+
+        // Rotas de geração de referências
+        Route::middleware('permission:generate_payment_references')->group(function () {
+            Route::post('/generate-reference', [App\Http\Controllers\PaymentController::class, 'generateReference'])->name('generate-reference');
+            Route::get('/reference/{payment}/download', [App\Http\Controllers\PaymentController::class, 'downloadReference'])->name('download-reference');
+        });
+    });
     /*
     |--------------------------------------------------------------------------
     | Gestão de Presenças
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('permission:view_attendances')
+   /*  Route::middleware('permission:view_attendances')
         ->prefix('attendances')
         ->name('attendances.')
         ->controller(AttendanceController::class)
@@ -307,6 +320,49 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/class/{class}/mark', 'markByClass')->name('mark-by-class');
                 Route::post('/class/{class}/mark', 'storeMarkByClass')->name('store-mark-by-class');
             });
+        }); */
+
+
+        // ========== GESTÃO DE PRESENÇAS ==========
+        Route::middleware('permission:view_attendances')->prefix('attendances')->name('attendances.')->group(function () {
+            // Listagem
+            Route::get('/', [AttendanceController::class, 'index'])->name('index');
+            
+            Route::get('/{attendance}', [AttendanceController::class, 'show'])->name('show');
+            Route::get('/{attendance}/edit', [AttendanceController::class, 'edit'])->name('edit');
+
+            // Marcar presenças
+            Route::middleware('permission:mark_attendances')->group(function () {
+                Route::get('/mark', [AttendanceController::class, 'mark'])->name('mark');
+                Route::post('/mark', [AttendanceController::class, 'storeMark'])->name('store-mark');
+                
+                Route::get('/class/{class}/mark', [AttendanceController::class, 'markByClass'])->name('mark-by-class');
+                Route::post('/class/{class}/mark', [AttendanceController::class, 'storeMarkByClass'])->name('store-mark-by-class');
+                
+                Route::patch('/{attendance}', [AttendanceController::class, 'update'])->name('update');
+                Route::delete('/{attendance}', [AttendanceController::class, 'destroy'])->name('destroy');
+            });
+
+            // Relatórios
+            Route::get('/reports', [AttendanceController::class, 'reports'])->name('reports');
+            Route::get('/class/{class}/report', [AttendanceController::class, 'classReport'])->name('class-report');
+            Route::get('/student/{student}/report', [AttendanceController::class, 'studentReport'])->name('student-report');
+            
+            // Exportação
+            Route::middleware('permission:export_reports')->group(function () {
+                Route::get('/export', [AttendanceController::class, 'export'])->name('export');
+            });
+        });
+
+        // ========== API ROUTES PARA ATTENDANCES ==========
+        Route::prefix('api')->name('api.')->group(function () {
+            // Obter alunos de uma turma (usado na interface de marcar presenças)
+            Route::get('/classes/{class}/students', [AttendanceController::class, 'getClassStudents'])
+                ->name('classes.students');
+            
+            // Estatísticas de presenças
+            Route::get('/attendances/stats', [App\Http\Controllers\Api\AttendanceApiController::class, 'getStats'])
+                ->name('attendances.stats');
         });
 
     /*
