@@ -124,7 +124,7 @@
                                         <input class="form-check-input" type="checkbox" 
                                                name="subjects[]" value="{{ $subject->id }}" 
                                                id="subject_{{ $subject->id }}"
-                                               {{ in_array($subject->id, old('subjects', $class->subjects->pluck('id')->toArray())) ? 'checked' : '' }}>
+                                               {{ in_array($subject->id, old('subjects', $currentSubjectIds)) ? 'checked' : '' }}>
                                         <label class="form-check-label" for="subject_{{ $subject->id }}">
                                             {{ $subject->name }} ({{ $subject->code }})
                                         </label>

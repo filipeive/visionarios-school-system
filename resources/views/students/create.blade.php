@@ -90,10 +90,10 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="photo" class="form-label">Foto do Aluno</label>
-                                <input type="file" class="form-control @error('photo') is-invalid @enderror" 
-                                       id="photo" name="photo" accept="image/*">
-                                @error('photo')
+                                <label for="passport_photo" class="form-label">Foto do Aluno</label>
+                                <input type="file" class="form-control @error('passport_photo') is-invalid @enderror" 
+                                       id="passport_photo" name="passport_photo" accept="image/*">
+                                @error('passport_photo')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                                 <small class="text-muted">Formatos: JPG, PNG, GIF. Máx: 2MB</small>
@@ -199,7 +199,18 @@
                                 <textarea class="form-control @error('medical_info') is-invalid @enderror" 
                                           id="medical_info" name="medical_info" rows="3"
                                           placeholder="Alergias, condições médicas, medicamentos...">{{ old('medical_info') }}</textarea>
-                                @error('medical_info')
+                            <div class="mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="has_special_needs" name="has_special_needs" value="1" {{ old('has_special_needs') ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="has_special_needs">Necessidades Especiais?</label>
+                                </div>
+                            </div>
+
+                            <div class="mb-3" id="special_needs_div" style="display: {{ old('has_special_needs') ? 'block' : 'none' }};">
+                                <label for="special_needs_description" class="form-label">Descrição das Necessidades</label>
+                                <textarea class="form-control @error('special_needs_description') is-invalid @enderror" 
+                                          id="special_needs_description" name="special_needs_description" rows="2">{{ old('special_needs_description') }}</textarea>
+                                @error('special_needs_description')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -244,5 +255,18 @@
             </div>
         </div>
     </div>
-</div>
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const hasSpecialNeedsCheckbox = document.getElementById('has_special_needs');
+    const specialNeedsDiv = document.getElementById('special_needs_div');
+
+    if (hasSpecialNeedsCheckbox && specialNeedsDiv) {
+        hasSpecialNeedsCheckbox.addEventListener('change', function() {
+            specialNeedsDiv.style.display = this.checked ? 'block' : 'none';
+        });
+    }
+});
+</script>
+@endpush
 @endsection

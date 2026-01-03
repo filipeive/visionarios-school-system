@@ -11,8 +11,10 @@ use App\Models\Subject;
 use App\Models\Assessment;
 use App\Models\Event;
 use App\Models\Communication;
+use App\Models\Enrollment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class TeacherPortalController extends Controller
@@ -77,19 +79,84 @@ class TeacherPortalController extends Controller
     {
         $teacher = Teacher::where('user_id', Auth::id())->firstOrFail();
 
-        $class = ClassRoom::with(['students' => function ($q) {
-            $q->orderBy('last_name')->orderBy('first_name');
-        }])->findOrFail($classId);
+        $class = ClassRoom::with([
+            'students' => function ($q) {
+                $q->orderBy('last_name')->orderBy('first_name');
+            }
+        ])->findOrFail($classId);
 
         // Verificar se o professor tem acesso a esta turma
-        if (! $teacher->classes()->where('classes.id', $classId)->exists()) {
+        if (!$teacher->classes()->where('classes.id', $classId)->exists()) {
             abort(403, 'Acesso não autorizado a esta turma.');
         }
 
         $students = $class->students;
 
-        return view('teacher-portal.class-students', compact('teacher', 'class', 'students'));
+        // Buscar alunos disponíveis (não matriculados neste ano letivo)
+        $availableStudents = Student::active()
+            ->whereDoesntHave('enrollments', function ($query) use ($class) {
+                $query->where('school_year', $class->school_year)
+                    ->whereIn('status', ['active', 'pending']);
+            })
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
+
+        return view('teacher-portal.class-students', compact('teacher', 'class', 'students', 'availableStudents'));
     }
+
+    public function addStudentToClass(Request $request, $classId)
+    {
+        $teacher = Teacher::where('user_id', Auth::id())->firstOrFail();
+        $class = ClassRoom::findOrFail($classId);
+
+        // Verificar se o professor tem acesso a esta turma
+        if (!$teacher->classes()->where('classes.id', $classId)->exists()) {
+            abort(403, 'Acesso não autorizado a esta turma.');
+        }
+
+        $request->validate([
+            'student_id' => 'required|exists:students,id',
+            'monthly_fee' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Verificar se o aluno já está matriculado nesta turma/ano
+            $existingEnrollment = Enrollment::where('student_id', $request->student_id)
+                ->where('school_year', $class->school_year)
+                ->whereIn('status', ['active', 'pending'])
+                ->first();
+
+            if ($existingEnrollment) {
+                return redirect()->back()
+                    ->with('error', 'Este aluno já está matriculado em outra turma para este ano letivo.');
+            }
+
+            // Criar matrícula
+            Enrollment::create([
+                'student_id' => $request->student_id,
+                'class_id' => $class->id,
+                'school_year' => $class->school_year,
+                'enrollment_date' => now()->format('Y-m-d'),
+                'monthly_fee' => $request->monthly_fee,
+                'payment_day' => 10, // Dia padrão
+                'status' => 'active',
+            ]);
+
+            DB::commit();
+
+            return redirect()->back()
+                ->with('success', 'Aluno adicionado à turma com sucesso!');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'Erro ao adicionar aluno: ' . $e->getMessage());
+        }
+    }
+
     //classes
     public function classes()
     {
@@ -208,9 +275,11 @@ class TeacherPortalController extends Controller
     public function pendingGrades()
     {
         $teacher = Teacher::where('user_id', Auth::id())
-            ->with(['classes' => function ($query) {
-                $query->active()->currentYear()->withCount('students');
-            }])
+            ->with([
+                'classes' => function ($query) {
+                    $query->active()->currentYear()->withCount('students');
+                }
+            ])
             ->firstOrFail();
 
         // Buscar avaliações reais do banco
@@ -326,6 +395,59 @@ class TeacherPortalController extends Controller
         return view('teacher-portal.profile', compact('teacher'));
     }
 
+    public function createProfile()
+    {
+        $user = Auth::user();
+        // Check if teacher already exists
+        if (Teacher::where('user_id', $user->id)->exists()) {
+            return redirect()->route('teacher.dashboard');
+        }
+        return view('teacher-portal.create-profile', compact('user'));
+    }
+
+    public function storeProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $request->validate([
+            'phone' => 'required|string|max:20',
+            'address' => 'required|string',
+            'qualification' => 'nullable|string|max:255',
+            'specialization' => 'nullable|string|max:255',
+            'bi_number' => 'nullable|string|max:20',
+            'birth_date' => 'nullable|date',
+            'gender' => 'nullable|in:male,female',
+        ]);
+
+        try {
+            $nameParts = explode(' ', $user->name);
+            $lastName = count($nameParts) > 1 ? end($nameParts) : '';
+
+            Teacher::create([
+                'user_id' => $user->id,
+                'first_name' => $nameParts[0],
+                'last_name' => $lastName,
+                'email' => $user->email,
+                'phone' => $request->phone,
+                'address' => $request->address,
+                'qualification' => $request->qualification,
+                'specialization' => $request->specialization,
+                'bi_number' => $request->bi_number,
+                'birth_date' => $request->birth_date,
+                'gender' => $request->gender,
+                'hire_date' => now(), // Default to today
+                'status' => 'active',
+            ]);
+
+            return redirect()->route('teacher.dashboard')
+                ->with('success', 'Perfil de professor criado com sucesso! Bem-vindo ao portal.');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Erro ao criar perfil: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
     public function updateProfile(Request $request)
     {
         $teacher = Teacher::where('user_id', Auth::id())->firstOrFail();
@@ -333,10 +455,12 @@ class TeacherPortalController extends Controller
         $request->validate([
             'phone' => 'required|string|max:20',
             'address' => 'required|string',
+            'qualification' => 'nullable|string|max:255',
+            'specialization' => 'nullable|string|max:255',
         ]);
 
         try {
-            $teacher->update($request->only(['phone', 'address']));
+            $teacher->update($request->only(['phone', 'address', 'qualification', 'specialization']));
 
             return redirect()->back()
                 ->with('success', 'Perfil atualizado com sucesso!');

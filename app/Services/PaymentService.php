@@ -7,10 +7,82 @@ use App\Models\Student;
 use App\Models\Enrollment;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 
 class PaymentService
 {
+    /**
+     * Iniciar pagamento via gateway móvel (Simulação)
+     */
+    public function initiateMobilePayment(Payment $payment, string $phoneNumber, string $provider)
+    {
+        // Validar provedor
+        if (!in_array($provider, ['mpesa', 'emola', 'mkesh'])) {
+            throw new \Exception("Provedor de pagamento inválido: {$provider}");
+        }
+
+        Log::info("Iniciando pagamento {$provider} para referência {$payment->reference_number}", [
+            'amount' => $payment->amount,
+            'phone' => $phoneNumber
+        ]);
+
+        // Simulação de resposta de sucesso
+        return [
+            'success' => true,
+            'message' => "Solicitação de pagamento enviada para o número {$phoneNumber}. Por favor, confirme no seu telemóvel.",
+            'transaction_id' => 'SIM-' . strtoupper($provider) . '-' . time()
+        ];
+    }
+
+    /**
+     * Processar callback do Webhook
+     */
+    public function processWebhook(string $provider, array $data)
+    {
+        Log::info("Webhook {$provider} recebido", $data);
+
+        $reference = null;
+        $transactionId = null;
+        $status = 'failed';
+
+        switch ($provider) {
+            case 'mpesa':
+                $reference = $data['output_ThirdPartyReference'] ?? null;
+                $transactionId = $data['output_TransactionID'] ?? null;
+                $status = ($data['output_ResponseCode'] ?? '') === 'INS-0' ? 'success' : 'failed';
+                break;
+
+            case 'emola':
+                $reference = $data['reference'] ?? null;
+                $transactionId = $data['txn_id'] ?? null;
+                $status = ($data['status'] ?? '') === 'SUCCESS' ? 'success' : 'failed';
+                break;
+
+            case 'multicaixa':
+                $reference = $data['reference'] ?? null;
+                $transactionId = $data['transaction_id'] ?? null;
+                $status = 'success'; // Assume sucesso se receber o callback
+                break;
+        }
+
+        if ($reference && $status === 'success') {
+            $payment = Payment::where('reference_number', $reference)->first();
+
+            if ($payment && $payment->status !== 'paid') {
+                $this->processPayment($payment, [
+                    'payment_method' => $provider,
+                    'transaction_id' => $transactionId,
+                    'payment_date' => now(),
+                    'notes' => "Pagamento confirmado via Webhook ({$provider})"
+                ]);
+
+                return true;
+            }
+        }
+
+        return false;
+    }
     /**
      * Gerar referência única de pagamento
      */
@@ -148,20 +220,20 @@ class PaymentService
             'total_year' => Payment::where('status', 'paid')
                 ->where('year', $year)
                 ->sum('amount'),
-            
+
             'total_pending' => Payment::whereIn('status', ['pending', 'overdue'])
                 ->sum('amount'),
-            
+
             'total_overdue' => Payment::where('status', 'overdue')
                 ->orWhere(fn($q) => $q->where('status', 'pending')->where('due_date', '<', now()))
                 ->sum('amount'),
-            
+
             'count_pending' => Payment::where('status', 'pending')->count(),
-            
+
             'count_overdue' => Payment::where('status', 'overdue')
                 ->orWhere(fn($q) => $q->where('status', 'pending')->where('due_date', '<', now()))
                 ->count(),
-            
+
             'students_with_debt' => Payment::whereIn('status', ['pending', 'overdue'])
                 ->distinct('student_id')
                 ->count('student_id'),

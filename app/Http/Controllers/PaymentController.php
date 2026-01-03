@@ -11,8 +11,16 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
+use App\Services\PaymentService;
+
 class PaymentController extends Controller
 {
+    protected $paymentService;
+
+    public function __construct(PaymentService $paymentService)
+    {
+        $this->paymentService = $paymentService;
+    }
     /**
      * Listagem de pagamentos com filtros
      */
@@ -156,40 +164,40 @@ class PaymentController extends Controller
      * Exibir detalhes do pagamento
      */
     /**
- * Retornar dados do pagamento em JSON para modais
- */
-public function show(Payment $payment)
-{
-    $payment->load(['student', 'enrollment.class']);
-    
-    // Se a requisição é AJAX/JSON, retorna JSON
-    if (request()->wantsJson() || request()->ajax()) {
-        return response()->json([
-            'id' => $payment->id,
-            'reference_number' => $payment->reference_number,
-            'amount' => $payment->amount,
-            'penalty' => $payment->penalty,
-            'penalty_percentage' => $payment->penalty_percentage,
-            'total_amount' => $payment->total_amount,
-            'due_date' => $payment->due_date,
-            'status' => $payment->status,
-            'days_late' => $payment->days_late,
-            'suggested_penalty_percentage' => $payment->suggested_penalty_percentage,
-            'student' => [
-                'full_name' => $payment->student->full_name,
-                'student_number' => $payment->student->student_number,
-            ],
-            'enrollment' => [
-                'class' => [
-                    'name' => $payment->enrollment?->class?->name,
+     * Retornar dados do pagamento em JSON para modais
+     */
+    public function show(Payment $payment)
+    {
+        $payment->load(['student', 'enrollment.class']);
+
+        // Se a requisição é AJAX/JSON, retorna JSON
+        if (request()->wantsJson() || request()->ajax()) {
+            return response()->json([
+                'id' => $payment->id,
+                'reference_number' => $payment->reference_number,
+                'amount' => $payment->amount,
+                'penalty' => $payment->penalty,
+                'penalty_percentage' => $payment->penalty_percentage,
+                'total_amount' => $payment->total_amount,
+                'due_date' => $payment->due_date,
+                'status' => $payment->status,
+                'days_late' => $payment->days_late,
+                'suggested_penalty_percentage' => $payment->suggested_penalty_percentage,
+                'student' => [
+                    'full_name' => $payment->student->full_name,
+                    'student_number' => $payment->student->student_number,
+                ],
+                'enrollment' => [
+                    'class' => [
+                        'name' => $payment->enrollment?->class?->name,
+                    ]
                 ]
-            ]
-        ]);
+            ]);
+        }
+
+        // Se não for AJAX, retorna a view normal
+        return view('payments.show', compact('payment'));
     }
-    
-    // Se não for AJAX, retorna a view normal
-    return view('payments.show', compact('payment'));
-}
 
     /**
      * Processar/Confirmar pagamento
@@ -480,125 +488,125 @@ public function show(Payment $payment)
         ));
     }
 
-/**
- * Aplicar multa manualmente
- */
-public function applyPenalty(Request $request, Payment $payment)
-{
-    $validated = $request->validate([
-        'penalty_percentage' => 'required|numeric|min:0|max:100',
-        'reason' => 'required|string|max:500',
-    ]);
-
-    try {
-        $penaltyAmount = ($payment->amount * $validated['penalty_percentage']) / 100;
-
-        $payment->update([
-            'penalty_percentage' => $validated['penalty_percentage'],
-            'penalty' => $penaltyAmount,
-            'penalty_applied_at' => now(),
-            'notes' => $payment->notes . "\nMulta aplicada: " . $validated['penalty_percentage'] . "% - " . $validated['reason'],
+    /**
+     * Aplicar multa manualmente
+     */
+    public function applyPenalty(Request $request, Payment $payment)
+    {
+        $validated = $request->validate([
+            'penalty_percentage' => 'required|numeric|min:0|max:100',
+            'reason' => 'required|string|max:500',
         ]);
 
-        activity()
-            ->performedOn($payment)
-            ->log("Multa manual aplicada: {$validated['penalty_percentage']}% - Motivo: {$validated['reason']}");
-
-        return redirect()
-            ->route('payments.show', $payment)
-            ->with('success', "Multa de {$validated['penalty_percentage']}% aplicada com sucesso!");
-
-    } catch (\Exception $e) {
-        Log::error('Erro ao aplicar multa: ' . $e->getMessage());
-        return back()->with('error', 'Erro ao aplicar multa.');
-    }
-}
-
-/**
- * Remover multa
- */
-public function removePenalty(Request $request, Payment $payment)
-{
-    $request->validate([
-        'reason' => 'required|string|max:500',
-    ]);
-
-    $payment->update([
-        'penalty_percentage' => 0,
-        'penalty' => 0,
-        'penalty_applied_at' => null,
-        'notes' => $payment->notes . "\nMulta removida: " . $request->reason,
-    ]);
-
-    activity()
-        ->performedOn($payment)
-        ->log("Multa removida - Motivo: {$request->reason}");
-
-    return redirect()
-        ->route('payments.show', $payment)
-        ->with('success', 'Multa removida com sucesso!');
-}
-
-/**
- * Pagamentos com multa
- */
-public function withPenalties(Request $request)
-{
-    $query = Payment::with(['student', 'enrollment.class'])
-        ->withPenalty()
-        ->orderBy('penalty', 'desc');
-
-    if ($request->filled('class_id')) {
-        $query->whereHas('enrollment', fn($q) => $q->where('class_id', $request->class_id));
-    }
-
-    $payments = $query->paginate(20);
-    $classes = \App\Models\ClassRoom::active()->orderBy('name')->get();
-
-    $totalPenalties = Payment::withPenalty()->sum('penalty');
-
-    return view('payments.with-penalties', compact('payments', 'classes', 'totalPenalties'));
-}
-
-/**
- * Aplicar multa em lote
- */
-public function applyBulkPenalties(Request $request)
-{
-    $validated = $request->validate([
-        'payment_ids' => 'required|array',
-        'payment_ids.*' => 'exists:payments,id',
-        'penalty_percentage' => 'required|numeric|min:0|max:100',
-        'reason' => 'required|string|max:500',
-    ]);
-
-    $appliedCount = 0;
-
-    foreach ($validated['payment_ids'] as $paymentId) {
-        $payment = Payment::find($paymentId);
-        
-        if ($payment && $payment->status === 'pending') {
+        try {
             $penaltyAmount = ($payment->amount * $validated['penalty_percentage']) / 100;
 
             $payment->update([
                 'penalty_percentage' => $validated['penalty_percentage'],
                 'penalty' => $penaltyAmount,
                 'penalty_applied_at' => now(),
-                'notes' => $payment->notes . "\nMulta em lote: " . $validated['penalty_percentage'] . "% - " . $validated['reason'],
+                'notes' => $payment->notes . "\nMulta aplicada: " . $validated['penalty_percentage'] . "% - " . $validated['reason'],
             ]);
 
             activity()
                 ->performedOn($payment)
-                ->log("Multa em lote aplicada: {$validated['penalty_percentage']}%");
+                ->log("Multa manual aplicada: {$validated['penalty_percentage']}% - Motivo: {$validated['reason']}");
 
-            $appliedCount++;
+            return redirect()
+                ->route('payments.show', $payment)
+                ->with('success', "Multa de {$validated['penalty_percentage']}% aplicada com sucesso!");
+
+        } catch (\Exception $e) {
+            Log::error('Erro ao aplicar multa: ' . $e->getMessage());
+            return back()->with('error', 'Erro ao aplicar multa.');
         }
     }
 
-    return redirect()
-        ->route('payments.with-penalties')
-        ->with('success', "Multa de {$validated['penalty_percentage']}% aplicada em {$appliedCount} pagamentos!");
-}
+    /**
+     * Remover multa
+     */
+    public function removePenalty(Request $request, Payment $payment)
+    {
+        $request->validate([
+            'reason' => 'required|string|max:500',
+        ]);
+
+        $payment->update([
+            'penalty_percentage' => 0,
+            'penalty' => 0,
+            'penalty_applied_at' => null,
+            'notes' => $payment->notes . "\nMulta removida: " . $request->reason,
+        ]);
+
+        activity()
+            ->performedOn($payment)
+            ->log("Multa removida - Motivo: {$request->reason}");
+
+        return redirect()
+            ->route('payments.show', $payment)
+            ->with('success', 'Multa removida com sucesso!');
+    }
+
+    /**
+     * Pagamentos com multa
+     */
+    public function withPenalties(Request $request)
+    {
+        $query = Payment::with(['student', 'enrollment.class'])
+            ->withPenalty()
+            ->orderBy('penalty', 'desc');
+
+        if ($request->filled('class_id')) {
+            $query->whereHas('enrollment', fn($q) => $q->where('class_id', $request->class_id));
+        }
+
+        $payments = $query->paginate(20);
+        $classes = \App\Models\ClassRoom::active()->orderBy('name')->get();
+
+        $totalPenalties = Payment::withPenalty()->sum('penalty');
+
+        return view('payments.with-penalties', compact('payments', 'classes', 'totalPenalties'));
+    }
+
+    /**
+     * Aplicar multa em lote
+     */
+    public function applyBulkPenalties(Request $request)
+    {
+        $validated = $request->validate([
+            'payment_ids' => 'required|array',
+            'payment_ids.*' => 'exists:payments,id',
+            'penalty_percentage' => 'required|numeric|min:0|max:100',
+            'reason' => 'required|string|max:500',
+        ]);
+
+        $appliedCount = 0;
+
+        foreach ($validated['payment_ids'] as $paymentId) {
+            $payment = Payment::find($paymentId);
+
+            if ($payment && $payment->status === 'pending') {
+                $penaltyAmount = ($payment->amount * $validated['penalty_percentage']) / 100;
+
+                $payment->update([
+                    'penalty_percentage' => $validated['penalty_percentage'],
+                    'penalty' => $penaltyAmount,
+                    'penalty_applied_at' => now(),
+                    'notes' => $payment->notes . "\nMulta em lote: " . $validated['penalty_percentage'] . "% - " . $validated['reason'],
+                ]);
+
+                activity()
+                    ->performedOn($payment)
+                    ->log("Multa em lote aplicada: {$validated['penalty_percentage']}%");
+
+                $appliedCount++;
+            }
+        }
+
+        return redirect()
+            ->route('payments.with-penalties')
+            ->with('success', "Multa de {$validated['penalty_percentage']}% aplicada em {$appliedCount} pagamentos!");
+    }
 
     // ========== MÉTODOS AUXILIARES ==========
     private function generateUniqueReference($studentId, $year)
@@ -628,5 +636,47 @@ public function applyBulkPenalties(Request $request)
             11 => 'Novembro',
             12 => 'Dezembro'
         ];
+    }
+    // ========== WEBHOOKS ==========
+    public function webhookMpesa(Request $request)
+    {
+        $success = $this->paymentService->processWebhook('mpesa', $request->all());
+        return response()->json(['status' => $success ? 'processed' : 'failed']);
+    }
+
+    public function webhookEmola(Request $request)
+    {
+        $success = $this->paymentService->processWebhook('emola', $request->all());
+        return response()->json(['status' => $success ? 'processed' : 'failed']);
+    }
+
+    public function webhookMulticaixa(Request $request)
+    {
+        $success = $this->paymentService->processWebhook('multicaixa', $request->all());
+        return response()->json(['status' => $success ? 'processed' : 'failed']);
+    }
+
+    // ========== PAGAMENTO ONLINE ==========
+    public function initiateOnlinePayment(Request $request, Payment $payment)
+    {
+        $request->validate([
+            'phone_number' => 'required|string|min:9|max:15',
+            'provider' => 'required|in:mpesa,emola,mkesh',
+        ]);
+
+        try {
+            $result = $this->paymentService->initiateMobilePayment(
+                $payment,
+                $request->phone_number,
+                $request->provider
+            );
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
 }

@@ -36,14 +36,15 @@ Route::get('/', function () {
 Route::prefix('public')->name('public.')->group(function () {
     Route::get('/about', fn() => view('public.about'))->name('about');
     Route::get('/contact', fn() => view('public.contact'))->name('contact');
+    Route::get('/material-lists', [App\Http\Controllers\PublicInfoController::class, 'materialLists'])->name('material-lists');
+    Route::get('/announcements', [App\Http\Controllers\PublicInfoController::class, 'announcements'])->name('announcements');
 
     // Pré-matrícula online
-    Route::get('/pre-enrollment', fn() => view('public.pre-enrollment'))->name('pre-enrollment');
-    Route::post('/pre-enrollment', function (Illuminate\Http\Request $request) {
-        // TODO: Implementar lógica de pré-matrícula
-        return redirect()->route('public.pre-enrollment')
-            ->with('success', 'Pré-matrícula enviada com sucesso! Entraremos em contato em breve.');
-    })->name('pre-enrollment.store');
+    Route::get('/pre-enrollment', [App\Http\Controllers\EnrollmentApplicationController::class, 'create'])->name('pre-enrollment');
+    Route::post('/pre-enrollment', [App\Http\Controllers\EnrollmentApplicationController::class, 'store'])->name('pre-enrollment.store');
+    Route::get('/pre-enrollment/success/{application}', function (App\Models\EnrollmentApplication $application) {
+        return view('public.pre-enrollment-success', compact('application'));
+    })->name('pre-enrollment.success');
 
     // Verificação de pagamentos
     Route::get('/payment-check', fn() => view('public.payment-check'))->name('payment-check');
@@ -250,6 +251,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('/{enrollment}/transfer', 'transfer')->name('transfer');
                 Route::post('/{enrollment}/confirm-payment', 'confirmPayment')->name('confirm-payment');
             });
+            // Gestão de Pedidos de Matrícula (Pré-inscrições e Renovação)
+            Route::prefix('applications')->name('applications.')->controller(App\Http\Controllers\EnrollmentApplicationController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/{application}', 'show')->name('show');
+                Route::post('/{application}/status', 'updateStatus')->name('update-status');
+                Route::post('/{application}/confirm-payment', 'confirmPayment')->name('confirm-payment');
+                Route::post('/{application}/finalize', 'finalize')->name('finalize');
+            });
         });
 
     /*
@@ -257,113 +266,113 @@ Route::middleware(['auth', 'verified'])->group(function () {
 | Gestão Financeira
 |--------------------------------------------------------------------------
 */
-/*
-|--------------------------------------------------------------------------
-| Gestão Financeira
-|--------------------------------------------------------------------------
-*/
+    /*
+    |--------------------------------------------------------------------------
+    | Gestão Financeira
+    |--------------------------------------------------------------------------
+    */
 
-Route::middleware('permission:view_payments')
-    ->prefix('payments')
-    ->name('payments.')
-    ->group(function () {
-        
-        // Rotas principais (GET)
-        Route::get('/', [App\Http\Controllers\PaymentController::class, 'index'])->name('index');
-        Route::get('/references', [App\Http\Controllers\PaymentController::class, 'references'])->name('references');
-        Route::get('/reports', [App\Http\Controllers\PaymentController::class, 'reports'])->name('reports');
-        Route::get('/overdue', [App\Http\Controllers\PaymentController::class, 'overdue'])->name('overdue');
-        Route::get('/with-penalties', [App\Http\Controllers\PaymentController::class, 'withPenalties'])->name('with-penalties');
-        Route::get('/{payment}', [App\Http\Controllers\PaymentController::class, 'show'])->name('show');
-        Route::get('/print-bulk', [App\Http\Controllers\PaymentController::class, 'printBulk'])->name('print-bulk');
+    Route::middleware('permission:view_payments')
+        ->prefix('payments')
+        ->name('payments.')
+        ->group(function () {
 
-        // Rotas de criação
-        Route::middleware('permission:create_payments')->group(function () {
-            Route::get('/create', [App\Http\Controllers\PaymentController::class, 'create'])->name('create');
-            Route::post('/', [App\Http\Controllers\PaymentController::class, 'store'])->name('store');
+            // Rotas principais (GET)
+            Route::get('/', [App\Http\Controllers\PaymentController::class, 'index'])->name('index');
+            Route::get('/references', [App\Http\Controllers\PaymentController::class, 'references'])->name('references');
+            Route::get('/reports', [App\Http\Controllers\PaymentController::class, 'reports'])->name('reports');
+            Route::get('/overdue', [App\Http\Controllers\PaymentController::class, 'overdue'])->name('overdue');
+            Route::get('/with-penalties', [App\Http\Controllers\PaymentController::class, 'withPenalties'])->name('with-penalties');
+            Route::get('/{payment}', [App\Http\Controllers\PaymentController::class, 'show'])->name('show');
+            Route::get('/print-bulk', [App\Http\Controllers\PaymentController::class, 'printBulk'])->name('print-bulk');
+
+            // Rotas de criação
+            Route::middleware('permission:create_payments')->group(function () {
+                Route::get('/create', [App\Http\Controllers\PaymentController::class, 'create'])->name('create');
+                Route::post('/', [App\Http\Controllers\PaymentController::class, 'store'])->name('store');
+            });
+
+            // Rotas de processamento
+            Route::middleware('permission:process_payments')->group(function () {
+                Route::post('/{payment}/process', [App\Http\Controllers\PaymentController::class, 'process'])->name('process');
+                Route::post('/{payment}/cancel', [App\Http\Controllers\PaymentController::class, 'cancel'])->name('cancel');
+                Route::post('/{payment}/apply-penalty', [App\Http\Controllers\PaymentController::class, 'applyPenalty'])->name('apply-penalty');
+                Route::post('/{payment}/remove-penalty', [App\Http\Controllers\PaymentController::class, 'removePenalty'])->name('remove-penalty');
+                Route::post('/apply-bulk-penalties', [App\Http\Controllers\PaymentController::class, 'applyBulkPenalties'])->name('apply-bulk-penalties');
+            });
+
+            // Rotas de geração de referências
+            Route::middleware('permission:generate_payment_references')->group(function () {
+                Route::post('/generate-reference', [App\Http\Controllers\PaymentController::class, 'generateReference'])->name('generate-reference');
+                Route::get('/reference/{payment}/download', [App\Http\Controllers\PaymentController::class, 'downloadReference'])->name('download-reference');
+            });
         });
-
-        // Rotas de processamento
-        Route::middleware('permission:process_payments')->group(function () {
-            Route::post('/{payment}/process', [App\Http\Controllers\PaymentController::class, 'process'])->name('process');
-            Route::post('/{payment}/cancel', [App\Http\Controllers\PaymentController::class, 'cancel'])->name('cancel');
-            Route::post('/{payment}/apply-penalty', [App\Http\Controllers\PaymentController::class, 'applyPenalty'])->name('apply-penalty');
-            Route::post('/{payment}/remove-penalty', [App\Http\Controllers\PaymentController::class, 'removePenalty'])->name('remove-penalty');
-            Route::post('/apply-bulk-penalties', [App\Http\Controllers\PaymentController::class, 'applyBulkPenalties'])->name('apply-bulk-penalties');
-        });
-
-        // Rotas de geração de referências
-        Route::middleware('permission:generate_payment_references')->group(function () {
-            Route::post('/generate-reference', [App\Http\Controllers\PaymentController::class, 'generateReference'])->name('generate-reference');
-            Route::get('/reference/{payment}/download', [App\Http\Controllers\PaymentController::class, 'downloadReference'])->name('download-reference');
-        });
-    });
     /*
     |--------------------------------------------------------------------------
     | Gestão de Presenças
     |--------------------------------------------------------------------------
     */
 
-   /*  Route::middleware('permission:view_attendances')
-        ->prefix('attendances')
-        ->name('attendances.')
-        ->controller(AttendanceController::class)
-        ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/reports', 'reports')->name('reports');
-            Route::get('/class/{class}/report', 'classReport')->name('class-report');
-            Route::get('/student/{student}/report', 'studentReport')->name('student-report');
+    /*  Route::middleware('permission:view_attendances')
+         ->prefix('attendances')
+         ->name('attendances.')
+         ->controller(AttendanceController::class)
+         ->group(function () {
+             Route::get('/', 'index')->name('index');
+             Route::get('/reports', 'reports')->name('reports');
+             Route::get('/class/{class}/report', 'classReport')->name('class-report');
+             Route::get('/student/{student}/report', 'studentReport')->name('student-report');
 
-            Route::middleware('permission:mark_attendances')->group(function () {
-                Route::get('/mark', 'mark')->name('mark');
-                Route::post('/mark', 'storeMark')->name('store-mark');
-                Route::get('/class/{class}/mark', 'markByClass')->name('mark-by-class');
-                Route::post('/class/{class}/mark', 'storeMarkByClass')->name('store-mark-by-class');
-            });
-        }); */
+             Route::middleware('permission:mark_attendances')->group(function () {
+                 Route::get('/mark', 'mark')->name('mark');
+                 Route::post('/mark', 'storeMark')->name('store-mark');
+                 Route::get('/class/{class}/mark', 'markByClass')->name('mark-by-class');
+                 Route::post('/class/{class}/mark', 'storeMarkByClass')->name('store-mark-by-class');
+             });
+         }); */
 
 
-        // ========== GESTÃO DE PRESENÇAS ==========
-        Route::middleware('permission:view_attendances')->prefix('attendances')->name('attendances.')->group(function () {
-            // Listagem
-            Route::get('/', [AttendanceController::class, 'index'])->name('index');
-            
-            Route::get('/{attendance}', [AttendanceController::class, 'show'])->name('show');
-            Route::get('/{attendance}/edit', [AttendanceController::class, 'edit'])->name('edit');
+    // ========== GESTÃO DE PRESENÇAS ==========
+    Route::middleware('permission:view_attendances')->prefix('attendances')->name('attendances.')->group(function () {
+        // Listagem
+        Route::get('/', [AttendanceController::class, 'index'])->name('index');
 
-            // Marcar presenças
-            Route::middleware('permission:mark_attendances')->group(function () {
-                Route::get('/mark', [AttendanceController::class, 'mark'])->name('mark');
-                Route::post('/mark', [AttendanceController::class, 'storeMark'])->name('store-mark');
-                
-                Route::get('/class/{class}/mark', [AttendanceController::class, 'markByClass'])->name('mark-by-class');
-                Route::post('/class/{class}/mark', [AttendanceController::class, 'storeMarkByClass'])->name('store-mark-by-class');
-                
-                Route::patch('/{attendance}', [AttendanceController::class, 'update'])->name('update');
-                Route::delete('/{attendance}', [AttendanceController::class, 'destroy'])->name('destroy');
-            });
+        Route::get('/{attendance}', [AttendanceController::class, 'show'])->name('show');
+        Route::get('/{attendance}/edit', [AttendanceController::class, 'edit'])->name('edit');
 
-            // Relatórios
-            Route::get('/reports', [AttendanceController::class, 'reports'])->name('reports');
-            Route::get('/class/{class}/report', [AttendanceController::class, 'classReport'])->name('class-report');
-            Route::get('/student/{student}/report', [AttendanceController::class, 'studentReport'])->name('student-report');
-            
-            // Exportação
-            Route::middleware('permission:export_reports')->group(function () {
-                Route::get('/export', [AttendanceController::class, 'export'])->name('export');
-            });
+        // Marcar presenças
+        Route::middleware('permission:mark_attendances')->group(function () {
+            Route::get('/mark', [AttendanceController::class, 'mark'])->name('mark');
+            Route::post('/mark', [AttendanceController::class, 'storeMark'])->name('store-mark');
+
+            Route::get('/class/{class}/mark', [AttendanceController::class, 'markByClass'])->name('mark-by-class');
+            Route::post('/class/{class}/mark', [AttendanceController::class, 'storeMarkByClass'])->name('store-mark-by-class');
+
+            Route::patch('/{attendance}', [AttendanceController::class, 'update'])->name('update');
+            Route::delete('/{attendance}', [AttendanceController::class, 'destroy'])->name('destroy');
         });
 
-        // ========== API ROUTES PARA ATTENDANCES ==========
-        Route::prefix('api')->name('api.')->group(function () {
-            // Obter alunos de uma turma (usado na interface de marcar presenças)
-            Route::get('/classes/{class}/students', [AttendanceController::class, 'getClassStudents'])
-                ->name('classes.students');
-            
-            // Estatísticas de presenças
-            Route::get('/attendances/stats', [App\Http\Controllers\Api\AttendanceApiController::class, 'getStats'])
-                ->name('attendances.stats');
+        // Relatórios
+        Route::get('/reports', [AttendanceController::class, 'reports'])->name('reports');
+        Route::get('/class/{class}/report', [AttendanceController::class, 'classReport'])->name('class-report');
+        Route::get('/student/{student}/report', [AttendanceController::class, 'studentReport'])->name('student-report');
+
+        // Exportação
+        Route::middleware('permission:export_reports')->group(function () {
+            Route::get('/export', [AttendanceController::class, 'export'])->name('export');
         });
+    });
+
+    // ========== API ROUTES PARA ATTENDANCES ==========
+    Route::prefix('api')->name('api.')->group(function () {
+        // Obter alunos de uma turma (usado na interface de marcar presenças)
+        Route::get('/classes/{class}/students', [AttendanceController::class, 'getClassStudents'])
+            ->name('classes.students');
+
+        // Estatísticas de presenças
+        Route::get('/attendances/stats', [App\Http\Controllers\Api\AttendanceApiController::class, 'getStats'])
+            ->name('attendances.stats');
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -505,11 +514,16 @@ Route::middleware('permission:view_payments')
             Route::get('/student/{student}/grades', 'studentGrades')->name('student-grades');
             Route::get('/student/{student}/attendance', 'studentAttendance')->name('student-attendance');
 
+            // Renovação de Matrícula
+            Route::get('/student/{student}/renewal', [App\Http\Controllers\EnrollmentApplicationController::class, 'renewalCreate'])->name('student-renewal');
+            Route::post('/student/{student}/renewal', [App\Http\Controllers\EnrollmentApplicationController::class, 'renewalStore'])->name('student-renewal.store');
+
             // Pagamentos
             Route::get('/payments', 'payments')->name('payments');
             Route::get('/student/{student}/payments', 'studentPayments')->name('student-payments');
             Route::get('/student/{student}/payment-references', 'paymentReferences')->name('payment-references');
             Route::post('/generate-payment-reference', 'generatePaymentReference')->name('generate-payment-reference');
+            Route::post('/payments/{payment}/pay-online', [App\Http\Controllers\PaymentController::class, 'initiateOnlinePayment'])->name('pay-online');
 
             // Comunicações
             Route::get('/communications', 'communications')->name('communications');
@@ -548,6 +562,9 @@ Route::middleware('permission:view_payments')
                 Route::post('/mark/{classId}', [TeacherPortalController::class, 'markAttendance'])->name('mark');
             });
 
+            // Adicionar aluno à turma
+            Route::post('/classes/{class}/add-student', [TeacherPortalController::class, 'addStudentToClass'])->name('classes.add-student');
+
             // Caderno de Notas (Gradebook)
             Route::get('/gradebook/{class}', [TeacherPortalController::class, 'gradebook'])->name('gradebook');
 
@@ -575,9 +592,13 @@ Route::middleware('permission:view_payments')
             // Perfil
             Route::get('/profile', [TeacherPortalController::class, 'profile'])->name('profile');
             Route::post('/profile', [TeacherPortalController::class, 'updateProfile'])->name('update-profile');
+
+            // Criação de Perfil (Primeiro Acesso)
+            Route::get('/create-profile', [TeacherPortalController::class, 'createProfile'])->name('create-profile');
+            Route::post('/create-profile', [TeacherPortalController::class, 'storeProfile'])->name('store-profile');
         });
 
-        
+
     /*
     |--------------------------------------------------------------------------
     | Administração
@@ -606,9 +627,9 @@ Route::middleware('permission:view_payments')
                 ->name('settings.')
                 ->controller(SettingsController::class)
                 ->group(function () {
-                    Route::get('/', 'index')->name('index');
-                    Route::patch('/', 'update')->name('update');
-                });
+                Route::get('/', 'index')->name('index');
+                Route::patch('/', 'update')->name('update');
+            });
 
             // Backup
             Route::middleware('permission:backup_system')->group(function () {
@@ -669,25 +690,13 @@ Route::middleware('permission:view_payments')
 Route::prefix('webhooks')->name('webhooks.')->group(function () {
 
     // MPesa
-    Route::post('/mpesa', function (Illuminate\Http\Request $request) {
-        Log::info('MPesa Webhook', $request->all());
-        // TODO: Implementar lógica de processamento MPesa
-        return response()->json(['status' => 'received']);
-    })->name('mpesa');
+    Route::post('/mpesa', [App\Http\Controllers\PaymentController::class, 'webhookMpesa'])->name('mpesa');
 
     // eMola
-    Route::post('/emola', function (Illuminate\Http\Request $request) {
-        Log::info('eMola Webhook', $request->all());
-        // TODO: Implementar lógica de processamento eMola
-        return response()->json(['status' => 'received']);
-    })->name('emola');
+    Route::post('/emola', [App\Http\Controllers\PaymentController::class, 'webhookEmola'])->name('emola');
 
     // Multicaixa
-    Route::post('/multicaixa', function (Illuminate\Http\Request $request) {
-        Log::info('Multicaixa Webhook', $request->all());
-        // TODO: Implementar lógica de processamento Multicaixa
-        return response()->json(['status' => 'received']);
-    })->name('multicaixa');
+    Route::post('/multicaixa', [App\Http\Controllers\PaymentController::class, 'webhookMulticaixa'])->name('multicaixa');
 });
 
 /*

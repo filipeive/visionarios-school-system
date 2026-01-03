@@ -12,9 +12,24 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
+                    @role('parent')
+                        <x-nav-link :href="route('parent.dashboard')" :active="request()->routeIs('parent.dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('parent.children')" :active="request()->routeIs('parent.children*')">
+                            {{ __('Meus Filhos') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('parent.payments')" :active="request()->routeIs('parent.payments*')">
+                            {{ __('Pagamentos') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('parent.communications')" :active="request()->routeIs('parent.communications*')">
+                            {{ __('Comunicados') }}
+                        </x-nav-link>
+                    @else
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                    @endrole
                 </div>
             </div>
 

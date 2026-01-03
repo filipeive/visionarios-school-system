@@ -25,14 +25,14 @@ class UserController extends Controller
         // Filtros
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
         if ($request->filled('role')) {
-            $query->whereHas('roles', function($q) use ($request) {
+            $query->whereHas('roles', function ($q) use ($request) {
                 $q->where('name', $request->role);
             });
         }
@@ -291,7 +291,7 @@ class UserController extends Controller
                     'last_name' => implode(' ', array_slice(explode(' ', $user->name), 1)),
                     'email' => $user->email,
                     'phone' => $data['phone'] ?? null,
-                    'relationship' => 'Parent',
+                    'relationship' => $data['relationship'] ?? 'Other',
                     'status' => 'active',
                 ]);
                 break;
@@ -326,6 +326,7 @@ class UserController extends Controller
                         'last_name' => implode(' ', array_slice(explode(' ', $user->name), 1)),
                         'email' => $user->email,
                         'phone' => $data['phone'] ?? null,
+                        'relationship' => $data['relationship'] ?? $parent->relationship,
                     ]);
                 }
                 break;

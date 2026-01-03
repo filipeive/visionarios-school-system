@@ -18,6 +18,7 @@ class Communication extends Model
         'attachments',
         'created_by',
         'is_published',
+        'is_public',
         'publish_at',
     ];
 
@@ -25,6 +26,7 @@ class Communication extends Model
         'attachments' => 'array',
         'publish_at' => 'datetime',
         'is_published' => 'boolean',
+        'is_public' => 'boolean',
     ];
 
     // Relacionamentos
@@ -37,17 +39,25 @@ class Communication extends Model
     public function scopePublished($query)
     {
         return $query->where('is_published', true)
-                    ->where(function($q) {
-                        $q->whereNull('publish_at')
-                          ->orWhere('publish_at', '<=', now());
-                    });
+            ->where(function ($q) {
+                $q->whereNull('publish_at')
+                    ->orWhere('publish_at', '<=', now());
+            });
     }
 
     public function scopeForTeachers($query)
     {
-        return $query->where(function($q) {
+        return $query->where(function ($q) {
             $q->where('target_audience', 'teachers')
-              ->orWhere('target_audience', 'all');
+                ->orWhere('target_audience', 'all');
+        });
+    }
+
+    public function scopeForParents($query)
+    {
+        return $query->where(function ($q) {
+            $q->where('target_audience', 'parents')
+                ->orWhere('target_audience', 'all');
         });
     }
 
@@ -66,7 +76,7 @@ class Communication extends Model
     {
         return [
             'low' => 'info',
-            'medium' => 'warning', 
+            'medium' => 'warning',
             'high' => 'danger'
         ][$this->priority] ?? 'secondary';
     }

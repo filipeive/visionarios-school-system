@@ -49,16 +49,16 @@ class ClassRoom extends Model
     public function students()
     {
         return $this->belongsToMany(Student::class, 'enrollments', 'class_id', 'student_id')
-                    ->wherePivot('status', 'active')
-                    ->withPivot('enrollment_date', 'monthly_fee')
-                    ->withTimestamps();
+            ->wherePivot('status', 'active')
+            ->withPivot('enrollment_date', 'monthly_fee')
+            ->withTimestamps();
     }
 
     public function subjects()
     {
         return $this->belongsToMany(Subject::class, 'class_subjects', 'class_id', 'subject_id')
-                    ->withPivot('teacher_id')
-                    ->withTimestamps();
+            ->withPivot('teacher_id')
+            ->withTimestamps();
     }
 
     public function classSubjects()
@@ -80,7 +80,7 @@ class ClassRoom extends Model
     {
         return $query->where('is_active', true);
     }
-    
+
     public function scopeCurrentYear($query)
     {
         return $query->where('school_year', date('Y'));
@@ -93,9 +93,11 @@ class ClassRoom extends Model
 
     public function scopeWithTeacher($query)
     {
-        return $query->with(['teacher' => function($q) {
-            $q->select('id', 'first_name', 'last_name', 'email');
-        }]);
+        return $query->with([
+            'teacher' => function ($q) {
+                $q->select('id', 'first_name', 'last_name', 'email');
+            }
+        ]);
     }
 
     // Accessors
@@ -103,7 +105,7 @@ class ClassRoom extends Model
     {
         $grades = [
             0 => 'Pré-Infantil',
-            1 => 'Pré-Escolar', 
+            1 => 'Pré-Escolar',
             2 => '1ª Classe',
             3 => '2ª Classe',
             4 => '3ª Classe',
@@ -117,7 +119,8 @@ class ClassRoom extends Model
 
     public function getCapacityPercentageAttribute()
     {
-        if ($this->max_students == 0) return 0;
+        if ($this->max_students == 0)
+            return 0;
         return round(($this->current_students / $this->max_students) * 100, 1);
     }
 
@@ -153,10 +156,9 @@ class ClassRoom extends Model
     {
         parent::boot();
 
-        // Atualizar contador de alunos quando uma matrícula for criada/atualizada/excluída
-        static::saved(function ($class) {
-            $class->updateStudentsCount();
-        });
+        // NOTE: Do NOT auto-update student count here as it causes infinite loop
+        // The count should be updated explicitly when enrollments change
+        // See Enrollment model observers for proper handling
     }
     public function weeklySchedule()
     {

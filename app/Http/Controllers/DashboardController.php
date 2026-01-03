@@ -168,7 +168,7 @@ class DashboardController extends Controller
         $teacher = Teacher::where('user_id', auth()->id())->first();
 
         if (!$teacher) {
-            return redirect()->route('profile.edit')
+            return redirect()->route('teacher.create-profile')
                 ->with('warning', 'Complete seu perfil de professor para acessar o dashboard.');
         }
 
@@ -225,63 +225,7 @@ class DashboardController extends Controller
 
     private function parentDashboard()
     {
-        $parent = auth()->user()->parent;
-
-        if (!$parent) {
-            return redirect()->route('profile.edit')
-                ->with('warning', 'Complete seu perfil para acessar as informações dos seus filhos.');
-        }
-
-        $children = $parent->students()->with([
-            'currentEnrollment.class',
-            'grades' => function ($q) {
-                $q->currentYear()->with('subject');
-            },
-            'payments' => function ($q) {
-                $q->whereYear('year', now()->year);
-            },
-            'attendances' => function ($q) {
-                $q->whereDate('attendance_date', '>=', now()->subDays(30));
-            }
-        ])->get();
-
-        $stats = [
-            'total_children' => $children->count(),
-            'pending_payments' => Payment::whereIn('student_id', $children->pluck('id'))
-                ->pending()
-                ->count(),
-            'overdue_payments' => Payment::whereIn('student_id', $children->pluck('id'))
-                ->overdue()
-                ->count(),
-            'total_paid_this_year' => Payment::whereIn('student_id', $children->pluck('id'))
-                ->paid()
-                ->whereYear('year', now()->year)
-                ->sum('amount'),
-            'children_in_school' => $children->where('status', 'active')->count(),
-            'average_grades' => $children->avg(function ($child) {
-                return $child->grades->avg('grade');
-            }),
-            'attendance_rate' => $this->calculateChildrenAttendanceRate($children),
-        ];
-
-        $upcomingEvents = Event::where(function ($query) {
-            $query->where('target_audience', 'parents')
-                ->orWhere('target_audience', 'all');
-        })
-            ->upcoming()
-            ->take(5)
-            ->get();
-
-        $recentGrades = $children->flatMap(function ($child) {
-            return $child->grades->take(3);
-        })->sortByDesc('created_at')->take(5);
-
-        return view('dashboard.parent', compact(
-            'stats',
-            'children',
-            'upcomingEvents',
-            'recentGrades'
-        ));
+        return redirect()->route('parent.dashboard');
     }
 
     private function basicDashboard()
@@ -341,9 +285,11 @@ class DashboardController extends Controller
 
     private function getStudentsDistribution()
     {
-        $distribution = ClassRoom::withCount(['students as students_count' => function ($query) {
-            $query->where('enrollments.status', 'active');
-        }])
+        $distribution = ClassRoom::withCount([
+            'students as students_count' => function ($query) {
+                $query->where('enrollments.status', 'active');
+            }
+        ])
             ->where('is_active', true)
             ->where('school_year', 2025)
             ->get();
@@ -366,7 +312,7 @@ class DashboardController extends Controller
             ->take(3)
             ->get()
             ->map(function ($payment) {
-                return (object)[
+                return (object) [
                     'type' => 'payment',
                     'icon' => 'money-bill-wave',
                     'title' => 'Pagamento Recebido',
@@ -383,7 +329,7 @@ class DashboardController extends Controller
             ->take(3)
             ->get()
             ->map(function ($enrollment) {
-                return (object)[
+                return (object) [
                     'type' => 'enrollment',
                     'icon' => 'user-plus',
                     'title' => 'Nova Matrícula',
@@ -407,7 +353,8 @@ class DashboardController extends Controller
             ->where('status', 'present')
             ->count();
 
-        if ($totalAttendances == 0) return 0;
+        if ($totalAttendances == 0)
+            return 0;
 
         return round(($presentAttendances / $totalAttendances) * 100, 1);
     }
@@ -433,9 +380,11 @@ class DashboardController extends Controller
     {
         return ClassRoom::active()
             ->currentYear()
-            ->with(['students.grades' => function ($q) {
-                $q->whereYear('created_at', now()->year);
-            }])
+            ->with([
+                'students.grades' => function ($q) {
+                    $q->whereYear('created_at', now()->year);
+                }
+            ])
             ->get()
             ->map(function ($class) {
                 $grades = $class->students->flatMap->grades;
@@ -478,12 +427,16 @@ class DashboardController extends Controller
     private function getTeacherStats()
     {
         return Teacher::active()
-            ->withCount(['classes' => function ($q) {
-                $q->active()->currentYear();
-            }])
-            ->with(['classes' => function ($q) {
-                $q->active()->currentYear()->withCount('students');
-            }])
+            ->withCount([
+                'classes' => function ($q) {
+                    $q->active()->currentYear();
+                }
+            ])
+            ->with([
+                'classes' => function ($q) {
+                    $q->active()->currentYear()->withCount('students');
+                }
+            ])
             ->get()
             ->map(function ($teacher) {
                 $totalStudents = $teacher->classes->sum('students_count');
@@ -590,7 +543,8 @@ class DashboardController extends Controller
             $presentAttendances += $childAttendances->where('status', 'present')->count();
         }
 
-        if ($totalAttendances == 0) return 0;
+        if ($totalAttendances == 0)
+            return 0;
 
         return round(($presentAttendances / $totalAttendances) * 100, 1);
     }

@@ -1236,21 +1236,55 @@
         </div>
 
         <div class="school-nav">
-            <!-- Dashboard Principal -->
-            <div class="nav-section">
-                <ul class="nav-list">
-                    <li class="nav-item">
-                        <a href="{{ route('dashboard') }}"
-                            class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
-                            <span class="nav-icon">
-                                <i class="fas fa-tachometer-alt"></i>
-                            </span>
-                            <span class="nav-text">Dashboard</span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            @auth
+                <!-- Dashboard Principal -->
+                <div class="nav-section">
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="{{ route('dashboard') }}"
+                                class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}">
+                                <span class="nav-icon">
+                                    <i class="fas fa-tachometer-alt"></i>
+                                </span>
+                                <span class="nav-text">Dashboard</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            @else
+                <!-- Links Públicos -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Acesso Público</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="{{ route('welcome') }}" class="nav-link">
+                                <span class="nav-icon"><i class="fas fa-home"></i></span>
+                                <span class="nav-text">Início</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('public.announcements') }}" class="nav-link {{ request()->routeIs('public.announcements') ? 'active' : '' }}">
+                                <span class="nav-icon"><i class="fas fa-bullhorn"></i></span>
+                                <span class="nav-text">Comunicados</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('public.material-lists') }}" class="nav-link {{ request()->routeIs('public.material-lists') ? 'active' : '' }}">
+                                <span class="nav-icon"><i class="fas fa-list-ul"></i></span>
+                                <span class="nav-text">Materiais</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('public.pre-enrollment') }}" class="nav-link {{ request()->routeIs('public.pre-enrollment') ? 'active' : '' }}">
+                                <span class="nav-icon"><i class="fas fa-file-signature"></i></span>
+                                <span class="nav-text">Pré-Inscrição</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            @endauth
 
+            @auth
             <!-- ========== PORTAL DO PROFESSOR (apenas para professores) ========== -->
             @if (auth()->user()->role === 'teacher')
                 <div class="nav-section">
@@ -1622,6 +1656,51 @@
                     </ul>
                 </div>
             @endcan
+            
+            <!-- ========== PORTAL DOS PAIS (apenas para pais) ========== -->
+            @if (auth()->user()->role === 'parent')
+                <div class="nav-section">
+                    <div class="nav-section-title">Portal dos Pais</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="{{ route('parent.dashboard') }}"
+                                class="nav-link {{ request()->routeIs('parent.dashboard') ? 'active' : '' }}">
+                                <span class="nav-icon">
+                                    <i class="fas fa-home"></i>
+                                </span>
+                                <span class="nav-text">Início</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('parent.children') }}"
+                                class="nav-link {{ request()->routeIs('parent.children') ? 'active' : '' }}">
+                                <span class="nav-icon">
+                                    <i class="fas fa-child"></i>
+                                </span>
+                                <span class="nav-text">Meus Filhos</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('parent.payments') }}"
+                                class="nav-link {{ request()->routeIs('parent.payments') ? 'active' : '' }}">
+                                <span class="nav-icon">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                </span>
+                                <span class="nav-text">Pagamentos</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('parent.communications') }}"
+                                class="nav-link {{ request()->routeIs('parent.communications') ? 'active' : '' }}">
+                                <span class="nav-icon">
+                                    <i class="fas fa-envelope"></i>
+                                </span>
+                                <span class="nav-text">Comunicados</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            @endif
 
             <!-- Minha Conta (sempre visível) -->
             <div class="nav-section">
@@ -1636,21 +1715,13 @@
                             <span class="nav-text">Meu Perfil</span>
                         </a>
                     </li>
-                    @if (auth()->user()->role === 'teacher')
-                        <li class="nav-item">
-                            <a href="{{ route('teacher.leave-requests.index') }}"
-                                class="nav-link {{ request()->routeIs('teacher.leave-requests') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-calendar-times"></i>
-                                </span>
-                                <span class="nav-text">Minhas Licenças</span>
-                            </a>
-                        </li>
-                    @endif
+
                 </ul>
             </div>
+            @endauth
         </div>
 
+        @auth
         <div class="user-area">
             <div class="user-profile">
                 <div class="user-avatar">
@@ -1695,6 +1766,14 @@
                 </button>
             </form>
         </div>
+        @else
+        <div class="user-area">
+            <a href="{{ route('login') }}" class="logout-btn" style="background: var(--accent); color: var(--primary-dark);">
+                <i class="fas fa-sign-in-alt"></i>
+                <span class="logout-text">Entrar</span>
+            </a>
+        </div>
+        @endauth
     </nav>
 
     <!-- Conteúdo Principal -->
@@ -1722,6 +1801,7 @@
                     <i class="fas fa-search search-icon"></i>
                 </div>
 
+                @auth
                 <button class="header-btn" id="notification-btn" data-bs-toggle="dropdown" title="Notificações">
                     <i class="fas fa-bell"></i>
                     @if (auth()->user()->unreadNotifications->count() > 0)
@@ -1782,11 +1862,13 @@
                         </a>
                     </li>
                 </ul>
+                @endauth
 
                 <button class="header-btn" onclick="toggleTheme()" title="Alternar Tema">
                     <i class="fas fa-moon" id="theme-icon"></i>
                 </button>
 
+                @auth
                 <div class="dropdown">
                     <button class="header-btn" data-bs-toggle="dropdown" title="Menu do Usuário">
                         <div class="user-avatar"
@@ -1865,6 +1947,11 @@
                         </li>
                     </ul>
                 </div>
+                @else
+                <a href="{{ route('login') }}" class="header-btn" title="Entrar">
+                    <i class="fas fa-sign-in-alt"></i>
+                </a>
+                @endauth
             </div>
         </header>
 
@@ -1874,9 +1961,15 @@
             <nav class="school-breadcrumb" aria-label="breadcrumb">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item">
-                        <a href="{{ route('dashboard') }}">
-                            <i class="fas fa-home"></i> Início
-                        </a>
+                        @auth
+                            <a href="{{ route('dashboard') }}">
+                                <i class="fas fa-home"></i> Início
+                            </a>
+                        @else
+                            <a href="{{ route('welcome') }}">
+                                <i class="fas fa-home"></i> Início
+                            </a>
+                        @endauth
                     </li>
                     @yield('breadcrumbs')
                     @if (!View::hasSection('breadcrumbs'))
