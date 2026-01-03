@@ -182,9 +182,9 @@
                                                     <h6 class="mb-1">{{ $event->title }}</h6>
                                                     <small class="text-muted">
                                                         <i class="fas fa-calendar"></i>
-                                                        {{ $event->event_date->format('d/m/Y') }}
+                                                        {{ $event->event_date?->format('d/m/Y') ?? 'N/A' }}
                                                         @if ($event->start_time)
-                                                            às {{ $event->start_time->format('H:i') }}
+                                                            às {{ $event->start_time?->format('H:i') ?? 'N/A' }}
                                                         @endif
                                                     </small>
                                                     @if ($event->description)

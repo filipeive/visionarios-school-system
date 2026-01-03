@@ -37,9 +37,9 @@
                             <h6>Dados da Matrícula</h6>
                             <p><strong>Turma:</strong> {{ $enrollment->class->name }}</p>
                             <p><strong>Ano Letivo:</strong> {{ $enrollment->school_year }}</p>
-                            <p><strong>Data Matrícula:</strong> {{ $enrollment->enrollment_date->format('d/m/Y') }}</p>
+                            <p><strong>Data Matrícula:</strong> {{ $enrollment->enrollment_date?->format('d/m/Y') ?? 'N/A' }}</p>
                             @if ($enrollment->cancellation_date)
-                                <p><strong>Data Cancelamento:</strong> {{ $enrollment->cancellation_date->format('d/m/Y') }}
+                                <p><strong>Data Cancelamento:</strong> {{ $enrollment->cancellation_date?->format('d/m/Y') ?? 'N/A' }}
                                 </p>
                             @endif
                         </div>
@@ -62,7 +62,7 @@
                                 </p>
                                 @if ($enrollmentPayment->payment_date)
                                     <p><strong>Data Pagamento Matrícula:</strong>
-                                        {{ $enrollmentPayment->payment_date->format('d/m/Y') }}</p>
+                                        {{ $enrollmentPayment->payment_date?->format('d/m/Y') ?? 'N/A' }}</p>
                                 @endif
                             @endif
                         </div>
@@ -126,7 +126,7 @@
                                                 @endif
                                             </td>
                                             <td>{{ number_format($payment->amount, 2, ',', '.') }} MZN</td>
-                                            <td>{{ $payment->due_date->format('d/m/Y') }}</td>
+                                            <td>{{ $payment->due_date?->format('d/m/Y') ?? 'N/A' }}</td>
                                             <td>
                                                 <span
                                                     class="badge bg-{{ $payment->status == 'paid' ? 'success' : ($payment->status == 'overdue' ? 'danger' : 'warning') }}">

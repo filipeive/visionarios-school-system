@@ -248,8 +248,8 @@
                             </div>
                         </td>
                         <td>
-                            <span class="{{ $payment->due_date < now() && $payment->status != 'paid' ? 'text-danger fw-bold' : '' }}">
-                                {{ $payment->due_date->format('d/m/Y') }}
+                            <span class="{{ $payment->due_date && $payment->due_date < now() && $payment->status != 'paid' ? 'text-danger fw-bold' : '' }}">
+                                {{ $payment->due_date?->format('d/m/Y') ?? 'N/A' }}
                             </span>
                         </td>
                         <td>

@@ -30,7 +30,8 @@
                                 </div>
                                 <div class="col-sm-6 col-lg-3">
                                     <label class="text-muted small text-uppercase fw-bold">Data de Nascimento</label>
-                                    <div class="fw-medium">{{ $student->birthdate->format('d/m/Y') }} ({{ $student->age }}
+                                    <div class="fw-medium">{{ $student->birthdate?->format('d/m/Y') ?? 'N/A' }}
+                                        ({{ $student->age }}
                                         anos)</div>
                                 </div>
                                 <div class="col-sm-6 col-lg-3">
@@ -60,7 +61,7 @@
                     <div class="list-group list-group-flush">
                         @forelse($student->attendances()->latest()->take(5)->get() as $attendance)
                             <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                <span>{{ $attendance->attendance_date->format('d/m/Y') }}</span>
+                                <span>{{ $attendance->attendance_date?->format('d/m/Y') ?? 'N/A' }}</span>
                                 @if($attendance->status == 'present')
                                     <span class="badge bg-success-subtle text-success border border-success-subtle">Presente</span>
                                 @elseif($attendance->status == 'absent')

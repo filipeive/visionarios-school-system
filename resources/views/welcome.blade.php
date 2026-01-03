@@ -166,13 +166,11 @@
                             <i class="fas fa-sign-in-alt mr-2"></i>
                             Entrar no Sistema
                         </a>
-                        @if (Route::has('register'))
-                            <a href="{{ route('register') }}"
-                                class="glass-effect border-2 border-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-blue-800 transition duration-300">
-                                <i class="fas fa-user-plus mr-2"></i>
-                                Criar Conta
-                            </a>
-                        @endif
+                        <a href="{{ route('demo.access') }}"
+                            class="glass-effect border-2 border-white px-8 py-4 rounded-xl font-semibold hover:bg-white hover:text-blue-800 transition duration-300">
+                            <i class="fas fa-play-circle mr-2"></i>
+                            Acessar Demo
+                        </a>
                     @endauth
                 </div>
             </div>

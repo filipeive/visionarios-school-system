@@ -75,7 +75,7 @@
                                         <p class="text-muted small mb-2">
                                             {{ $child->currentEnrollment->class->name ?? 'Sem turma' }}
                                         </p>
-                                        <div class="d-flex gap-2">
+                                        <div class="d-flex gap-2 flex-wrap">
                                             <a href="{{ route('parent.student-details', $child) }}"
                                                 class="btn btn-sm btn-primary-school">
                                                 <i class="fas fa-id-card me-1"></i> Detalhes
@@ -84,6 +84,25 @@
                                                 class="btn btn-sm btn-success-school">
                                                 <i class="fas fa-money-bill-wave me-1"></i> Pagamentos
                                             </a>
+
+                                            @if($child->is_eligible_for_renewal)
+                                                @if($child->renewal_application)
+                                                    @if($child->renewal_application->status === 'PENDING')
+                                                        <span class="badge bg-warning text-dark d-flex align-items-center px-3">
+                                                            <i class="fas fa-clock me-1"></i> Aguardando Confirmação
+                                                        </span>
+                                                    @elseif($child->renewal_application->status === 'APPROVED')
+                                                        <span class="badge bg-info d-flex align-items-center px-3">
+                                                            <i class="fas fa-check-circle me-1"></i> Aprovada - Aguardando Pagamento
+                                                        </span>
+                                                    @endif
+                                                @else
+                                                    <a href="{{ route('parent.student-renewal', $child) }}"
+                                                        class="btn btn-sm btn-warning-school">
+                                                        <i class="fas fa-sync me-1"></i> Renovar Matrícula
+                                                    </a>
+                                                @endif
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
@@ -110,7 +129,7 @@
                         <div class="border-bottom pb-3 mb-3 last:border-0 last:pb-0 last:mb-0">
                             <div class="d-flex justify-content-between align-items-start mb-1">
                                 <h6 class="fw-bold mb-0 text-primary">{{ $comm->title }}</h6>
-                                <small class="text-muted">{{ $comm->created_at->format('d/m/Y') }}</small>
+                                <small class="text-muted">{{ $comm->created_at?->format('d/m/Y') ?? 'N/A' }}</small>
                             </div>
                             <p class="text-secondary small mb-0 text-truncate">{{ $comm->message }}</p>
                         </div>

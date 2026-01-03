@@ -33,11 +33,30 @@ class ParentPortalController extends Controller
     {
         $parent = $this->getParent();
         $children = $parent->students()->with([
-            'currentEnrollment.class',
+            'enrollments',
             'attendances' => function ($q) {
                 $q->latest()->take(5);
             }
         ])->get();
+
+        foreach ($children as $child) {
+            // Identificar se o aluno é elegível para renovação
+            // (Inativo em 2025 e sem matrícula ativa/pendente em 2026)
+            $child->is_eligible_for_renewal = $child->enrollments()
+                ->where('school_year', 2025)
+                ->where('status', 'inactive')
+                ->exists() && !$child->enrollments()
+                    ->where('school_year', 2026)
+                    ->whereIn('status', ['active', 'pending'])
+                    ->exists();
+
+            // Verificar se já existe um pedido de renovação
+            $child->renewal_application = \App\Models\EnrollmentApplication::where('student_id', $child->id)
+                ->where('academic_year', 2026)
+                ->where('type', 'RENEWAL')
+                ->latest()
+                ->first();
+        }
 
         $totalPendingPayments = 0;
         $recentCommunications = Communication::forParents()->published()->recent(5)->get();

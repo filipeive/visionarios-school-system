@@ -342,7 +342,7 @@
                                             <tr class="{{ $enrollment->status === 'active' ? 'table-success' : '' }}">
                                                 <td>{{ $enrollment->school_year }}</td>
                                                 <td>{{ $enrollment->class->name }}</td>
-                                                <td>{{ $enrollment->enrollment_date->format('d/m/Y') }}</td>
+                                                <td>{{ $enrollment->enrollment_date?->format('d/m/Y') ?? 'N/A' }}</td>
                                                 <td>
                                                     <span
                                                         class="badge bg-{{ $enrollment->status === 'active' ? 'success' : 'secondary' }}">

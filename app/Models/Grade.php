@@ -14,6 +14,7 @@ class Grade extends Model
 
     protected $fillable = [
         'student_id',
+        'class_id',
         'subject_id',
         'assessment_id', // NOVO
         'grade',
@@ -48,16 +49,21 @@ class Grade extends Model
         return $this->belongsTo(Subject::class);
     }
 
+    public function class()
+    {
+        return $this->belongsTo(ClassRoom::class, 'class_id');
+    }
+
     public function teacher()
     {
         return $this->belongsTo(Teacher::class);
     }
-       public function assessment() // NOVO RELACIONAMENTO
+    public function assessment() // NOVO RELACIONAMENTO
     {
         return $this->belongsTo(Assessment::class);
     }
 
-    
+
     // Scopes
     public function scopeCurrentYear($query)
     {
@@ -78,12 +84,15 @@ class Grade extends Model
     // Accessors
     public function getGradeStatusAttribute()
     {
-        if ($this->grade >= 14) return 'Excelente';
-        if ($this->grade >= 12) return 'Bom';
-        if ($this->grade >= 10) return 'Suficiente';
+        if ($this->grade >= 14)
+            return 'Excelente';
+        if ($this->grade >= 12)
+            return 'Bom';
+        if ($this->grade >= 10)
+            return 'Suficiente';
         return 'Insuficiente';
     }
-       public function getFormattedGradeAttribute()
+    public function getFormattedGradeAttribute()
     {
         return number_format($this->grade, 1);
     }

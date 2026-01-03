@@ -28,10 +28,10 @@ class GradeController extends Controller
         // Filtros
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->whereHas('student', function($q) use ($search) {
+            $query->whereHas('student', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('student_number', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('student_number', 'like', "%{$search}%");
             });
         }
 
@@ -40,9 +40,7 @@ class GradeController extends Controller
         }
 
         if ($request->filled('class_id')) {
-            $query->whereHas('student.currentEnrollment', function($q) use ($request) {
-                $q->where('class_id', $request->class_id);
-            });
+            $query->where('class_id', $request->class_id);
         }
 
         if ($request->filled('term')) {
@@ -94,6 +92,7 @@ class GradeController extends Controller
             'assessment_type' => 'required|in:test,assignment,exam,project,participation',
             'term' => 'required|in:1,2,3',
             'year' => 'required|integer|min:2020|max:2030',
+            'class_id' => 'required|exists:classes,id',
             'date_recorded' => 'required|date',
             'comments' => 'nullable|string|max:500',
         ]);
@@ -106,19 +105,20 @@ class GradeController extends Controller
             }
 
             // Verificar se o professor ou admin está logado
-              $teacherId = auth()->user()->teacher?->id;
-              $adminId = auth()->user()->hasRole('admin');
+            $teacherId = auth()->user()->teacher?->id;
+            $adminId = auth()->user()->hasRole('admin');
             if (!$teacherId || !$adminId) {
                 return back()->with('error', 'Apenas professores podem atribuir notas.')->withInput();
             }
-           /*  if (!auth()->user()->hasRole('teacher') && !auth()->user()->hasRole('admin')) {
-                return back()->with('error', 'Apenas professores e administradores podem atribuir notas.')->withInput();
-            } */
+            /*  if (!auth()->user()->hasRole('teacher') && !auth()->user()->hasRole('admin')) {
+                 return back()->with('error', 'Apenas professores e administradores podem atribuir notas.')->withInput();
+             } */
 
             // Verificar se o aluno está matriculado
 
             $grade = Grade::create([
                 'student_id' => $request->student_id,
+                'class_id' => $request->class_id,
                 'subject_id' => $request->subject_id,
                 'grade' => $request->grade,
                 'assessment_type' => $request->assessment_type,
@@ -157,7 +157,7 @@ class GradeController extends Controller
         $existingGrades = collect();
 
         if ($classId && $subjectId) {
-            $students = Student::whereHas('currentEnrollment', function($q) use ($classId) {
+            $students = Student::whereHas('currentEnrollment', function ($q) use ($classId) {
                 $q->where('class_id', $classId);
             })->active()->with('currentEnrollment.class')->get();
 
@@ -172,8 +172,15 @@ class GradeController extends Controller
         }
 
         return view('grades.batch-create', compact(
-            'classes', 'subjects', 'students', 'existingGrades',
-            'classId', 'subjectId', 'term', 'year', 'assessmentType'
+            'classes',
+            'subjects',
+            'students',
+            'existingGrades',
+            'classId',
+            'subjectId',
+            'term',
+            'year',
+            'assessmentType'
         ));
     }
 
@@ -229,6 +236,7 @@ class GradeController extends Controller
                         // Criar nova nota
                         Grade::create([
                             'student_id' => $gradeData['student_id'],
+                            'class_id' => $request->class_id,
                             'subject_id' => $request->subject_id,
                             'grade' => $gradeData['grade'],
                             'assessment_type' => $request->assessment_type,
@@ -297,6 +305,7 @@ class GradeController extends Controller
             'assessment_type' => 'required|in:test,assignment,exam,project,participation',
             'term' => 'required|in:1,2,3',
             'year' => 'required|integer|min:2020|max:2030',
+            'class_id' => 'required|exists:classes,id',
             'date_recorded' => 'required|date',
             'comments' => 'nullable|string|max:500',
         ]);
@@ -304,6 +313,7 @@ class GradeController extends Controller
         try {
             $grade->update([
                 'student_id' => $request->student_id,
+                'class_id' => $request->class_id,
                 'subject_id' => $request->subject_id,
                 'grade' => $request->grade,
                 'assessment_type' => $request->assessment_type,
@@ -329,10 +339,10 @@ class GradeController extends Controller
         $this->authorize('view_grades');
 
         $student->load(['grades.subject', 'currentEnrollment.class']);
-        
+
         $currentYear = date('Y');
         $terms = [1, 2, 3];
-        
+
         $gradesByTerm = [];
         foreach ($terms as $term) {
             $gradesByTerm[$term] = $student->grades()
@@ -347,7 +357,11 @@ class GradeController extends Controller
         $currentEnrollment = $student->currentEnrollment;
 
         return view('grades.report-card', compact(
-            'student', 'gradesByTerm', 'subjects', 'currentEnrollment', 'currentYear'
+            'student',
+            'gradesByTerm',
+            'subjects',
+            'currentEnrollment',
+            'currentYear'
         ));
     }
 
@@ -358,9 +372,12 @@ class GradeController extends Controller
     {
         $this->authorize('view_grades');
 
-        $class->load(['students.grades' => function($query) {
-            $query->where('year', date('Y'));
-        }, 'subjects']);
+        $class->load([
+            'students.grades' => function ($query) {
+                $query->where('year', date('Y'));
+            },
+            'subjects'
+        ]);
 
         $terms = [1, 2, 3];
         $currentYear = date('Y');
@@ -379,9 +396,11 @@ class GradeController extends Controller
         $term = $request->get('term', 1);
         $year = $request->get('year', date('Y'));
 
-        $class->load(['students' => function($query) {
-            $query->orderBy('first_name')->orderBy('last_name');
-        }]);
+        $class->load([
+            'students' => function ($query) {
+                $query->orderBy('first_name')->orderBy('last_name');
+            }
+        ]);
 
         $subjects = $class->subjects;
         $selectedSubject = $subjectId ? Subject::find($subjectId) : $subjects->first();
@@ -397,7 +416,12 @@ class GradeController extends Controller
         }
 
         return view('grades.grade-sheet', compact(
-            'class', 'subjects', 'selectedSubject', 'grades', 'term', 'year'
+            'class',
+            'subjects',
+            'selectedSubject',
+            'grades',
+            'term',
+            'year'
         ));
     }
 

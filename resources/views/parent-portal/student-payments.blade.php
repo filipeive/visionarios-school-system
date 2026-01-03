@@ -69,8 +69,8 @@
                                             @if($payment->month) - {{ $payment->month_name }}/{{ $payment->year }} @endif
                                         </td>
                                         <td
-                                            class="{{ $payment->due_date < now() && $payment->status == 'pending' ? 'text-danger fw-bold' : '' }}">
-                                            {{ $payment->due_date->format('d/m/Y') }}
+                                            class="{{ $payment->due_date && $payment->due_date < now() && $payment->status == 'pending' ? 'text-danger fw-bold' : '' }}">
+                                            {{ $payment->due_date?->format('d/m/Y') ?? 'N/A' }}
                                         </td>
                                         <td class="fw-bold">
                                             {{ number_format($payment->total_amount, 2, ',', '.') }} MT

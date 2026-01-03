@@ -91,9 +91,9 @@
                         </div>
                         <div class="col-md-6 mb-4">
                             <h6 class="text-muted mb-2">Data de Vencimento</h6>
-                            <p class="fs-5 mb-0 {{ $payment->due_date < now() && $payment->status != 'paid' ? 'text-danger' : '' }}">
-                                <i class="fas fa-calendar"></i> {{ $payment->due_date->format('d/m/Y') }}
-                                @if($payment->due_date < now() && $payment->status != 'paid')
+                            <p class="fs-5 mb-0 {{ $payment->due_date && $payment->due_date < now() && $payment->status != 'paid' ? 'text-danger' : '' }}">
+                                <i class="fas fa-calendar"></i> {{ $payment->due_date?->format('d/m/Y') ?? 'N/A' }}
+                                @if($payment->due_date && $payment->due_date < now() && $payment->status != 'paid')
                                     <small class="text-danger">(Vencido há {{ $payment->due_date->diffInDays(now()) }} dias)</small>
                                 @endif
                             </p>
@@ -102,7 +102,7 @@
                         <div class="col-md-6 mb-4">
                             <h6 class="text-muted mb-2">Data do Pagamento</h6>
                             <p class="fs-5 mb-0 text-success">
-                                <i class="fas fa-check"></i> {{ $payment->payment_date->format('d/m/Y') }}
+                                <i class="fas fa-check"></i> {{ $payment->payment_date?->format('d/m/Y') ?? 'N/A' }}
                             </p>
                         </div>
                         @endif

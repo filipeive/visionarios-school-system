@@ -19,6 +19,7 @@ use App\Http\Controllers\TeacherPortalController;
 use App\Http\Controllers\ParentPortalController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\DemoController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 
@@ -31,6 +32,8 @@ use Illuminate\Support\Facades\Log;
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
+
+Route::get('/demo-access', [DemoController::class, 'access'])->name('demo.access');
 
 // Informações públicas da escola
 Route::prefix('public')->name('public.')->group(function () {
@@ -99,16 +102,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('students.')
         ->controller(StudentController::class)
         ->group(function () {
+            Route::middleware('permission:create_students')->group(function () {
+                Route::get('/create', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+            });
+
             Route::get('/', 'index')->name('index');
             Route::get('/{student}', 'show')->name('show');
             Route::get('/{student}/grades', 'grades')->name('grades');
             Route::get('/{student}/attendance', 'attendance')->name('attendance');
             Route::get('/{student}/payments', 'payments')->name('payments');
-
-            Route::middleware('permission:create_students')->group(function () {
-                Route::get('/create', 'create')->name('create');
-                Route::post('/', 'store')->name('store');
-            });
 
             Route::middleware('permission:edit_students')->group(function () {
                 Route::get('/{student}/edit', 'edit')->name('edit');
@@ -132,15 +135,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('teachers.')
         ->controller(TeacherController::class)
         ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/{teacher}', 'show')->name('show');
-            Route::get('/{teacher}/classes', 'classes')->name('classes');
-            Route::get('/{teacher}/schedule', 'schedule')->name('schedule');
-
             Route::middleware('permission:create_teachers')->group(function () {
                 Route::get('/create', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
             });
+
+            Route::get('/', 'index')->name('index');
+            Route::get('/{teacher}', 'show')->name('show');
+            Route::get('/{teacher}/classes', 'classes')->name('classes');
+            Route::get('/{teacher}/schedule', 'schedule')->name('schedule');
 
             Route::middleware('permission:edit_teachers')->group(function () {
                 Route::get('/{teacher}/edit', 'edit')->name('edit');
@@ -165,14 +168,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('classes.')
         ->controller(ClassRoomController::class)
         ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/{class}', 'show')->name('show');
-            Route::get('/{class}/students', 'students')->name('students');
-
             Route::middleware('permission:create_classes')->group(function () {
                 Route::get('/create', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
             });
+
+            Route::get('/', 'index')->name('index');
+            Route::get('/{class}', 'show')->name('show');
+            Route::get('/{class}/students', 'students')->name('students');
 
             Route::middleware('permission:edit_classes')->group(function () {
                 Route::get('/{class}/edit', 'edit')->name('edit');
@@ -198,15 +201,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('subjects.')
         ->controller(SubjectController::class)
         ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/{subject}', 'show')->name('show');
-            Route::get('/{subject}/classes', 'classes')->name('classes');
-            Route::get('/{subject}/grades', 'grades')->name('grades');
-
             Route::middleware('permission:create_subjects')->group(function () {
                 Route::get('/create', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
             });
+
+            Route::get('/', 'index')->name('index');
+            Route::get('/{subject}', 'show')->name('show');
+            Route::get('/{subject}/classes', 'classes')->name('classes');
+            Route::get('/{subject}/grades', 'grades')->name('grades');
 
             Route::middleware('permission:edit_subjects')->group(function () {
                 Route::get('/{subject}/edit', 'edit')->name('edit');
@@ -234,14 +237,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('enrollments.')
         ->controller(EnrollmentController::class)
         ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/{enrollment}', 'show')->name('show');
-            Route::get('/{enrollment}/print', 'print')->name('print');
-
             Route::middleware('permission:create_enrollments')->group(function () {
                 Route::get('/create', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
             });
+
+            Route::get('/', 'index')->name('index');
+            Route::get('/{enrollment}', 'show')->name('show');
+            Route::get('/{enrollment}/print', 'print')->name('print');
 
             Route::middleware('permission:edit_enrollments')->group(function () {
                 Route::get('/{enrollment}/edit', 'edit')->name('edit');
@@ -277,20 +280,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('payments.')
         ->group(function () {
 
+            // Rotas de criação
+            Route::middleware('permission:create_payments')->group(function () {
+                Route::get('/create', [App\Http\Controllers\PaymentController::class, 'create'])->name('create');
+                Route::post('/', [App\Http\Controllers\PaymentController::class, 'store'])->name('store');
+            });
+
             // Rotas principais (GET)
             Route::get('/', [App\Http\Controllers\PaymentController::class, 'index'])->name('index');
             Route::get('/references', [App\Http\Controllers\PaymentController::class, 'references'])->name('references');
             Route::get('/reports', [App\Http\Controllers\PaymentController::class, 'reports'])->name('reports');
             Route::get('/overdue', [App\Http\Controllers\PaymentController::class, 'overdue'])->name('overdue');
             Route::get('/with-penalties', [App\Http\Controllers\PaymentController::class, 'withPenalties'])->name('with-penalties');
-            Route::get('/{payment}', [App\Http\Controllers\PaymentController::class, 'show'])->name('show');
             Route::get('/print-bulk', [App\Http\Controllers\PaymentController::class, 'printBulk'])->name('print-bulk');
-
-            // Rotas de criação
-            Route::middleware('permission:create_payments')->group(function () {
-                Route::get('/create', [App\Http\Controllers\PaymentController::class, 'create'])->name('create');
-                Route::post('/', [App\Http\Controllers\PaymentController::class, 'store'])->name('store');
-            });
+            Route::get('/{payment}', [App\Http\Controllers\PaymentController::class, 'show'])->name('show');
 
             // Rotas de processamento
             Route::middleware('permission:process_payments')->group(function () {
@@ -334,11 +337,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ========== GESTÃO DE PRESENÇAS ==========
     Route::middleware('permission:view_attendances')->prefix('attendances')->name('attendances.')->group(function () {
-        // Listagem
-        Route::get('/', [AttendanceController::class, 'index'])->name('index');
-
-        Route::get('/{attendance}', [AttendanceController::class, 'show'])->name('show');
-        Route::get('/{attendance}/edit', [AttendanceController::class, 'edit'])->name('edit');
+        // Relatórios
+        Route::get('/reports', [AttendanceController::class, 'reports'])->name('reports');
+        Route::get('/class/{class}/report', [AttendanceController::class, 'classReport'])->name('class-report');
+        Route::get('/student/{student}/report', [AttendanceController::class, 'studentReport'])->name('student-report');
 
         // Marcar presenças
         Route::middleware('permission:mark_attendances')->group(function () {
@@ -347,15 +349,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             Route::get('/class/{class}/mark', [AttendanceController::class, 'markByClass'])->name('mark-by-class');
             Route::post('/class/{class}/mark', [AttendanceController::class, 'storeMarkByClass'])->name('store-mark-by-class');
+        });
 
+        // Listagem
+        Route::get('/', [AttendanceController::class, 'index'])->name('index');
+        Route::get('/{attendance}', [AttendanceController::class, 'show'])->name('show');
+        Route::get('/{attendance}/edit', [AttendanceController::class, 'edit'])->name('edit');
+
+        // Marcar presenças (continuação)
+        Route::middleware('permission:mark_attendances')->group(function () {
             Route::patch('/{attendance}', [AttendanceController::class, 'update'])->name('update');
             Route::delete('/{attendance}', [AttendanceController::class, 'destroy'])->name('destroy');
         });
-
-        // Relatórios
-        Route::get('/reports', [AttendanceController::class, 'reports'])->name('reports');
-        Route::get('/class/{class}/report', [AttendanceController::class, 'classReport'])->name('class-report');
-        Route::get('/student/{student}/report', [AttendanceController::class, 'studentReport'])->name('student-report');
 
         // Exportação
         Route::middleware('permission:export_reports')->group(function () {
@@ -414,14 +419,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('events.')
         ->controller(EventController::class)
         ->group(function () {
-            Route::get('/', 'index')->name('index');
-            Route::get('/calendar', 'calendar')->name('calendar');
-            Route::get('/{event}', 'show')->name('show');
-
             Route::middleware('permission:create_events')->group(function () {
                 Route::get('/create', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
             });
+
+            Route::get('/', 'index')->name('index');
+            Route::get('/calendar', 'calendar')->name('calendar');
+            Route::get('/{event}', 'show')->name('show');
 
             Route::middleware('permission:edit_events')->group(function () {
                 Route::get('/{event}/edit', 'edit')->name('edit');

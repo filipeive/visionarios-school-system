@@ -92,70 +92,10 @@ class TeacherPortalController extends Controller
 
         $students = $class->students;
 
-        // Buscar alunos disponíveis (não matriculados neste ano letivo)
-        $availableStudents = Student::active()
-            ->whereDoesntHave('enrollments', function ($query) use ($class) {
-                $query->where('school_year', $class->school_year)
-                    ->whereIn('status', ['active', 'pending']);
-            })
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get();
-
-        return view('teacher-portal.class-students', compact('teacher', 'class', 'students', 'availableStudents'));
+        return view('teacher-portal.class-students', compact('teacher', 'class', 'students'));
     }
 
-    public function addStudentToClass(Request $request, $classId)
-    {
-        $teacher = Teacher::where('user_id', Auth::id())->firstOrFail();
-        $class = ClassRoom::findOrFail($classId);
 
-        // Verificar se o professor tem acesso a esta turma
-        if (!$teacher->classes()->where('classes.id', $classId)->exists()) {
-            abort(403, 'Acesso não autorizado a esta turma.');
-        }
-
-        $request->validate([
-            'student_id' => 'required|exists:students,id',
-            'monthly_fee' => 'required|numeric|min:0',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            // Verificar se o aluno já está matriculado nesta turma/ano
-            $existingEnrollment = Enrollment::where('student_id', $request->student_id)
-                ->where('school_year', $class->school_year)
-                ->whereIn('status', ['active', 'pending'])
-                ->first();
-
-            if ($existingEnrollment) {
-                return redirect()->back()
-                    ->with('error', 'Este aluno já está matriculado em outra turma para este ano letivo.');
-            }
-
-            // Criar matrícula
-            Enrollment::create([
-                'student_id' => $request->student_id,
-                'class_id' => $class->id,
-                'school_year' => $class->school_year,
-                'enrollment_date' => now()->format('Y-m-d'),
-                'monthly_fee' => $request->monthly_fee,
-                'payment_day' => 10, // Dia padrão
-                'status' => 'active',
-            ]);
-
-            DB::commit();
-
-            return redirect()->back()
-                ->with('success', 'Aluno adicionado à turma com sucesso!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Erro ao adicionar aluno: ' . $e->getMessage());
-        }
-    }
 
     //classes
     public function classes()

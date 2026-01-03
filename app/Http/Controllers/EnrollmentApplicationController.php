@@ -98,12 +98,21 @@ class EnrollmentApplicationController extends Controller
      */
     public function renewalCreate(Student $student)
     {
-        $this->authorize('view', $student);
+        // Verificar se o aluno pertence ao pai logado
+        $parent = \App\Models\ParentModel::where('user_id', auth()->id())->firstOrFail();
+        if ($student->parent_id !== $parent->user_id) {
+            abort(403, 'Acesso não autorizado.');
+        }
 
         $academicYear = 2026;
         $fees = FeeType::where('academic_year', $academicYear)->get();
 
-        return view('enrollments.applications.renewal', compact('student', 'academicYear', 'fees'));
+        // Buscar dívidas pendentes
+        $pendingDebts = Payment::where('student_id', $student->id)
+            ->whereIn('status', ['pending', 'overdue'])
+            ->get();
+
+        return view('enrollments.applications.renewal', compact('student', 'academicYear', 'fees', 'pendingDebts'));
     }
 
     /**
@@ -116,6 +125,13 @@ class EnrollmentApplicationController extends Controller
         $request->validate([
             'parent.phone' => 'required|string|max:20',
             'parent.email' => 'nullable|email|max:255',
+            'student.address' => 'required|string|max:500',
+            'student.emergency_contact' => 'required|string|max:255',
+            'student.emergency_phone' => 'required|string|max:20',
+            'student.has_special_needs' => 'boolean',
+            'student.special_needs_description' => 'nullable|string',
+            'medical_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'passport_photo' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
             'terms_accepted' => 'accepted',
         ]);
 
@@ -125,7 +141,7 @@ class EnrollmentApplicationController extends Controller
             $academicYear = 2026;
 
             // Calculate total fees
-            $gradeLevel = $student->grade_level; // Assuming student has a grade level
+            $gradeLevel = $student->currentClass->grade_level ?? 'primary'; // Fallback ou buscar da última matrícula
             $fees = FeeType::where('academic_year', $academicYear)
                 ->where(function ($query) use ($gradeLevel) {
                     $query->where('grade_level', $gradeLevel)
@@ -136,16 +152,26 @@ class EnrollmentApplicationController extends Controller
 
             $totalAmount = $fees->sum('amount');
 
+            $studentData = array_merge($request->student, [
+                'first_name' => $student->first_name,
+                'last_name' => $student->last_name,
+                'birth_date' => $student->birth_date,
+                'gender' => $student->gender,
+            ]);
+
+            // Handle file uploads
+            if ($request->hasFile('medical_certificate')) {
+                $studentData['medical_certificate'] = $request->file('medical_certificate')->store('student_documents/' . $student->id, 'public');
+            }
+            if ($request->hasFile('passport_photo')) {
+                $studentData['passport_photo'] = $request->file('passport_photo')->store('student_photos/' . $student->id, 'public');
+            }
+
             $application = EnrollmentApplication::create([
                 'type' => 'RENEWAL',
                 'status' => 'PENDING',
                 'student_id' => $student->id,
-                'student_data' => [
-                    'first_name' => $student->first_name,
-                    'last_name' => $student->last_name,
-                    'birth_date' => $student->birth_date,
-                    'gender' => $student->gender,
-                ],
+                'student_data' => $studentData,
                 'parent_data' => $request->parent,
                 'academic_year' => $academicYear,
                 'total_amount' => $totalAmount,
@@ -279,6 +305,17 @@ class EnrollmentApplicationController extends Controller
                 ]);
             } else {
                 $student = Student::find($application->student_id);
+
+                // Update student data from application
+                $student->update([
+                    'address' => $application->student_data['address'] ?? $student->address,
+                    'emergency_contact' => $application->student_data['emergency_contact'] ?? $student->emergency_contact,
+                    'emergency_phone' => $application->student_data['emergency_phone'] ?? $student->emergency_phone,
+                    'has_special_needs' => $application->student_data['has_special_needs'] ?? $student->has_special_needs,
+                    'special_needs_description' => $application->student_data['special_needs_description'] ?? $student->special_needs_description,
+                    'medical_certificate' => $application->student_data['medical_certificate'] ?? $student->medical_certificate,
+                    'passport_photo' => $application->student_data['passport_photo'] ?? $student->passport_photo,
+                ]);
             }
 
             // 3. Create Enrollment
