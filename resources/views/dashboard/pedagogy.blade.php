@@ -9,192 +9,107 @@
 @endsection
 
 @section('page-actions')
-    <div class="btn-group">
-        <button class="btn btn-school btn-primary-school" onclick="window.location.reload()">
-            <i class="fas fa-sync-alt"></i> Atualizar
-        </button>
-    </div>
+    <button type="button"
+        class="inline-flex items-center gap-2 rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800"
+        onclick="window.location.reload()">
+        <i class="fas fa-sync-alt"></i>
+        Atualizar
+    </button>
 @endsection
 
 @section('content')
-    <!-- Cards de Estatísticas -->
-    <div class="school-stats">
-        <div class="stat-card students">
-            <div class="stat-icon students">
-                <i class="fas fa-user-graduate"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ number_format($stats['total_students']) }}</div>
-                <div class="stat-label">Total de Alunos</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-users"></i> {{ $stats['total_classes'] }} turmas
-                </div>
-            </div>
-        </div>
+    <div class="space-y-6">
+        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Total de Alunos</p>
+                <p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($stats['total_students']) }}</p>
+                <p class="mt-2 text-sm text-slate-600">{{ $stats['total_classes'] }} turmas</p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Professores Ativos</p>
+                <p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($stats['total_teachers']) }}</p>
+                <p class="mt-2 text-sm text-slate-600">{{ $stats['total_subjects'] }} disciplinas</p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Presenca Media</p>
+                <p class="mt-2 text-3xl font-bold text-emerald-700">{{ $stats['average_attendance'] }}%</p>
+                <p class="mt-2 text-sm text-slate-600">Este mes</p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Media Global</p>
+                <p class="mt-2 text-3xl font-bold text-amber-700">{{ $stats['class_performance_avg'] }}</p>
+                <p class="mt-2 text-sm text-slate-600">Desempenho academico</p>
+            </article>
+        </section>
 
-        <div class="stat-card teachers">
-            <div class="stat-icon teachers">
-                <i class="fas fa-chalkboard-teacher"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ number_format($stats['total_teachers']) }}</div>
-                <div class="stat-label">Professores Ativos</div>
-                <div class="stat-change info">
-                    <i class="fas fa-book"></i> {{ $stats['total_subjects'] }} disciplinas
-                </div>
-            </div>
-        </div>
-
-        <div class="stat-card attendance">
-            <div class="stat-icon attendance" style="background: var(--gradient-success);">
-                <i class="fas fa-calendar-check"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ $stats['average_attendance'] }}%</div>
-                <div class="stat-label">Presença Média</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-check"></i> Este mês
-                </div>
-            </div>
-        </div>
-
-        <div class="stat-card performance">
-            <div class="stat-icon performance" style="background: var(--gradient-accent);">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ $stats['class_performance_avg'] }}</div>
-                <div class="stat-label">Média Global</div>
-                <div class="stat-change warning">
-                    <i class="fas fa-star"></i> Desempenho
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-4">
-        <!-- Próximos Exames/Avaliações -->
-        <div class="col-lg-6">
-            <div class="school-card">
-                <div class="school-card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <i class="fas fa-file-alt text-danger"></i>
-                        Próximas Avaliações
-                    </div>
-                    <span class="badge bg-danger rounded-pill">{{ $stats['upcoming_exams'] }}</span>
-                </div>
-                <div class="school-card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
+        <section class="grid gap-6 xl:grid-cols-3">
+            <article class="xl:col-span-2 rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                    <h3 class="text-sm font-semibold text-slate-900">Desempenho por Turma</h3>
+                </header>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold">Turma</th>
+                                <th class="px-4 py-3 text-left font-semibold">Professor</th>
+                                <th class="px-4 py-3 text-left font-semibold">Alunos</th>
+                                <th class="px-4 py-3 text-left font-semibold">Media</th>
+                                <th class="px-4 py-3 text-left font-semibold">Progresso</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($classPerformance as $perf)
                                 <tr>
-                                    <th>Título</th>
-                                    <th>Turma</th>
-                                    <th>Data</th>
+                                    <td class="px-4 py-3 text-slate-800">{{ $perf['class_name'] }}</td>
+                                    <td class="px-4 py-3 text-slate-600">{{ $perf['teacher_name'] }}</td>
+                                    <td class="px-4 py-3 text-slate-600">{{ $perf['total_students'] }}</td>
+                                    <td class="px-4 py-3 font-semibold text-slate-900">{{ $perf['average_grade'] }}</td>
+                                    <td class="px-4 py-3">
+                                        <div class="h-2 w-40 rounded-full bg-slate-100">
+                                            <div class="h-2 rounded-full bg-sky-700"
+                                                style="width: {{ ($perf['average_grade'] / 20) * 100 }}%"></div>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($upcomingExams as $exam)
-                                    <tr>
-                                        <td>{{ $exam->title }}</td>
-                                        <td>{{ $exam->class->name ?? 'N/A' }}</td>
-                                        <td>{{ $exam->event_date?->format('d/m/Y') ?? 'N/A' }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="3" class="text-center py-4 text-muted">Nenhuma avaliação agendada</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-4 py-6 text-center text-slate-500">Sem dados de desempenho por turma.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-        </div>
+            </article>
 
-        <!-- Notas Pendentes -->
-        <div class="col-lg-6">
-            <div class="school-card">
-                <div class="school-card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <i class="fas fa-edit text-warning"></i>
-                        Lançamentos Pendentes
-                    </div>
-                    <span class="badge bg-warning text-dark rounded-pill">{{ $stats['pending_grades'] }}</span>
+            <article class="space-y-6">
+                <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                        <h3 class="text-sm font-semibold text-slate-900">Proximas Avaliacoes</h3>
+                        <span class="rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-700">{{ $stats['upcoming_exams'] }}</span>
+                    </header>
+                    <ul class="divide-y divide-slate-100">
+                        @forelse($upcomingExams as $exam)
+                            <li class="px-5 py-3">
+                                <p class="text-sm font-semibold text-slate-900">{{ $exam->title }}</p>
+                                <p class="text-xs text-slate-500">{{ $exam->class->name ?? 'N/A' }} • {{ $exam->event_date?->format('d/m/Y') ?? 'N/A' }}</p>
+                            </li>
+                        @empty
+                            <li class="px-5 py-5 text-center text-sm text-slate-500">Nenhuma avaliacao agendada.</li>
+                        @endforelse
+                    </ul>
                 </div>
-                <div class="school-card-body p-5 text-center">
-                    <div class="mb-3">
-                        <i class="fas fa-exclamation-circle text-warning fa-3x"></i>
-                    </div>
-                    <h5>{{ $stats['pending_grades'] }} notas aguardando lançamento</h5>
-                    <p class="text-muted small">Notifique os professores responsáveis para regularizar a situação.</p>
-                    <a href="{{ route('grades.index') }}" class="btn btn-sm btn-outline-warning rounded-pill">
-                        Ver Detalhes
+
+                <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Lancamentos Pendentes</p>
+                    <p class="mt-2 text-3xl font-bold text-amber-700">{{ $stats['pending_grades'] }}</p>
+                    <p class="mt-2 text-sm text-slate-600">Notas aguardando lancamento pelos professores.</p>
+                    <a href="{{ route('grades.index') }}"
+                        class="mt-4 inline-flex items-center rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-600">
+                        Ver detalhes
                     </a>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-4">
-        <!-- Desempenho por Turma -->
-        <div class="col-lg-12">
-            <div class="school-card">
-                <div class="school-card-header">
-                    <i class="fas fa-chart-bar"></i> Desempenho por Turma
-                </div>
-                <div class="school-card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Turma</th>
-                                    <th>Professor</th>
-                                    <th>Alunos</th>
-                                    <th>Média</th>
-                                    <th width="200">Progresso</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($classPerformance as $perf)
-                                    <tr>
-                                        <td>{{ $perf['class_name'] }}</td>
-                                        <td>{{ $perf['teacher_name'] }}</td>
-                                        <td>{{ $perf['total_students'] }}</td>
-                                        <td class="fw-bold">{{ $perf['average_grade'] }}</td>
-                                        <td>
-                                            <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar bg-primary" role="progressbar"
-                                                    style="width: {{ ($perf['average_grade'] / 20) * 100 }}%"></div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+            </article>
+        </section>
     </div>
 @endsection
-
-@push('styles')
-    <style>
-        .stat-card.students {
-            border-bottom: 4px solid var(--primary);
-        }
-
-        .stat-card.teachers {
-            border-bottom: 4px solid var(--info);
-        }
-
-        .stat-card.attendance {
-            border-bottom: 4px solid var(--secondary);
-        }
-
-        .stat-card.performance {
-            border-bottom: 4px solid var(--accent);
-        }
-    </style>
-@endpush

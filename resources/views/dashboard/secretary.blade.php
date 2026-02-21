@@ -9,272 +9,196 @@
 @endsection
 
 @section('page-actions')
-    <div class="btn-group">
-        <button class="btn btn-school btn-primary-school" onclick="window.location.reload()">
-            <i class="fas fa-sync-alt"></i> Atualizar
-        </button>
-    </div>
+    <button type="button"
+        class="inline-flex items-center gap-2 rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800"
+        onclick="window.location.reload()">
+        <i class="fas fa-sync-alt"></i>
+        Atualizar
+    </button>
 @endsection
 
 @section('content')
-    <!-- Cards de Estatísticas -->
-    <div class="school-stats">
-        <div class="stat-card students">
-            <div class="stat-icon students">
-                <i class="fas fa-user-graduate"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ number_format($stats['total_students']) }}</div>
-                <div class="stat-label">Total de Alunos</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-plus"></i>
-                    {{ $stats['new_enrollments_month'] }} este mês
-                </div>
-            </div>
-        </div>
+    <div class="space-y-6" x-data="{ openQuickActions: true }">
+        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Total de Alunos</p>
+                <p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($stats['total_students']) }}</p>
+                <p class="mt-2 text-sm text-emerald-700">
+                    <i class="fas fa-arrow-trend-up"></i> {{ $stats['new_enrollments_month'] }} este mes
+                </p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Matriculas Pendentes</p>
+                <p class="mt-2 text-3xl font-bold text-amber-700">{{ number_format($stats['pending_enrollments']) }}</p>
+                <p class="mt-2 text-sm text-amber-700">
+                    <i class="fas fa-clock"></i> Aguardando revisao
+                </p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Receita Mensal</p>
+                <p class="mt-2 text-3xl font-bold text-emerald-700">{{ number_format($stats['monthly_revenue'], 0, ',', '.') }} MT</p>
+                <p class="mt-2 text-sm text-slate-600">
+                    <i class="fas fa-calendar-day"></i> {{ $stats['todays_payments'] }} pagamentos hoje
+                </p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Pagamentos em Atraso</p>
+                <p class="mt-2 text-3xl font-bold text-rose-700">{{ number_format($stats['overdue_payments']) }}</p>
+                <p class="mt-2 text-sm text-rose-700">
+                    <i class="fas fa-triangle-exclamation"></i> {{ number_format($stats['overdue_amount'], 0, ',', '.') }} MT
+                </p>
+            </article>
+        </section>
 
-        <div class="stat-card teachers">
-            <div class="stat-icon teachers" style="background: var(--gradient-accent);">
-                <i class="fas fa-clipboard-list"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ number_format($stats['pending_enrollments']) }}</div>
-                <div class="stat-label">Matrículas Pendentes</div>
-                <div class="stat-change warning">
-                    <i class="fas fa-clock"></i> Aguardando revisão
-                </div>
-            </div>
-        </div>
-
-        <div class="stat-card payments">
-            <div class="stat-icon payments">
-                <i class="fas fa-money-bill-wave"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ number_format($stats['monthly_revenue'], 0, ',', '.') }} MT</div>
-                <div class="stat-label">Receita Mensal</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-calendar-day"></i> {{ $stats['todays_payments'] }} hoje
-                </div>
-            </div>
-        </div>
-
-        <div class="stat-card events">
-            <div class="stat-icon events">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <div class="stat-content">
-                <div class="stat-value">{{ number_format($stats['overdue_payments']) }}</div>
-                <div class="stat-label">Pagamentos em Atraso</div>
-                <div class="stat-change negative">
-                    <i class="fas fa-clock"></i>
-                    {{ number_format($stats['overdue_amount'], 0, ',', '.') }} MT
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-4">
-        <!-- Matrículas Pendentes -->
-        <div class="col-lg-6">
-            <div class="school-card">
-                <div class="school-card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <i class="fas fa-clipboard-list"></i>
-                        Matrículas Pendentes
-                    </div>
+        <section class="grid gap-6 xl:grid-cols-2">
+            <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                    <h3 class="text-sm font-semibold text-slate-900">Matriculas Pendentes</h3>
                     <a href="{{ route('enrollments.index') }}?status=pending"
-                        class="btn btn-school btn-primary-school btn-sm">
-                        Ver Todas
+                        class="text-sm font-medium text-sky-700 hover:text-sky-800">Ver todas</a>
+                </header>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold">Aluno</th>
+                                <th class="px-4 py-3 text-left font-semibold">Classe</th>
+                                <th class="px-4 py-3 text-left font-semibold">Data</th>
+                                <th class="px-4 py-3 text-right font-semibold">Acao</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($pendingEnrollments as $enrollment)
+                                <tr>
+                                    <td class="px-4 py-3 text-slate-800">{{ $enrollment->student->full_name }}</td>
+                                    <td class="px-4 py-3 text-slate-600">{{ $enrollment->class->name ?? 'N/A' }}</td>
+                                    <td class="px-4 py-3 text-slate-600">{{ $enrollment->created_at->format('d/m/Y') }}</td>
+                                    <td class="px-4 py-3 text-right">
+                                        <a href="{{ route('enrollments.show', $enrollment) }}"
+                                            class="inline-flex rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">
+                                            Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-4 py-6 text-center text-slate-500">Nenhuma matricula pendente.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+
+            <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                    <h3 class="text-sm font-semibold text-slate-900">Pagamentos em Atraso</h3>
+                    <a href="{{ route('payments.index') }}?status=overdue"
+                        class="text-sm font-medium text-rose-700 hover:text-rose-800">Ver todos</a>
+                </header>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold">Aluno</th>
+                                <th class="px-4 py-3 text-left font-semibold">Vencimento</th>
+                                <th class="px-4 py-3 text-left font-semibold">Valor</th>
+                                <th class="px-4 py-3 text-right font-semibold">Acao</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($overduePayments as $payment)
+                                <tr>
+                                    <td class="px-4 py-3 text-slate-800">{{ $payment->student->full_name }}</td>
+                                    <td class="px-4 py-3 text-slate-600">{{ $payment->due_date?->format('d/m/Y') ?? 'N/A' }}</td>
+                                    <td class="px-4 py-3 font-semibold text-rose-700">{{ number_format($payment->amount, 2, ',', '.') }} MT</td>
+                                    <td class="px-4 py-3 text-right">
+                                        <a href="{{ route('payments.show', $payment) }}"
+                                            class="inline-flex rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">
+                                            Abrir
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-4 py-6 text-center text-slate-500">Nenhum pagamento em atraso.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+        </section>
+
+        <section class="grid gap-6 xl:grid-cols-3">
+            <article class="xl:col-span-2 rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                    <h3 class="text-sm font-semibold text-slate-900">Ultimos Pagamentos Recebidos</h3>
+                    <a href="{{ route('payments.index') }}"
+                        class="text-sm font-medium text-slate-700 hover:text-slate-900">Ver historico</a>
+                </header>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600">
+                            <tr>
+                                <th class="px-4 py-3 text-left font-semibold">Aluno</th>
+                                <th class="px-4 py-3 text-left font-semibold">Data</th>
+                                <th class="px-4 py-3 text-left font-semibold">Metodo</th>
+                                <th class="px-4 py-3 text-left font-semibold">Valor</th>
+                                <th class="px-4 py-3 text-right font-semibold">Acao</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse($recentPayments as $payment)
+                                <tr>
+                                    <td class="px-4 py-3 text-slate-800">{{ $payment->student->full_name }}</td>
+                                    <td class="px-4 py-3 text-slate-600">{{ $payment->payment_date?->format('d/m/Y') ?? 'N/A' }}</td>
+                                    <td class="px-4 py-3 text-slate-600">{{ ucfirst($payment->payment_method) }}</td>
+                                    <td class="px-4 py-3 font-semibold text-emerald-700">{{ number_format($payment->amount, 2, ',', '.') }} MT</td>
+                                    <td class="px-4 py-3 text-right">
+                                        <a href="{{ route('payments.show', $payment) }}"
+                                            class="inline-flex rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200">
+                                            Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-4 py-6 text-center text-slate-500">Nenhum pagamento registrado.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </article>
+
+            <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="border-b border-slate-200 px-5 py-4">
+                    <button type="button" @click="openQuickActions = !openQuickActions"
+                        class="flex w-full items-center justify-between text-left text-sm font-semibold text-slate-900">
+                        <span>Acoes Rapidas</span>
+                        <i class="fas fa-chevron-down text-xs transition" :class="{ 'rotate-180': openQuickActions }"></i>
+                    </button>
+                </header>
+                <div class="space-y-2 p-4" x-show="openQuickActions" x-transition>
+                    <a href="{{ route('students.create') }}"
+                        class="block rounded-lg border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 hover:border-sky-300 hover:bg-sky-50 hover:text-sky-800">
+                        <i class="fas fa-user-plus mr-2"></i>Novo Aluno
+                    </a>
+                    <a href="{{ route('payments.create') }}"
+                        class="block rounded-lg border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800">
+                        <i class="fas fa-money-bill-wave mr-2"></i>Receber Pagamento
+                    </a>
+                    <a href="{{ route('enrollments.create') }}"
+                        class="block rounded-lg border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 hover:border-indigo-300 hover:bg-indigo-50 hover:text-indigo-800">
+                        <i class="fas fa-id-card mr-2"></i>Nova Matricula
+                    </a>
+                    <a href="{{ route('communications.create') }}"
+                        class="block rounded-lg border border-slate-200 px-4 py-3 text-sm font-medium text-slate-700 hover:border-amber-300 hover:bg-amber-50 hover:text-amber-800">
+                        <i class="fas fa-bullhorn mr-2"></i>Enviar Comunicado
                     </a>
                 </div>
-                <div class="school-card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Aluno</th>
-                                    <th>Classe</th>
-                                    <th>Data</th>
-                                    <th class="text-end">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($pendingEnrollments as $enrollment)
-                                    <tr>
-                                        <td>{{ $enrollment->student->full_name }}</td>
-                                        <td>{{ $enrollment->class->name ?? 'N/A' }}</td>
-                                        <td>{{ $enrollment->created_at->format('d/m/Y') }}</td>
-                                        <td class="text-end">
-                                            <a href="{{ route('enrollments.show', $enrollment) }}"
-                                                class="btn btn-sm btn-light rounded-circle">
-                                                <i class="fas fa-eye text-primary"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4 text-muted">Nenhuma matrícula pendente</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Pagamentos em Atraso -->
-        <div class="col-lg-6">
-            <div class="school-card">
-                <div class="school-card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <i class="fas fa-clock text-danger"></i>
-                        Pagamentos em Atraso
-                    </div>
-                    <a href="{{ route('payments.index') }}?status=overdue" class="btn btn-school btn-outline-danger btn-sm">
-                        Ver Todos
-                    </a>
-                </div>
-                <div class="school-card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Aluno</th>
-                                    <th>Vencimento</th>
-                                    <th>Valor</th>
-                                    <th class="text-end">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($overduePayments as $payment)
-                                    <tr>
-                                        <td>{{ $payment->student->full_name }}</td>
-                                        <td>{{ $payment->due_date?->format('d/m/Y') ?? 'N/A' }}</td>
-                                        <td class="fw-bold text-danger">{{ number_format($payment->amount, 2, ',', '.') }} MT
-                                        </td>
-                                        <td class="text-end">
-                                            <a href="{{ route('payments.show', $payment) }}"
-                                                class="btn btn-sm btn-light rounded-circle">
-                                                <i class="fas fa-receipt text-danger"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="4" class="text-center py-4 text-muted">Nenhum pagamento em atraso</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="row mt-4">
-        <!-- Últimos Pagamentos -->
-        <div class="col-lg-8">
-            <div class="school-card">
-                <div class="school-card-header d-flex justify-content-between align-items-center">
-                    <div>
-                        <i class="fas fa-history"></i>
-                        Últimos Pagamentos Recebidos
-                    </div>
-                    <a href="{{ route('payments.index') }}" class="btn btn-school btn-outline-secondary btn-sm">
-                        Ver Histórico
-                    </a>
-                </div>
-                <div class="school-card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Aluno</th>
-                                    <th>Data</th>
-                                    <th>Método</th>
-                                    <th>Valor</th>
-                                    <th class="text-end">Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($recentPayments as $payment)
-                                    <tr>
-                                        <td>{{ $payment->student->full_name }}</td>
-                                        <td>{{ $payment->payment_date?->format('d/m/Y') ?? 'N/A' }}</td>
-                                        <td>{{ ucfirst($payment->payment_method) }}</td>
-                                        <td class="fw-bold text-success">{{ number_format($payment->amount, 2, ',', '.') }} MT
-                                        </td>
-                                        <td class="text-end">
-                                            <a href="{{ route('payments.show', $payment) }}"
-                                                class="btn btn-sm btn-light rounded-circle">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center py-4 text-muted">Nenhum pagamento registrado</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Ações Rápidas -->
-        <div class="col-lg-4">
-            <div class="school-card">
-                <div class="school-card-header">
-                    <i class="fas fa-bolt"></i> Ações Rápidas
-                </div>
-                <div class="school-card-body">
-                    <div class="d-grid gap-2">
-                        <a href="{{ route('students.create') }}" class="btn btn-outline-primary text-start p-3 rounded-3">
-                            <i class="fas fa-user-plus me-2"></i> Novo Aluno
-                        </a>
-                        <a href="{{ route('payments.create') }}" class="btn btn-outline-success text-start p-3 rounded-3">
-                            <i class="fas fa-money-bill-wave me-2"></i> Receber Pagamento
-                        </a>
-                        <a href="{{ route('enrollments.create') }}" class="btn btn-outline-info text-start p-3 rounded-3">
-                            <i class="fas fa-id-card me-2"></i> Nova Matrícula
-                        </a>
-                        <a href="{{ route('communications.create') }}"
-                            class="btn btn-outline-warning text-start p-3 rounded-3">
-                            <i class="fas fa-bullhorn me-2"></i> Enviar Comunicado
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+            </article>
+        </section>
     </div>
 @endsection
-
-@push('styles')
-    <style>
-        .stat-card.students {
-            border-bottom: 4px solid var(--primary);
-        }
-
-        .stat-card.teachers {
-            border-bottom: 4px solid var(--accent);
-        }
-
-        .stat-card.payments {
-            border-bottom: 4px solid var(--secondary);
-        }
-
-        .stat-card.events {
-            border-bottom: 4px solid var(--danger);
-        }
-
-        .stat-change.warning {
-            background: rgba(249, 168, 37, 0.1);
-            color: var(--accent);
-        }
-    </style>
-@endpush

@@ -4,57 +4,31 @@
 @section('page-title', 'Dashboard Professor')
 
 @section('content')
-<div class="row justify-content-center">
-    <div class="col-lg-8 col-md-10">
-        <div class="alert alert-info shadow-sm rounded-3 mb-4 d-flex align-items-center">
-            <i class="fas fa-info-circle fa-lg me-2"></i>
-            <div>
-                <strong>Portal do Professor:</strong> 
-                <a href="{{ route('teacher.dashboard') }}" class="alert-link">
-                    Clique aqui para acessar o portal completo do professor.
-                </a>
-            </div>
+    <div class="mx-auto max-w-3xl" x-data="{ seconds: 3 }" x-init="setInterval(() => { if (seconds > 0) seconds--; }, 1000); setTimeout(() => window.location.href = '{{ route('teacher.dashboard') }}', 3000)">
+        <div class="mb-5 rounded-xl border border-sky-200 bg-sky-50 p-4 text-sky-900">
+            <p class="text-sm">
+                <strong>Portal do Professor:</strong>
+                <a href="{{ route('teacher.dashboard') }}" class="font-semibold underline">clique aqui para acessar o portal completo</a>.
+            </p>
         </div>
 
-        <div class="card border-0 shadow-lg rounded-4 text-center py-5">
-            <div class="card-body">
-                <i class="fas fa-chalkboard-teacher fa-4x text-primary mb-3"></i>
-                <h3 class="fw-bold mb-3">Portal do Professor</h3>
-                <p class="text-muted mb-4">Você está logado como professor.</p>
-                <a href="{{ route('teacher.dashboard') }}" class="btn btn-primary btn-lg px-5">
-                    <i class="fas fa-external-link-alt me-1"></i> Acessar Portal do Professor
-                </a>
-                <p class="text-muted mt-4 mb-0 small">
-                    Você será redirecionado automaticamente em alguns segundos...
-                </p>
+        <article class="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
+                <i class="fas fa-chalkboard-teacher text-2xl"></i>
             </div>
-        </div>
+            <h2 class="text-2xl font-bold text-slate-900">Portal do Professor</h2>
+            <p class="mt-2 text-sm text-slate-600">Voce esta logado como professor.</p>
+
+            <a href="{{ route('teacher.dashboard') }}"
+                class="mt-6 inline-flex items-center gap-2 rounded-lg bg-sky-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-800">
+                <i class="fas fa-external-link-alt"></i>
+                Acessar Portal do Professor
+            </a>
+
+            <p class="mt-5 text-xs text-slate-500">
+                Redirecionamento automatico em
+                <span class="font-semibold text-slate-700" x-text="seconds"></span>s.
+            </p>
+        </article>
     </div>
-</div>
-
-<script>
-// Redirecionamento automático após 3 segundos
-setTimeout(function() {
-    window.location.href = "{{ route('teacher.dashboard') }}";
-}, 3000);
-</script>
-
-<style>
-    .card {
-        background: #ffffff;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-    }
-    .btn-primary {
-        background-color: #0078d4;
-        border-color: #0078d4;
-    }
-    .btn-primary:hover {
-        background-color: #005a9e;
-        border-color: #005a9e;
-    }
-</style>
 @endsection

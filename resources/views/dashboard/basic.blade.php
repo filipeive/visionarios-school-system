@@ -1,23 +1,27 @@
-@extends('layouts.school')
+@extends('layouts.app')
 
 @section('title', 'Dashboard')
 @section('page-title', 'Bem-vindo')
 
 @section('content')
-<div class="row">
-    <div class="col-12">
-        <div class="school-card">
-            <div class="school-card-body text-center py-5">
-                <i class="fas fa-graduation-cap text-primary" style="font-size: 80px;"></i>
-                <h2 class="mt-4">Bem-vindo ao Sistema Visionários</h2>
-                <p class="text-muted">Sistema de Gestão Escolar</p>
-                <p>Seu perfil ainda não foi completamente configurado.</p>
-                <a href="{{ route('profile.edit') }}" class="btn-school btn-primary-school mt-3">
-                    <i class="fas fa-user-cog"></i>
-                    Completar Perfil
-                </a>
+    <div class="mx-auto max-w-2xl">
+        <article class="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+            <div class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-100 text-sky-700">
+                <i class="fas fa-graduation-cap text-2xl"></i>
             </div>
-        </div>
+            <h2 class="text-2xl font-bold text-slate-900">{{ $stats['welcome_message'] }}</h2>
+            <p class="mt-2 text-sm text-slate-600">Sistema de Gestao Escolar</p>
+            <p class="mt-1 text-xs text-slate-500">Ultimo acesso: {{ $stats['last_login'] }}</p>
+
+            <div class="mt-6 rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
+                Seu perfil ainda nao foi completamente configurado.
+            </div>
+
+            <a href="{{ route('profile.edit') }}"
+                class="mt-6 inline-flex items-center gap-2 rounded-lg bg-sky-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-sky-800">
+                <i class="fas fa-user-cog"></i>
+                Completar Perfil
+            </a>
+        </article>
     </div>
-</div>
 @endsection
