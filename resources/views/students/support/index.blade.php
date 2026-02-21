@@ -11,49 +11,47 @@
 @endsection
 
 @section('content')
-    <div class="row g-4">
-        <div class="col-12 col-lg-5">
-            <div class="school-card mb-4">
-                <div class="school-card-header">
-                    <i class="fas fa-user-graduate"></i>
-                    Dados do Aluno
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-5 space-y-4">
+            <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-4 py-3">
+                    <h3 class="text-sm font-semibold text-slate-700"><i class="fas fa-user-graduate mr-2"></i>Dados do Aluno</h3>
                 </div>
-                <div class="school-card-body">
-                    <h5 class="mb-1">{{ $student->full_name }}</h5>
-                    <div class="text-muted mb-3">{{ $student->student_number }}</div>
-                    <div><strong>Turma atual:</strong> {{ $student->currentEnrollment?->class?->name ?? 'Sem turma ativa' }}</div>
-                    <div><strong>Encarregado:</strong>
+                <div class="p-4 text-sm space-y-2">
+                    <h4 class="text-lg font-bold text-slate-900">{{ $student->full_name }}</h4>
+                    <div class="text-slate-500">{{ $student->student_number }}</div>
+                    <div><strong class="text-slate-700">Turma atual:</strong> {{ $student->currentEnrollment?->class?->name ?? 'Sem turma ativa' }}</div>
+                    <div><strong class="text-slate-700">Encarregado:</strong>
                         {{ $student->parent ? $student->parent->first_name . ' ' . $student->parent->last_name : 'Não informado' }}
                     </div>
                 </div>
             </div>
 
             @can('create_observations')
-                <div class="school-card mb-4">
-                    <div class="school-card-header">
-                        <i class="fas fa-comment-medical"></i>
-                        Nova Observação
+                <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div class="border-b border-slate-200 px-4 py-3">
+                        <h3 class="text-sm font-semibold text-slate-700"><i class="fas fa-comment-medical mr-2"></i>Nova Observação</h3>
                     </div>
-                    <div class="school-card-body">
+                    <div class="p-4">
                         <form method="POST" action="{{ route('students.support.observations.store', $student) }}">
                             @csrf
                             <div class="mb-3">
-                                <label class="form-label">Observação</label>
-                                <textarea class="form-control @error('observations') is-invalid @enderror" name="observations" rows="4"
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Observação</label>
+                                <textarea class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('observations') border-rose-400 @enderror" name="observations" rows="4"
                                     placeholder="Registre observações pedagógicas, comportamentais ou de acompanhamento...">{{ old('observations') }}</textarea>
                                 @error('observations')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="text-xs text-rose-600 mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" value="1" name="special_needs"
+                            <div class="flex items-center gap-2 mb-3">
+                                <input class="rounded border-slate-300 text-blue-600 focus:ring-blue-500" type="checkbox" value="1" name="special_needs"
                                     id="special_needs" {{ old('special_needs') ? 'checked' : '' }}>
-                                <label class="form-check-label" for="special_needs">
+                                <label class="text-sm text-slate-700" for="special_needs">
                                     Envolve necessidade especial
                                 </label>
                             </div>
-                            <button class="btn btn-school btn-primary-school w-100">
-                                <i class="fas fa-save me-1"></i> Guardar Observação
+                            <button class="inline-flex w-full items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                                <i class="fas fa-save mr-2"></i>Guardar Observação
                             </button>
                         </form>
                     </div>
@@ -61,17 +59,16 @@
             @endcan
 
             @can('manage_student_records')
-                <div class="school-card">
-                    <div class="school-card-header">
-                        <i class="fas fa-folder-plus"></i>
-                        Novo Registo
+                <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div class="border-b border-slate-200 px-4 py-3">
+                        <h3 class="text-sm font-semibold text-slate-700"><i class="fas fa-folder-plus mr-2"></i>Novo Registo</h3>
                     </div>
-                    <div class="school-card-body">
+                    <div class="p-4">
                         <form method="POST" action="{{ route('students.support.records.store', $student) }}">
                             @csrf
                             <div class="mb-3">
-                                <label class="form-label">Tipo</label>
-                                <select class="form-select @error('record_type') is-invalid @enderror" name="record_type">
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Tipo</label>
+                                <select class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('record_type') border-rose-400 @enderror" name="record_type">
                                     <option value="">Selecionar...</option>
                                     <option value="academic" @selected(old('record_type') === 'academic')>Acadêmico</option>
                                     <option value="disciplinary" @selected(old('record_type') === 'disciplinary')>Disciplinar</option>
@@ -80,27 +77,27 @@
                                     <option value="other" @selected(old('record_type') === 'other')>Outro</option>
                                 </select>
                                 @error('record_type')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="text-xs text-rose-600 mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Data do registo</label>
-                                <input type="date" class="form-control @error('record_date') is-invalid @enderror"
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Data do registo</label>
+                                <input type="date" class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('record_date') border-rose-400 @enderror"
                                     name="record_date" value="{{ old('record_date', now()->toDateString()) }}">
                                 @error('record_date')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="text-xs text-rose-600 mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Detalhes</label>
-                                <textarea class="form-control @error('record_details') is-invalid @enderror" name="record_details" rows="4"
+                                <label class="block text-sm font-medium text-slate-700 mb-1">Detalhes</label>
+                                <textarea class="w-full rounded-md border-slate-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('record_details') border-rose-400 @enderror" name="record_details" rows="4"
                                     placeholder="Descrição do evento/registo...">{{ old('record_details') }}</textarea>
                                 @error('record_details')
-                                    <div class="invalid-feedback">{{ $message }}</div>
+                                    <div class="text-xs text-rose-600 mt-1">{{ $message }}</div>
                                 @enderror
                             </div>
-                            <button class="btn btn-school btn-primary-school w-100">
-                                <i class="fas fa-save me-1"></i> Guardar Registo
+                            <button class="inline-flex w-full items-center justify-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                                <i class="fas fa-save mr-2"></i>Guardar Registo
                             </button>
                         </form>
                     </div>
@@ -108,73 +105,73 @@
             @endcan
         </div>
 
-        <div class="col-12 col-lg-7">
-            <div class="school-card mb-4">
-                <div class="school-card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-comments"></i> Observações</span>
-                    <span class="badge bg-primary">{{ $observations->total() }}</span>
+        <div class="lg:col-span-7 space-y-4">
+            <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-slate-700"><i class="fas fa-comments mr-2"></i>Observações</h3>
+                    <span class="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-semibold text-blue-700">{{ $observations->total() }}</span>
                 </div>
-                <div class="school-card-body">
+                <div class="p-4">
                     @forelse ($observations as $observation)
-                        <div class="border rounded p-3 mb-3">
-                            <div class="d-flex justify-content-between mb-2">
-                                <small class="text-muted">
+                        <div class="rounded-lg border border-slate-200 p-3 mb-3">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <small class="text-slate-500">
                                     {{ $observation->created_at->format('d/m/Y H:i') }} por
                                     {{ $observation->creator->name ?? 'Sistema' }}
                                 </small>
                                 @if ($observation->special_needs)
-                                    <span class="badge bg-warning text-dark">Nec. especial</span>
+                                    <span class="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">Nec. especial</span>
                                 @endif
                             </div>
-                            <p class="mb-2">{{ $observation->observations }}</p>
+                            <p class="mb-2 text-sm text-slate-700">{{ $observation->observations }}</p>
                             @can('manage_observations')
                                 <form method="POST"
                                     action="{{ route('students.support.observations.destroy', [$student, $observation]) }}"
                                     onsubmit="return confirm('Remover esta observação?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <i class="fas fa-trash me-1"></i> Remover
+                                    <button class="inline-flex items-center rounded-md border border-rose-300 px-2.5 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-50">
+                                        <i class="fas fa-trash mr-1"></i>Remover
                                     </button>
                                 </form>
                             @endcan
                         </div>
                     @empty
-                        <p class="text-muted mb-0">Nenhuma observação registada.</p>
+                        <p class="text-sm text-slate-500 mb-0">Nenhuma observação registada.</p>
                     @endforelse
                     <div class="mt-3">{{ $observations->links() }}</div>
                 </div>
             </div>
 
-            <div class="school-card">
-                <div class="school-card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-folder-open"></i> Registos</span>
-                    <span class="badge bg-success">{{ $records->total() }}</span>
+            <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+                    <h3 class="text-sm font-semibold text-slate-700"><i class="fas fa-folder-open mr-2"></i>Registos</h3>
+                    <span class="inline-flex rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">{{ $records->total() }}</span>
                 </div>
-                <div class="school-card-body">
+                <div class="p-4">
                     @forelse ($records as $record)
-                        <div class="border rounded p-3 mb-3">
-                            <div class="d-flex justify-content-between mb-2">
-                                <small class="text-muted">
+                        <div class="rounded-lg border border-slate-200 p-3 mb-3">
+                            <div class="flex items-center justify-between gap-2 mb-2">
+                                <small class="text-slate-500">
                                     {{ \Carbon\Carbon::parse($record->record_date)->format('d/m/Y') }} por
                                     {{ $record->creator->name ?? 'Sistema' }}
                                 </small>
-                                <span class="badge bg-info text-dark">{{ $record->record_type_name }}</span>
+                                <span class="inline-flex rounded-full bg-cyan-100 px-2.5 py-1 text-xs font-semibold text-cyan-700">{{ $record->record_type_name }}</span>
                             </div>
-                            <p class="mb-2">{{ $record->record_details }}</p>
+                            <p class="mb-2 text-sm text-slate-700">{{ $record->record_details }}</p>
                             @can('manage_student_records')
                                 <form method="POST" action="{{ route('students.support.records.destroy', [$student, $record]) }}"
                                     onsubmit="return confirm('Remover este registo?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger">
-                                        <i class="fas fa-trash me-1"></i> Remover
+                                    <button class="inline-flex items-center rounded-md border border-rose-300 px-2.5 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-50">
+                                        <i class="fas fa-trash mr-1"></i>Remover
                                     </button>
                                 </form>
                             @endcan
                         </div>
                     @empty
-                        <p class="text-muted mb-0">Nenhum registo encontrado.</p>
+                        <p class="text-sm text-slate-500 mb-0">Nenhum registo encontrado.</p>
                     @endforelse
                     <div class="mt-3">{{ $records->links() }}</div>
                 </div>
