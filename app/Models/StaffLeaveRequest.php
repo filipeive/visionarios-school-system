@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class StaffLeaveRequest extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
         'staff_id',
@@ -26,6 +28,24 @@ class StaffLeaveRequest extends Model
         'end_date' => 'date',
         'approved_at' => 'datetime',
     ];
+
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->useLogName('leave_requests')
+            ->logOnly([
+                'staff_id',
+                'leave_type',
+                'start_date',
+                'end_date',
+                'reason',
+                'status',
+                'rejection_reason',
+                'approved_by',
+                'approved_at',
+            ])
+            ->logOnlyDirty();
+    }
 
     // Relacionamentos
     public function staff()

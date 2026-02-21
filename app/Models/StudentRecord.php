@@ -13,7 +13,12 @@ class StudentRecord extends Model
         'student_id',
         'record_type',
         'record_details',
+        'record_date',
         'created_by',
+    ];
+
+    protected $casts = [
+        'record_date' => 'date',
     ];
 
     // Relacionamentos
@@ -26,27 +31,7 @@ class StudentRecord extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
-    // Scopes
-
-    public function scopeByRole($query, $role)
-    {
-        return $query->where('role', $role);
-    }
-
     // Accessors
-    public function getRoleDisplayAttribute()
-    {
-        $roles = [
-            'admin' => 'Administrador',
-            'secretary' => 'Secretaria',
-            'pedagogy' => 'Seção Pedagógica', 
-            'teacher' => 'Professor',
-            'parent' => 'Encarregado'
-        ];
-
-        return $roles[$this->role] ?? 'Usuário';
-    }
-    
     public function getRecordTypeNameAttribute()
     {
         $types = [
@@ -58,14 +43,5 @@ class StudentRecord extends Model
         ];
 
         return $types[$this->record_type] ?? 'Não definido';
-    }
-
-    public function getAvatarUrlAttribute()
-    {
-        if ($this->avatar) {
-            return asset('storage/' . $this->avatar);
-        }
-        
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&background=2E7D32&color=fff';
     }
 }

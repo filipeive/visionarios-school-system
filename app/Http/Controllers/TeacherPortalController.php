@@ -274,7 +274,7 @@ class TeacherPortalController extends Controller
                 return $query->where('subject_id', $selectedSubject);
             })
             ->where('term', $selectedTerm)
-            ->where('year', date('Y'))
+            ->where('year', current_school_year())
             ->get()
             ->groupBy(['student_id', 'assessment_type']);
 
@@ -311,7 +311,7 @@ class TeacherPortalController extends Controller
                     'subject_id' => $request->subject_id,
                     'assessment_type' => $request->assessment_type,
                     'term' => $request->term,
-                    'year' => date('Y'),
+                    'year' => current_school_year(),
                 ],
                 [
                     'grade' => $request->grade,
@@ -521,7 +521,7 @@ class TeacherPortalController extends Controller
                         'subject_id' => $gradeData['subject_id'],
                         'assessment_type' => $gradeData['assessment_type'],
                         'term' => $gradeData['term'],
-                        'year' => date('Y'),
+                        'year' => current_school_year(),
                     ],
                     [
                         'grade' => $gradeData['grade'],
@@ -573,27 +573,25 @@ class TeacherPortalController extends Controller
             'title' => 'required|string|max:255',
             'message' => 'required|string',
             'target_audience' => 'required|in:parents,students,all',
-            'class_ids' => 'nullable|array',
-            'class_ids.*' => 'exists:classes,id',
-            'priority' => 'required|in:low,normal,high,urgent',
+            'priority' => 'required|in:low,normal,medium,high,urgent',
         ]);
 
         try {
+            $priority = match ($request->priority) {
+                'normal' => 'medium',
+                'urgent' => 'high',
+                default => $request->priority,
+            };
+
             $communication = Communication::create([
                 'title' => $request->title,
                 'message' => $request->message,
                 'target_audience' => $request->target_audience,
-                'priority' => $request->priority,
+                'priority' => $priority,
                 'created_by' => Auth::id(),
-                'sender_type' => 'teacher',
-                'status' => 'published',
-                'published_at' => now(),
+                'is_published' => true,
+                'publish_at' => now(),
             ]);
-
-            // Associar turmas se especificado
-            if ($request->class_ids) {
-                $communication->classes()->sync($request->class_ids);
-            }
 
             // TODO: Enviar notificações para destinatários
 
@@ -649,27 +647,32 @@ class TeacherPortalController extends Controller
         $teacher = Teacher::where('user_id', Auth::id())->firstOrFail();
 
         $request->validate([
-            'leave_type' => 'required|in:sick,personal,vacation,maternity,paternity,bereavement,other',
+            'leave_type' => 'required|in:sick,personal,vacation,maternity,other',
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'required|date|after_or_equal:start_date',
             'reason' => 'required|string|max:1000',
-            'supporting_document' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:2048',
         ]);
 
         try {
-            $data = $request->except('supporting_document');
-            $data['teacher_id'] = $teacher->id;
+            $data = $request->only(['leave_type', 'start_date', 'end_date', 'reason']);
+            $data['staff_id'] = $teacher->id;
             $data['status'] = 'pending';
-            $data['days_requested'] = Carbon::parse($request->start_date)
-                ->diffInDays(Carbon::parse($request->end_date)) + 1;
-
-            // Upload do documento de suporte
-            if ($request->hasFile('supporting_document')) {
-                $path = $request->file('supporting_document')->store('leave-requests', 'public');
-                $data['supporting_document'] = $path;
-            }
 
             $leaveRequest = \App\Models\StaffLeaveRequest::create($data);
+
+            activity('leave_requests')
+                ->performedOn($leaveRequest)
+                ->causedBy(auth()->user())
+                ->withProperties([
+                    'decision' => 'created',
+                    'staff_id' => $teacher->id,
+                    'leave_type' => $leaveRequest->leave_type,
+                    'period' => [
+                        'start_date' => optional($leaveRequest->start_date)->toDateString(),
+                        'end_date' => optional($leaveRequest->end_date)->toDateString(),
+                    ],
+                ])
+                ->log('leave_request_created');
 
             // TODO: Notificar administradores sobre novo pedido
 

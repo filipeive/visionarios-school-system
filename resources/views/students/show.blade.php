@@ -79,6 +79,12 @@
                             <a href="{{ route('students.attendance', $student) }}" class="btn btn-outline-info">
                                 <i class="fas fa-calendar-check"></i>
                             </a>
+                            @can('view_observations')
+                                <a href="{{ route('students.support.index', $student) }}" class="btn btn-outline-secondary"
+                                    title="Acompanhamento">
+                                    <i class="fas fa-notes-medical"></i>
+                                </a>
+                            @endcan
                             @can('manage_payments')
                                 <a href="{{ route('students.payments', $student) }}" class="btn btn-outline-success">
                                     <i class="fas fa-money-bill-wave"></i>

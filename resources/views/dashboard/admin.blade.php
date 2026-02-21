@@ -218,7 +218,7 @@
                             <strong>{{ $stats['pending_leave_requests'] }} pedidos de licença</strong>
                             <div class="small">Necessitam de atenção</div>
                         </div>
-                        <a href="{{ route('teacher.leave-requests') }}" class="btn btn-school btn-outline-info btn-sm">
+                        <a href="{{ route('staff-leave-requests.index') }}" class="btn btn-school btn-outline-info btn-sm">
                             Analisar
                         </a>
                     </div>

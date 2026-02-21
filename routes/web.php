@@ -14,12 +14,16 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\AcademicYearController;
+use App\Http\Controllers\Admin\StudentPromotionController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\TeacherPortalController;
 use App\Http\Controllers\ParentPortalController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\DemoController;
+use App\Http\Controllers\StudentSupportController;
+use App\Http\Controllers\LeaveRequestManagementController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 
@@ -112,11 +116,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/{student}/grades', 'grades')->name('grades');
             Route::get('/{student}/attendance', 'attendance')->name('attendance');
             Route::get('/{student}/payments', 'payments')->name('payments');
+            Route::get('/{student}/support', [StudentSupportController::class, 'index'])
+                ->middleware('permission:view_observations')
+                ->name('support.index');
 
             Route::middleware('permission:edit_students')->group(function () {
                 Route::get('/{student}/edit', 'edit')->name('edit');
                 Route::patch('/{student}', 'update')->name('update');
                 Route::post('/{student}/upload-photo', 'uploadPhoto')->name('upload-photo');
+            });
+
+            Route::middleware('permission:create_observations')->group(function () {
+                Route::post('/{student}/support/observations', [StudentSupportController::class, 'storeObservation'])
+                    ->name('support.observations.store');
+            });
+
+            Route::middleware('permission:manage_observations')->group(function () {
+                Route::delete('/{student}/support/observations/{observation}', [StudentSupportController::class, 'destroyObservation'])
+                    ->name('support.observations.destroy');
+            });
+
+            Route::middleware('permission:manage_student_records')->group(function () {
+                Route::post('/{student}/support/records', [StudentSupportController::class, 'storeRecord'])
+                    ->name('support.records.store');
+                Route::delete('/{student}/support/records/{record}', [StudentSupportController::class, 'destroyRecord'])
+                    ->name('support.records.destroy');
             });
 
             Route::middleware('permission:delete_students')->group(function () {
@@ -346,10 +370,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::middleware('permission:mark_attendances')->group(function () {
             Route::get('/mark', [AttendanceController::class, 'mark'])->name('mark');
             Route::post('/mark', [AttendanceController::class, 'storeMark'])->name('store-mark');
-
             Route::get('/class/{class}/mark', [AttendanceController::class, 'markByClass'])->name('mark-by-class');
             Route::post('/class/{class}/mark', [AttendanceController::class, 'storeMarkByClass'])->name('store-mark-by-class');
         });
+
 
         // Listagem
         Route::get('/', [AttendanceController::class, 'index'])->name('index');
@@ -603,6 +627,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/create-profile', [TeacherPortalController::class, 'storeProfile'])->name('store-profile');
         });
 
+    /*
+    |--------------------------------------------------------------------------
+    | Gestão Central de Licenças (Admin/Pedagogia)
+    |--------------------------------------------------------------------------
+    */
+    Route::middleware('permission:manage_leave_requests')
+        ->prefix('staff-leave-requests')
+        ->name('staff-leave-requests.')
+        ->controller(LeaveRequestManagementController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/export/csv', 'exportCsv')->name('export.csv');
+            Route::get('/export/pdf', 'exportPdf')->name('export.pdf');
+            Route::get('/{leaveRequest}', 'show')->name('show');
+
+            Route::middleware('permission:approve_leave_requests')->group(function () {
+                Route::post('/{leaveRequest}/approve', 'approve')->name('approve');
+                Route::post('/{leaveRequest}/reject', 'reject')->name('reject');
+            });
+        });
+
 
     /*
     |--------------------------------------------------------------------------
@@ -641,6 +686,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/backup', [SettingsController::class, 'backup'])->name('backup');
                 Route::post('/backup/create', [SettingsController::class, 'createBackup'])->name('backup.create');
             });
+
+            // Gestão de Ano Lectivo
+            Route::prefix('academic-years')->name('academic-years.')->controller(\App\Http\Controllers\Admin\AcademicYearController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('/transition', 'transition')->name('transition');
+            });
+
+            // Passagem de Classe (Promoção)
+            Route::get('/promotion', [StudentPromotionController::class, 'index'])->name('promotion.index');
+            Route::post('/promotion/process', [StudentPromotionController::class, 'promote'])->name('promotion.process');
+
+            // Renovação de Matrículas
+            Route::get('/enrollments/renewals', [EnrollmentController::class, 'renewalIndex'])->name('enrollments.renewals');
+            Route::post('/enrollments/{student}/renew', [EnrollmentController::class, 'renew'])->name('enrollments.renew');
 
             // Logs
             Route::middleware('permission:view_logs')->group(function () {

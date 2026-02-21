@@ -1562,8 +1562,8 @@
                         </li>
                         @can('manage_leave_requests')
                             <li class="nav-item">
-                                <a href="{{ route('teacher.leave-requests.index') }}"
-                                    class="nav-link {{ request()->routeIs('leave-requests.*') ? 'active' : '' }}">
+                                <a href="{{ route('staff-leave-requests.index') }}"
+                                    class="nav-link {{ request()->routeIs('staff-leave-requests.*') ? 'active' : '' }}">
                                     <span class="nav-icon">
                                         <i class="fas fa-calendar-times"></i>
                                     </span>
@@ -2044,7 +2044,7 @@
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center py-3">
                     <div class="text-center text-sm-start mb-2 mb-sm-0">
                         <small class="text-muted">
-                            © {{ date('Y') }} <strong class="text-primary">Escola dos Visionários</strong> -
+                            © {{ current_school_year() }} <strong class="text-primary">Escola dos Visionários</strong> -
                             Sistema de Gestão Escolar
                         </small>
                         <br class="d-block d-sm-none">

@@ -17,7 +17,7 @@
                     <i class="fas fa-edit me-2"></i>Preencha os dados da solicitação
                 </div>
                 <div class="school-card-body">
-                    <form action="{{ route('teacher.leave-requests.store') }}" method="POST" enctype="multipart/form-data">
+                    <form action="{{ route('teacher.leave-requests.store') }}" method="POST">
                         @csrf
 
                         <div class="mb-3">
@@ -28,7 +28,7 @@
                                 <option value="sick">Licença Médica</option>
                                 <option value="personal">Assuntos Pessoais</option>
                                 <option value="vacation">Férias</option>
-                                <option value="study">Estudos</option>
+                                <option value="maternity">Maternidade</option>
                                 <option value="other">Outro</option>
                             </select>
                             @error('leave_type')
@@ -64,16 +64,6 @@
                                 required
                                 placeholder="Descreva o motivo da sua solicitação...">{{ old('reason') }}</textarea>
                             @error('reason')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Anexo (Opcional)</label>
-                            <input type="file" name="attachment"
-                                class="form-control @error('attachment') is-invalid @enderror">
-                            <div class="form-text">Formatos aceitos: PDF, JPG, PNG. Máx: 2MB.</div>
-                            @error('attachment')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>

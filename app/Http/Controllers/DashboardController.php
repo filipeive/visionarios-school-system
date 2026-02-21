@@ -24,6 +24,7 @@ class DashboardController extends Controller
 
         // Dashboard baseado no tipo de usuário
         switch ($user->role) {
+            case 'super_admin':
             case 'admin':
                 return $this->adminDashboard();
             case 'secretary':
@@ -44,7 +45,7 @@ class DashboardController extends Controller
         $stats = [
             'total_students' => Student::active()->count(),
             'total_teachers' => Teacher::active()->count(),
-            'total_classes' => ClassRoom::active()->currentYear()->count(),
+            'total_classes' => ClassRoom::active()->where('school_year', current_school_year())->count(),
             'monthly_revenue' => Payment::paid()
                 ->whereMonth('payment_date', now()->month)
                 ->whereYear('payment_date', now()->year)
@@ -53,7 +54,7 @@ class DashboardController extends Controller
             'overdue_payments' => Payment::overdue()->count(),
             'overdue_amount' => Payment::overdue()->sum('amount'),
             'todays_events' => Event::today()->count(),
-            'total_enrollments' => Enrollment::active()->currentYear()->count(),
+            'total_enrollments' => Enrollment::active()->where('school_year', current_school_year())->count(),
             'pending_enrollments' => Enrollment::where('status', 'pending')->count(),
             'pending_leave_requests' => StaffLeaveRequest::where('status', 'pending')->count(),
             'new_students_this_month' => Student::whereYear('created_at', now()->year)
@@ -137,7 +138,7 @@ class DashboardController extends Controller
         $stats = [
             'total_students' => Student::active()->count(),
             'total_teachers' => Teacher::active()->count(),
-            'total_classes' => ClassRoom::active()->currentYear()->count(),
+            'total_classes' => ClassRoom::active()->where('school_year', current_school_year())->count(),
             'average_attendance' => $this->calculateAverageAttendance(),
             'pending_grades' => $this->getPendingGradesCount(),
             'upcoming_exams' => Event::where('type', 'exam')->upcoming()->count(),
@@ -174,7 +175,7 @@ class DashboardController extends Controller
 
         $myClasses = ClassRoom::where('teacher_id', $teacher->id)
             ->active()
-            ->currentYear()
+            ->where('school_year', current_school_year())
             ->with(['students', 'subjects'])
             ->get();
 
@@ -291,7 +292,7 @@ class DashboardController extends Controller
             }
         ])
             ->where('is_active', true)
-            ->where('school_year', 2025)
+            ->where('school_year', current_school_year())
             ->get();
 
 
@@ -379,7 +380,7 @@ class DashboardController extends Controller
     private function getClassPerformance()
     {
         return ClassRoom::active()
-            ->currentYear()
+            ->where('school_year', current_school_year())
             ->with([
                 'students.grades' => function ($q) {
                     $q->whereYear('created_at', now()->year);
@@ -429,12 +430,12 @@ class DashboardController extends Controller
         return Teacher::active()
             ->withCount([
                 'classes' => function ($q) {
-                    $q->active()->currentYear();
+                    $q->active()->where('school_year', current_school_year());
                 }
             ])
             ->with([
                 'classes' => function ($q) {
-                    $q->active()->currentYear()->withCount('students');
+                    $q->active()->where('school_year', current_school_year())->withCount('students');
                 }
             ])
             ->get()
@@ -463,7 +464,7 @@ class DashboardController extends Controller
                 ->where('teacher_id', $teacherId)
                 ->where('weekday', now()->dayOfWeek)
                 ->where('status', 'active')
-                ->where('academic_year', now()->year)
+                ->where('academic_year', current_school_year())
                 ->orderBy('start_time')
                 ->get()
                 ->map(function ($schedule) {
@@ -496,7 +497,7 @@ class DashboardController extends Controller
     {
         $teacherClasses = ClassRoom::where('teacher_id', $teacherId)
             ->active()
-            ->where('school_year', now()->year)
+            ->where('school_year', current_school_year())
             ->with(['subjects'])
             ->get();
 
