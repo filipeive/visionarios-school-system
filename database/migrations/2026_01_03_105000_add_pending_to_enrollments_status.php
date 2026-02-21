@@ -11,8 +11,10 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        // MySQL doesn't support modifying enum directly via Blueprint easily without doctrine/dbal
-        // and even then it's tricky. Using raw SQL is safer for enums.
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::statement("ALTER TABLE enrollments MODIFY COLUMN status ENUM('active', 'pending', 'inactive', 'transferred', 'cancelled') DEFAULT 'active'");
     }
 
@@ -21,6 +23,10 @@ return new class extends Migration {
      */
     public function down(): void
     {
+        if (DB::getDriverName() !== 'mysql') {
+            return;
+        }
+
         DB::statement("ALTER TABLE enrollments MODIFY COLUMN status ENUM('active', 'inactive', 'transferred', 'cancelled') DEFAULT 'active'");
     }
 };

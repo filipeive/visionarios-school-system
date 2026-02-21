@@ -4,14 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Payment;
 use App\Models\Student;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\TestCase;
 
 class PaymentWebhookTest extends TestCase
 {
-    use DatabaseTransactions;
+    use RefreshDatabase;
 
     public function test_mpesa_webhook_updates_payment_status()
     {
