@@ -7,13 +7,11 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>{{ config('app.name', 'Visionaries School') }} - Shaping tomorrow's leaders today</title>
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -229,10 +227,10 @@
     <section id="admissions" class="py-20 bg-white">
         <div class="container mx-auto px-4">
             <div class="text-center mb-16">
-                <h2 class="text-4xl md:text-5xl font-bold gradient-text mb-6">Admissões 2026</h2>
+                <h2 class="text-4xl md:text-5xl font-bold gradient-text mb-6">Admissões {{ next_school_year() }}</h2>
                 <p class="text-gray-600 max-w-3xl mx-auto text-lg">
                     Inicie a jornada acadêmica do seu filho conosco. O processo de pré-inscrição para o ano letivo de
-                    2026 já está aberto!
+                    {{ next_school_year() }} já está aberto!
                 </p>
                 <div class="w-24 h-1 bg-gradient-to-r from-blue-600 to-yellow-500 mx-auto mt-6 rounded-full"></div>
             </div>
@@ -431,7 +429,8 @@
             </div>
 
             <div class="border-t border-blue-700 mt-12 pt-8 text-center text-blue-200">
-                <p>&copy; {{ date('Y') }} {{ config('app.name', 'Visionaries School') }}. Todos os direitos reservados.
+                <p>&copy; {{ current_school_year() }} {{ config('app.name', 'Visionaries School') }}. Todos os direitos
+                    reservados.
                 </p>
             </div>
         </div>
