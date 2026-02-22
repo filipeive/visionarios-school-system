@@ -4,120 +4,82 @@
 @section('page-title', $student->full_name)
 
 @section('content')
-    <div class="row mb-4">
-        <!-- Informações Básicas -->
-        <div class="col-12">
-            <div class="school-card">
-                <div class="school-card-body">
-                    <div class="row align-items-center">
-                        <div class="col-md-auto text-center text-md-start mb-3 mb-md-0">
-                            @if($student->photo_url)
-                                <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}"
-                                    class="rounded-circle border border-3 border-light shadow-sm" width="120" height="120"
-                                    style="object-fit: cover;">
-                            @else
-                                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center text-secondary border border-3 border-light shadow-sm"
-                                    style="width: 120px; height: 120px;">
-                                    <i class="fas fa-user fa-4x"></i>
-                                </div>
-                            @endif
+    <div class="space-y-6">
+        <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex flex-col gap-4 md:flex-row md:items-center">
+                <div>
+                    @if ($student->photo_url)
+                        <img src="{{ $student->photo_url }}" alt="{{ $student->full_name }}"
+                            class="h-24 w-24 rounded-full object-cover ring-2 ring-slate-200">
+                    @else
+                        <div class="flex h-24 w-24 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                            <i class="fas fa-user text-3xl"></i>
                         </div>
-                        <div class="col-md">
-                            <div class="row g-3">
-                                <div class="col-sm-6 col-lg-3">
-                                    <label class="text-muted small text-uppercase fw-bold">Nome Completo</label>
-                                    <div class="fw-bold fs-5">{{ $student->full_name }}</div>
-                                </div>
-                                <div class="col-sm-6 col-lg-3">
-                                    <label class="text-muted small text-uppercase fw-bold">Data de Nascimento</label>
-                                    <div class="fw-medium">{{ $student->birthdate?->format('d/m/Y') ?? 'N/A' }}
-                                        ({{ $student->age }}
-                                        anos)</div>
-                                </div>
-                                <div class="col-sm-6 col-lg-3">
-                                    <label class="text-muted small text-uppercase fw-bold">Turma Atual</label>
-                                    <div class="fw-medium">{{ $student->currentEnrollment->class->name ?? 'N/A' }}</div>
-                                </div>
-                                <div class="col-sm-6 col-lg-3">
-                                    <label class="text-muted small text-uppercase fw-bold">Número de Estudante</label>
-                                    <div class="fw-medium font-monospace">{{ $student->student_number }}</div>
-                                </div>
-                            </div>
+                    @endif
+                </div>
+                <div class="grid flex-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-slate-500">Nome</p>
+                        <p class="text-sm font-semibold text-slate-900">{{ $student->full_name }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-slate-500">Nascimento</p>
+                        <p class="text-sm font-semibold text-slate-900">{{ $student->birthdate?->format('d/m/Y') ?? 'N/A' }} ({{ $student->age }} anos)</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-slate-500">Turma</p>
+                        <p class="text-sm font-semibold text-slate-900">{{ $student->currentEnrollment->class->name ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-slate-500">Numero</p>
+                        <p class="font-mono text-sm font-semibold text-slate-900">{{ $student->student_number }}</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid gap-6 md:grid-cols-2">
+            <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="border-b border-slate-200 px-5 py-4">
+                    <h3 class="text-sm font-semibold text-slate-900">Presencas Recentes</h3>
+                </header>
+                <div class="divide-y divide-slate-100 p-5">
+                    @forelse($student->attendances()->latest()->take(5)->get() as $attendance)
+                        <div class="flex items-center justify-between py-2 first:pt-0 last:pb-0">
+                            <span class="text-sm text-slate-700">{{ $attendance->attendance_date?->format('d/m/Y') ?? 'N/A' }}</span>
+                            @php
+                                $statusClass = $attendance->status === 'present'
+                                    ? 'bg-emerald-100 text-emerald-700'
+                                    : ($attendance->status === 'absent' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700');
+                            @endphp
+                            <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $statusClass }}">
+                                {{ ucfirst($attendance->status) }}
+                            </span>
                         </div>
-                    </div>
+                    @empty
+                        <p class="rounded-lg bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">Nenhum registro de presenca.</p>
+                    @endforelse
                 </div>
-            </div>
-        </div>
-    </div>
+            </article>
 
-    <div class="row">
-        <!-- Presenças Recentes -->
-        <div class="col-md-6 mb-4">
-            <div class="school-card h-100">
-                <div class="school-card-header">
-                    <i class="fas fa-calendar-check me-2"></i> Presenças Recentes
-                </div>
-                <div class="school-card-body">
-                    <div class="list-group list-group-flush">
-                        @forelse($student->attendances()->latest()->take(5)->get() as $attendance)
-                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                <span>{{ $attendance->attendance_date?->format('d/m/Y') ?? 'N/A' }}</span>
-                                @if($attendance->status == 'present')
-                                    <span class="badge bg-success-subtle text-success border border-success-subtle">Presente</span>
-                                @elseif($attendance->status == 'absent')
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Ausente</span>
-                                @else
-                                    <span
-                                        class="badge bg-warning-subtle text-warning border border-warning-subtle">{{ ucfirst($attendance->status) }}</span>
-                                @endif
+            <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="border-b border-slate-200 px-5 py-4">
+                    <h3 class="text-sm font-semibold text-slate-900">Ultimas Notas</h3>
+                </header>
+                <div class="divide-y divide-slate-100 p-5">
+                    @forelse($student->grades()->latest()->take(5)->get() as $grade)
+                        <div class="flex items-center justify-between gap-3 py-2 first:pt-0 last:pb-0">
+                            <div>
+                                <p class="text-sm font-semibold text-slate-900">{{ $grade->subject->name ?? 'Disciplina' }}</p>
+                                <p class="text-xs text-slate-500">{{ ucfirst($grade->assessment_type) }} - Trimestre {{ $grade->term }}</p>
                             </div>
-                        @empty
-                            <div class="text-center py-3 text-muted">
-                                Nenhum registro de presença.
-                            </div>
-                        @endforelse
-                    </div>
-                    {{--
-                    <div class="mt-3 text-end">
-                        <a href="#" class="btn btn-sm btn-link text-decoration-none">Ver todas</a>
-                    </div>
-                    --}}
+                            <span class="text-lg font-bold {{ $grade->grade < 10 ? 'text-rose-700' : 'text-emerald-700' }}">{{ $grade->grade }}</span>
+                        </div>
+                    @empty
+                        <p class="rounded-lg bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">Nenhuma nota registrada.</p>
+                    @endforelse
                 </div>
-            </div>
-        </div>
-
-        <!-- Últimas Notas -->
-        <div class="col-md-6 mb-4">
-            <div class="school-card h-100">
-                <div class="school-card-header">
-                    <i class="fas fa-graduation-cap me-2"></i> Últimas Notas
-                </div>
-                <div class="school-card-body">
-                    <div class="list-group list-group-flush">
-                        @forelse($student->grades()->latest()->take(5)->get() as $grade)
-                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
-                                <div>
-                                    <div class="fw-bold">{{ $grade->subject->name ?? 'Disciplina' }}</div>
-                                    <small class="text-muted">{{ ucfirst($grade->assessment_type) }} - Trimestre
-                                        {{ $grade->term }}</small>
-                                </div>
-                                <span class="fw-bold fs-5 {{ $grade->grade < 10 ? 'text-danger' : 'text-success' }}">
-                                    {{ $grade->grade }}
-                                </span>
-                            </div>
-                        @empty
-                            <div class="text-center py-3 text-muted">
-                                Nenhuma nota registrada.
-                            </div>
-                        @endforelse
-                    </div>
-                    {{--
-                    <div class="mt-3 text-end">
-                        <a href="#" class="btn btn-sm btn-link text-decoration-none">Ver todas</a>
-                    </div>
-                    --}}
-                </div>
-            </div>
-        </div>
+            </article>
+        </section>
     </div>
 @endsection

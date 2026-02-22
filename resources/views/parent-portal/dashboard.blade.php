@@ -4,143 +4,107 @@
 @section('page-title', 'Portal dos Pais')
 
 @section('content')
-    <div class="row mb-4">
-        <!-- Resumo Financeiro -->
-        <div class="col-md-4 mb-4 mb-md-0">
-            <div class="school-card h-100">
-                <div class="school-card-body d-flex flex-column justify-content-center align-items-center text-center">
-                    <div class="text-muted small mb-2">Total a Pagar</div>
-                    <div class="h2 fw-bold text-danger mb-2">
-                        {{ number_format($totalPendingPayments, 2, ',', '.') }} MT
-                    </div>
-                    @if($totalPendingPayments > 0)
-                        <a href="{{ route('parent.payments') }}" class="btn btn-sm btn-outline-danger rounded-pill px-4">
-                            Ver Detalhes
+    <div class="space-y-6">
+        <section class="grid gap-4 md:grid-cols-3">
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Total a Pagar</p>
+                <p class="mt-2 text-3xl font-bold {{ $totalPendingPayments > 0 ? 'text-rose-700' : 'text-emerald-700' }}">
+                    {{ number_format($totalPendingPayments, 2, ',', '.') }} MT
+                </p>
+                <div class="mt-3">
+                    @if ($totalPendingPayments > 0)
+                        <a href="{{ route('parent.payments') }}"
+                            class="inline-flex rounded-lg bg-rose-50 px-3 py-1.5 text-sm font-semibold text-rose-700 ring-1 ring-rose-200 hover:bg-rose-100">
+                            Ver detalhes
                         </a>
                     @else
-                        <span class="badge bg-success rounded-pill px-3">Em dia</span>
+                        <span class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-700">Em dia</span>
                     @endif
                 </div>
-            </div>
-        </div>
+            </article>
 
-        <div class="col-md-4 mb-4 mb-md-0">
-            <div class="school-card h-100">
-                <div class="school-card-body d-flex flex-column justify-content-center align-items-center text-center">
-                    <div class="text-muted small mb-2">Filhos Matriculados</div>
-                    <div class="h2 fw-bold text-primary mb-0">
-                        {{ $children->count() }}
-                    </div>
-                </div>
-            </div>
-        </div>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Filhos Matriculados</p>
+                <p class="mt-2 text-3xl font-bold text-sky-700">{{ $children->count() }}</p>
+            </article>
 
-        <div class="col-md-4">
-            <div class="school-card h-100">
-                <div class="school-card-body d-flex flex-column justify-content-center align-items-center text-center">
-                    <div class="text-muted small mb-2">Novos Comunicados</div>
-                    <div class="h2 fw-bold text-info mb-0">
-                        {{ $recentCommunications->count() }}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Novos Comunicados</p>
+                <p class="mt-2 text-3xl font-bold text-indigo-700">{{ $recentCommunications->count() }}</p>
+            </article>
+        </section>
 
-    <div class="row mb-4">
-        <!-- Meus Filhos -->
-        <div class="col-12">
-            <div class="school-card">
-                <div class="school-card-header">
-                    <i class="fas fa-child me-2"></i> Meus Filhos
-                </div>
-                <div class="school-card-body">
-                    <div class="row">
-                        @foreach($children as $child)
-                            <div class="col-md-6 mb-3">
-                                <div class="d-flex align-items-center border rounded p-3 hover-shadow transition">
-                                    <div class="flex-shrink-0 me-3">
-                                        @if($child->photo_url)
-                                            <img src="{{ $child->photo_url }}" alt="{{ $child->first_name }}" class="rounded-circle"
-                                                width="60" height="60" style="object-fit: cover;">
-                                        @else
-                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-secondary"
-                                                style="width: 60px; height: 60px;">
-                                                <i class="fas fa-user fa-lg"></i>
-                                            </div>
-                                        @endif
-                                    </div>
-                                    <div class="flex-grow-1">
-                                        <h5 class="mb-1 fw-bold">{{ $child->full_name }}</h5>
-                                        <p class="text-muted small mb-2">
-                                            {{ $child->currentEnrollment->class->name ?? 'Sem turma' }}
-                                        </p>
-                                        <div class="d-flex gap-2 flex-wrap">
-                                            <a href="{{ route('parent.student-details', $child) }}"
-                                                class="btn btn-sm btn-primary-school">
-                                                <i class="fas fa-id-card me-1"></i> Detalhes
-                                            </a>
-                                            <a href="{{ route('parent.student-payments', $child) }}"
-                                                class="btn btn-sm btn-success-school">
-                                                <i class="fas fa-money-bill-wave me-1"></i> Pagamentos
-                                            </a>
+        <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <header class="border-b border-slate-200 px-5 py-4">
+                <h3 class="text-sm font-semibold text-slate-900">Meus Filhos</h3>
+            </header>
+            <div class="grid gap-4 p-5 md:grid-cols-2">
+                @forelse($children as $child)
+                    <article class="rounded-xl border border-slate-200 p-4">
+                        <div class="flex items-start gap-3">
+                            @if ($child->photo_url)
+                                <img src="{{ $child->photo_url }}" alt="{{ $child->first_name }}"
+                                    class="h-14 w-14 rounded-full object-cover ring-2 ring-slate-200">
+                            @else
+                                <div class="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                            @endif
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-sm font-bold text-slate-900">{{ $child->full_name }}</p>
+                                <p class="text-xs text-slate-500">{{ $child->currentEnrollment->class->name ?? 'Sem turma' }}</p>
+                                <div class="mt-3 flex flex-wrap gap-2">
+                                    <a href="{{ route('parent.student-details', $child) }}"
+                                        class="rounded-lg bg-sky-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-sky-800">
+                                        Detalhes
+                                    </a>
+                                    <a href="{{ route('parent.student-payments', $child) }}"
+                                        class="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">
+                                        Pagamentos
+                                    </a>
 
-                                            @if($child->is_eligible_for_renewal)
-                                                @if($child->renewal_application)
-                                                    @if($child->renewal_application->status === 'PENDING')
-                                                        <span class="badge bg-warning text-dark d-flex align-items-center px-3">
-                                                            <i class="fas fa-clock me-1"></i> Aguardando Confirmação
-                                                        </span>
-                                                    @elseif($child->renewal_application->status === 'APPROVED')
-                                                        <span class="badge bg-info d-flex align-items-center px-3">
-                                                            <i class="fas fa-check-circle me-1"></i> Aprovada - Aguardando Pagamento
-                                                        </span>
-                                                    @endif
-                                                @else
-                                                    <a href="{{ route('parent.student-renewal', $child) }}"
-                                                        class="btn btn-sm btn-warning-school">
-                                                        <i class="fas fa-sync me-1"></i> Renovar Matrícula
-                                                    </a>
-                                                @endif
+                                    @if ($child->is_eligible_for_renewal)
+                                        @if ($child->renewal_application)
+                                            @if ($child->renewal_application->status === 'PENDING')
+                                                <span class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Aguardando confirmacao</span>
+                                            @elseif($child->renewal_application->status === 'APPROVED')
+                                                <span class="inline-flex items-center rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800">Aprovada, aguardando pagamento</span>
                                             @endif
-                                        </div>
-                                    </div>
+                                        @else
+                                            <a href="{{ route('parent.student-renewal', $child) }}"
+                                                class="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600">
+                                                Renovar matricula
+                                            </a>
+                                        @endif
+                                    @endif
                                 </div>
                             </div>
-                        @endforeach
-                    </div>
-                </div>
+                        </div>
+                    </article>
+                @empty
+                    <p class="col-span-full rounded-lg bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">Nenhum filho encontrado.</p>
+                @endforelse
             </div>
-        </div>
-    </div>
+        </section>
 
-    <div class="row">
-        <!-- Comunicados Recentes -->
-        <div class="col-12">
-            <div class="school-card">
-                <div class="school-card-header d-flex justify-content-between align-items-center">
-                    <span><i class="fas fa-bullhorn me-2"></i> Comunicados Recentes</span>
-                    <a href="{{ route('parent.communications') }}" class="text-white text-decoration-none small">
-                        Ver todos <i class="fas fa-arrow-right ms-1"></i>
-                    </a>
-                </div>
-                <div class="school-card-body">
-                    @forelse($recentCommunications as $comm)
-                        <div class="border-bottom pb-3 mb-3 last:border-0 last:pb-0 last:mb-0">
-                            <div class="d-flex justify-content-between align-items-start mb-1">
-                                <h6 class="fw-bold mb-0 text-primary">{{ $comm->title }}</h6>
-                                <small class="text-muted">{{ $comm->created_at?->format('d/m/Y') ?? 'N/A' }}</small>
-                            </div>
-                            <p class="text-secondary small mb-0 text-truncate">{{ $comm->message }}</p>
+        <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                <h3 class="text-sm font-semibold text-slate-900">Comunicados Recentes</h3>
+                <a href="{{ route('parent.communications') }}" class="text-xs font-semibold text-sky-700 hover:text-sky-800">Ver todos</a>
+            </header>
+            <div class="divide-y divide-slate-100 p-5">
+                @forelse($recentCommunications as $comm)
+                    <article class="py-3 first:pt-0 last:pb-0">
+                        <div class="flex items-start justify-between gap-3">
+                            <h4 class="text-sm font-semibold text-slate-900">{{ $comm->title }}</h4>
+                            <span class="whitespace-nowrap text-xs text-slate-500">{{ $comm->created_at?->format('d/m/Y') ?? 'N/A' }}</span>
                         </div>
-                    @empty
-                        <div class="text-center py-4 text-muted">
-                            <i class="fas fa-inbox fa-2x mb-2 d-block"></i>
-                            Nenhum comunicado recente.
-                        </div>
-                    @endforelse
-                </div>
+                        <p class="mt-1 line-clamp-2 text-sm text-slate-600">{{ $comm->message }}</p>
+                    </article>
+                @empty
+                    <p class="rounded-lg bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">Nenhum comunicado recente.</p>
+                @endforelse
             </div>
-        </div>
+        </section>
     </div>
 @endsection

@@ -4,68 +4,54 @@
 @section('page-title', 'Meus Filhos')
 
 @section('content')
-    <div class="row">
-        <div class="col-12">
-            <div class="school-card">
-                <div class="school-card-body">
-                    <div class="row">
-                        @forelse($children as $child)
-                            <div class="col-md-6 col-lg-4 mb-4">
-                                <div class="school-card h-100 border shadow-sm">
-                                    <div class="school-card-body text-center">
-                                        <div class="mb-3">
-                                            @if($child->photo_url)
-                                                <img src="{{ $child->photo_url }}" alt="{{ $child->full_name }}"
-                                                    class="rounded-circle border border-3 border-light shadow-sm" width="100"
-                                                    height="100" style="object-fit: cover;">
-                                            @else
-                                                <div class="rounded-circle bg-light d-inline-flex align-items-center justify-content-center text-secondary border border-3 border-light shadow-sm"
-                                                    style="width: 100px; height: 100px;">
-                                                    <i class="fas fa-user fa-3x"></i>
-                                                </div>
-                                            @endif
-                                        </div>
-
-                                        <h5 class="fw-bold mb-3">{{ $child->full_name }}</h5>
-
-                                        <div class="text-start bg-light p-3 rounded mb-3">
-                                            <div class="d-flex justify-content-between mb-2">
-                                                <span class="text-muted small">Turma:</span>
-                                                <span
-                                                    class="fw-bold text-dark">{{ $child->currentEnrollment->class->name ?? 'N/A' }}</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between mb-2">
-                                                <span class="text-muted small">Número:</span>
-                                                <span class="fw-bold text-dark">{{ $child->student_number }}</span>
-                                            </div>
-                                            <div class="d-flex justify-content-between">
-                                                <span class="text-muted small">Idade:</span>
-                                                <span class="fw-bold text-dark">{{ $child->age }} anos</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="d-grid gap-2">
-                                            <a href="{{ route('parent.student-details', $child) }}"
-                                                class="btn btn-primary-school">
-                                                <i class="fas fa-id-card me-2"></i> Detalhes
-                                            </a>
-                                            <a href="{{ route('parent.student-payments', $child) }}"
-                                                class="btn btn-success-school">
-                                                <i class="fas fa-money-bill-wave me-2"></i> Pagamentos
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
+    <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <header class="border-b border-slate-200 px-5 py-4">
+            <h3 class="text-sm font-semibold text-slate-900">Alunos vinculados ao responsavel</h3>
+        </header>
+        <div class="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-3">
+            @forelse($children as $child)
+                <article class="rounded-xl border border-slate-200 p-4">
+                    <div class="text-center">
+                        @if ($child->photo_url)
+                            <img src="{{ $child->photo_url }}" alt="{{ $child->full_name }}"
+                                class="mx-auto h-20 w-20 rounded-full object-cover ring-2 ring-slate-200">
+                        @else
+                            <div class="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+                                <i class="fas fa-user text-2xl"></i>
                             </div>
-                        @empty
-                            <div class="col-12 text-center py-5">
-                                <i class="fas fa-child fa-3x text-muted mb-3"></i>
-                                <p class="text-muted">Nenhum filho encontrado.</p>
-                            </div>
-                        @endforelse
+                        @endif
+                        <h4 class="mt-3 text-base font-bold text-slate-900">{{ $child->full_name }}</h4>
                     </div>
-                </div>
-            </div>
+
+                    <dl class="mt-4 space-y-2 rounded-lg bg-slate-50 p-3 text-sm">
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-slate-500">Turma</dt>
+                            <dd class="font-semibold text-slate-800">{{ $child->currentEnrollment->class->name ?? 'N/A' }}</dd>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-slate-500">Numero</dt>
+                            <dd class="font-semibold text-slate-800">{{ $child->student_number }}</dd>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                            <dt class="text-slate-500">Idade</dt>
+                            <dd class="font-semibold text-slate-800">{{ $child->age }} anos</dd>
+                        </div>
+                    </dl>
+
+                    <div class="mt-4 grid grid-cols-2 gap-2">
+                        <a href="{{ route('parent.student-details', $child) }}"
+                            class="rounded-lg bg-sky-700 px-3 py-2 text-center text-xs font-semibold text-white hover:bg-sky-800">
+                            Detalhes
+                        </a>
+                        <a href="{{ route('parent.student-payments', $child) }}"
+                            class="rounded-lg bg-emerald-600 px-3 py-2 text-center text-xs font-semibold text-white hover:bg-emerald-700">
+                            Pagamentos
+                        </a>
+                    </div>
+                </article>
+            @empty
+                <p class="col-span-full rounded-lg bg-slate-50 px-4 py-8 text-center text-sm text-slate-500">Nenhum filho encontrado.</p>
+            @endforelse
         </div>
-    </div>
+    </section>
 @endsection

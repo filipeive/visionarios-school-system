@@ -1,66 +1,61 @@
 @extends('layouts.app')
 
-@section('title', 'Referências de Pagamento')
+@section('title', 'Referencias de Pagamento')
 @section('page-title')
-    Referências: {{ $student->first_name }}
+    Referencias: {{ $student->first_name }}
 @endsection
 
 @section('content')
-    <div class="row">
-        <div class="col-12">
-            <div class="school-card">
-                <div class="school-card-header">
-                    <i class="fas fa-receipt me-2"></i> Referências Pendentes
-                </div>
-                <div class="school-card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-school">
-                            <thead>
-                                <tr>
-                                    <th>Referência</th>
-                                    <th>Descrição</th>
-                                    <th>Valor</th>
-                                    <th>Vencimento</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($references as $reference)
-                                    <tr>
-                                        <td class="font-monospace fw-bold">{{ $reference->reference_number }}</td>
-                                        <td>
-                                            {{ ucfirst($reference->type) }}
-                                            @if($reference->month) - {{ $reference->month_name }}/{{ $reference->year }} @endif
-                                        </td>
-                                        <td class="fw-bold">
-                                            {{ number_format($reference->amount, 2, ',', '.') }} MT
-                                        </td>
-                                        <td>
-                                            {{ $reference->due_date->format('d/m/Y') }}
-                                        </td>
-                                        <td>
-                                            {!! $reference->status_badge !!}
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="5" class="text-center py-4 text-muted">
-                                            <i class="fas fa-search fa-2x mb-2 d-block"></i>
-                                            Nenhuma referência encontrada.
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
+    <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+        <header class="border-b border-slate-200 px-5 py-4">
+            <h3 class="text-sm font-semibold text-slate-900">Referencias Pendentes</h3>
+        </header>
+        <div class="overflow-x-auto p-5">
+            <table class="min-w-full text-sm">
+                <thead class="bg-slate-50 text-slate-600">
+                    <tr>
+                        <th class="px-3 py-2 text-left font-semibold">Referencia</th>
+                        <th class="px-3 py-2 text-left font-semibold">Descricao</th>
+                        <th class="px-3 py-2 text-left font-semibold">Valor</th>
+                        <th class="px-3 py-2 text-left font-semibold">Vencimento</th>
+                        <th class="px-3 py-2 text-left font-semibold">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    @forelse($references as $reference)
+                        <tr>
+                            <td class="px-3 py-2 font-mono text-xs font-semibold text-slate-800">{{ $reference->reference_number }}</td>
+                            <td class="px-3 py-2 text-slate-700">
+                                {{ ucfirst($reference->type) }}
+                                @if ($reference->month)
+                                    - {{ $reference->month_name }}/{{ $reference->year }}
+                                @endif
+                            </td>
+                            <td class="px-3 py-2 font-semibold text-slate-900">{{ number_format($reference->amount, 2, ',', '.') }} MT</td>
+                            <td class="px-3 py-2 text-slate-700">{{ $reference->due_date->format('d/m/Y') }}</td>
+                            <td class="px-3 py-2">
+                                @php
+                                    $statusClass = $reference->status === 'paid'
+                                        ? 'bg-emerald-100 text-emerald-700'
+                                        : ($reference->status === 'overdue' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-700');
+                                @endphp
+                                <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $statusClass }}">{{ ucfirst($reference->status) }}</span>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-3 py-8 text-center text-sm text-slate-500">Nenhuma referencia encontrada.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
 
-                    <div class="mt-3">
-                        <a href="{{ route('parent.student-payments', $student) }}" class="btn btn-secondary-school">
-                            <i class="fas fa-arrow-left me-2"></i> Voltar aos Pagamentos
-                        </a>
-                    </div>
-                </div>
+            <div class="mt-4">
+                <a href="{{ route('parent.student-payments', $student) }}"
+                    class="inline-flex rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                    Voltar aos pagamentos
+                </a>
             </div>
         </div>
-    </div>
+    </section>
 @endsection
