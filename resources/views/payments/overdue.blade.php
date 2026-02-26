@@ -9,304 +9,204 @@
 @endsection
 
 @section('content')
-<div class="container-fluid">
-    {{-- Alerta de Atenção --}}
-    <div class="alert-school alert-danger-school mb-4">
-        <i class="fas fa-exclamation-triangle"></i>
-        <div>
-            <strong>Atenção!</strong> Existem <strong>{{ $payments->total() }}</strong> pagamentos em atraso 
-            totalizando aproximadamente <strong>{{ number_format($payments->sum('amount'), 2, ',', '.') }} MT</strong>.
-        </div>
-    </div>
+    <div class="payments-overdue space-y-6" x-data="overduePage()">
+        <section class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-rose-800">
+            <p class="text-sm"><strong>Atencao:</strong> existem <strong>{{ $payments->total() }}</strong> pagamentos em atraso totalizando aproximadamente <strong>{{ number_format($payments->sum('amount'), 2, ',', '.') }} MT</strong>.</p>
+        </section>
 
-    {{-- Ações em Massa --}}
-    <div class="school-card mb-4">
-        <div class="school-card-body">
-            <div class="d-flex justify-content-between align-items-center">
+        <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                    <h5 class="mb-1">Gestão de Inadimplência</h5>
-                    <p class="text-muted mb-0">Gerencie os pagamentos pendentes e envie lembretes</p>
+                    <h3 class="text-sm font-semibold text-slate-900">Gestao de Inadimplencia</h3>
+                    <p class="text-xs text-slate-500">Gerencie pagamentos pendentes e envie lembretes.</p>
                 </div>
-                <div class="d-flex gap-2">
-                    <button class="btn btn-warning-school" onclick="sendBulkReminder()">
-                        <i class="fas fa-bell"></i> Enviar Lembretes
-                    </button>
-                    <a href="{{ route('reports.financial.defaulters') }}" class="btn btn-outline-primary">
-                        <i class="fas fa-file-pdf"></i> Gerar Relatório
-                    </a>
+                <div class="flex gap-2">
+                    <button class="rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-600" @click="sendBulkReminder()">Enviar Lembretes</button>
+                    <a href="{{ route('reports.financial.defaulters') }}" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Gerar Relatorio</a>
                 </div>
             </div>
-        </div>
-    </div>
+        </section>
 
-    {{-- Lista de Pagamentos em Atraso --}}
-    <div class="school-table-container">
-        <div class="school-table-header bg-danger">
-            <h5 class="school-table-title">
-                <i class="fas fa-exclamation-circle"></i> Pagamentos em Atraso
-            </h5>
-            <span class="badge bg-light text-danger">{{ $payments->total() }} registros</span>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-school table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th><input type="checkbox" id="select-all" class="form-check-input"></th>
-                        <th>Referência</th>
-                        <th>Aluno</th>
-                        <th>Turma</th>
-                        <th>Tipo</th>
-                        <th>Período</th>
-                        <th class="text-end">Valor</th>
-                        <th>Vencido em</th>
-                        <th>Dias de Atraso</th>
-                        <th class="text-center">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($payments as $payment)
-                    @php
-                        $diasAtraso = $payment->due_date->diffInDays(now());
-                        $badgeClass = $diasAtraso > 60 ? 'bg-danger' : ($diasAtraso > 30 ? 'bg-warning text-dark' : 'bg-secondary');
-                    @endphp
-                    <tr>
-                        <td>
-                            <input type="checkbox" class="form-check-input payment-checkbox" value="{{ $payment->id }}">
-                        </td>
-                        <td>
-                            <code class="bg-light px-2 py-1 rounded">{{ $payment->reference_number }}</code>
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <img src="{{ $payment->student->photo_url }}" 
-                                     class="rounded-circle me-2" width="35" height="35">
-                                <div>
-                                    <div class="fw-semibold">{{ $payment->student->full_name }}</div>
-                                    <small class="text-muted">{{ $payment->student->student_number }}</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge bg-info">{{ $payment->enrollment?->class?->name ?? 'N/A' }}</span>
-                        </td>
-                        <td>
-                            @switch($payment->type)
-                                @case('mensalidade')
-                                    <span class="badge bg-success">Mensalidade</span>
-                                    @break
-                                @case('matricula')
-                                    <span class="badge bg-primary">Matrícula</span>
-                                    @break
-                                @default
-                                    <span class="badge bg-secondary">{{ ucfirst($payment->type) }}</span>
-                            @endswitch
-                        </td>
-                        <td>
-                            @if($payment->month)
-                                {{ $payment->month_name }}/{{ $payment->year }}
-                            @else
-                                {{ $payment->year }}
-                            @endif
-                        </td>
-                        <td class="text-end">
-                            <strong class="text-danger">{{ number_format($payment->total_amount, 2, ',', '.') }} MT</strong>
-                        </td>
-                        <td>
-                            <span class="text-danger">{{ $payment->due_date->format('d/m/Y') }}</span>
-                        </td>
-                        <td class="text-center">
-                            <span class="badge {{ $badgeClass }}">{{ $diasAtraso }} dias</span>
-                        </td>
-                        <td>
-                            <div class="d-flex justify-content-center gap-1">
-                                <a href="{{ route('payments.show', $payment) }}" 
-                                   class="btn btn-sm btn-outline-primary" title="Ver">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                @can('process_payments')
-                                <button class="btn btn-sm btn-success" 
-                                        onclick="openProcessModal({{ $payment->id }}, '{{ $payment->reference_number }}', {{ $payment->total_amount }})" 
-                                        title="Processar">
-                                    <i class="fas fa-check"></i>
-                                </button>
-                                @endcan
-                                <button class="btn btn-sm btn-outline-warning" 
-                                        onclick="sendReminder({{ $payment->student->id }})" 
-                                        title="Enviar Lembrete">
-                                    <i class="fas fa-bell"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="10" class="text-center py-5">
-                            <div class="text-success">
-                                <i class="fas fa-check-circle fa-3x mb-3"></i>
-                                <p class="fs-5">Parabéns! Não há pagamentos em atraso.</p>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        @if($payments->hasPages())
-        <div class="card-footer bg-white">
-            {{ $payments->links() }}
-        </div>
+        <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex items-center justify-between border-b border-slate-200 bg-rose-600 px-5 py-4 text-white">
+                <h3 class="text-sm font-semibold">Pagamentos em Atraso</h3>
+                <span class="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-rose-700">{{ $payments->total() }} registros</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-600">
+                        <tr>
+                            <th class="px-3 py-2 text-left"><input type="checkbox" id="select-all" class="rounded border-slate-300" @change="toggleAll($event)"></th>
+                            <th class="px-3 py-2 text-left font-semibold">Referencia</th>
+                            <th class="px-3 py-2 text-left font-semibold">Aluno</th>
+                            <th class="px-3 py-2 text-left font-semibold">Turma</th>
+                            <th class="px-3 py-2 text-left font-semibold">Tipo</th>
+                            <th class="px-3 py-2 text-left font-semibold">Periodo</th>
+                            <th class="px-3 py-2 text-right font-semibold">Valor</th>
+                            <th class="px-3 py-2 text-left font-semibold">Vencido em</th>
+                            <th class="px-3 py-2 text-center font-semibold">Dias</th>
+                            <th class="px-3 py-2 text-center font-semibold">Acoes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($payments as $payment)
+                            @php
+                                $diasAtraso = $payment->due_date->diffInDays(now());
+                                $badgeClass = $diasAtraso > 60 ? 'bg-rose-100 text-rose-700' : ($diasAtraso > 30 ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700');
+                            @endphp
+                            <tr>
+                                <td class="px-3 py-2"><input type="checkbox" class="payment-checkbox rounded border-slate-300" value="{{ $payment->id }}"></td>
+                                <td class="px-3 py-2 font-mono text-xs font-semibold text-slate-800">{{ $payment->reference_number }}</td>
+                                <td class="px-3 py-2">
+                                    <p class="text-sm font-semibold text-slate-900">{{ $payment->student->full_name }}</p>
+                                    <p class="text-xs text-slate-500">{{ $payment->student->student_number }}</p>
+                                </td>
+                                <td class="px-3 py-2 text-slate-700">{{ $payment->enrollment?->class?->name ?? 'N/A' }}</td>
+                                <td class="px-3 py-2 text-slate-700">{{ ucfirst($payment->type) }}</td>
+                                <td class="px-3 py-2 text-slate-700">@if($payment->month){{ $payment->month_name }}/{{ $payment->year }}@else{{ $payment->year }}@endif</td>
+                                <td class="px-3 py-2 text-right font-semibold text-rose-700">{{ number_format($payment->total_amount, 2, ',', '.') }} MT</td>
+                                <td class="px-3 py-2 font-semibold text-rose-700">{{ $payment->due_date->format('d/m/Y') }}</td>
+                                <td class="px-3 py-2 text-center"><span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $badgeClass }}">{{ $diasAtraso }} dias</span></td>
+                                <td class="px-3 py-2 text-center">
+                                    <div class="inline-flex gap-1">
+                                        <a href="{{ route('payments.show', $payment) }}" class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Ver</a>
+                                        @can('process_payments')
+                                            <button class="rounded-lg bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+                                                @click="openProcessModal({{ $payment->id }}, '{{ $payment->reference_number }}', {{ $payment->total_amount }})">Processar</button>
+                                        @endcan
+                                        <button class="rounded-lg border border-amber-300 px-2 py-1 text-xs text-amber-700 hover:bg-amber-50" @click="sendReminder({{ $payment->student->id }})">Lembrete</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="10" class="px-3 py-8 text-center text-sm text-emerald-700">Parabens! Nao ha pagamentos em atraso.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            @if($payments->hasPages())
+                <div class="border-t border-slate-200 px-5 py-4">{{ $payments->links() }}</div>
+            @endif
+        </section>
+
+        @if($payments->count() > 0)
+            <section class="grid gap-6 md:grid-cols-2">
+                <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <h3 class="mb-3 text-sm font-semibold text-slate-900">Inadimplencia por Turma</h3>
+                    <div class="h-[220px]"><canvas id="chartByClass"></canvas></div>
+                </article>
+                <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                    <h3 class="mb-3 text-sm font-semibold text-slate-900">Inadimplencia por Tempo</h3>
+                    <div class="h-[220px]"><canvas id="chartByDays"></canvas></div>
+                </article>
+            </section>
         @endif
-    </div>
 
-    {{-- Resumo por Turma --}}
-    @if($payments->count() > 0)
-    <div class="row mt-4">
-        <div class="col-md-6">
-            <div class="school-card">
-                <div class="school-card-header">
-                    <i class="fas fa-chart-pie"></i> Inadimplência por Turma
+        <div x-show="processOpen" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" style="display:none;">
+            <div class="w-full max-w-md rounded-xl bg-white p-5 shadow-xl" @click.outside="processOpen = false">
+                <h4 class="text-base font-semibold text-slate-900">Processar Pagamento</h4>
+                <div class="mt-3 rounded-lg bg-sky-50 p-3 text-sm text-sky-800">
+                    <strong>Referencia:</strong> <span x-text="processRef"></span><br>
+                    <strong>Valor:</strong> <span x-text="formatValue(processValue)"></span> MT
                 </div>
-                <div class="school-card-body">
-                    <canvas id="chartByClass" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="school-card">
-                <div class="school-card-header">
-                    <i class="fas fa-chart-bar"></i> Inadimplência por Tempo
-                </div>
-                <div class="school-card-body">
-                    <canvas id="chartByDays" height="200"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
-</div>
-
-{{-- Modal de Processamento --}}
-<div class="modal fade" id="processModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="processForm" method="POST">
-                @csrf
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title"><i class="fas fa-check-circle"></i> Processar Pagamento</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-info">
-                        <strong>Referência:</strong> <span id="modal-ref"></span><br>
-                        <strong>Valor:</strong> <span id="modal-value"></span> MT
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Método de Pagamento *</label>
-                        <select name="payment_method" class="form-select" required>
+                <form :action="processAction" method="POST" class="mt-4 space-y-3">
+                    @csrf
+                    <div><label class="mb-1 block text-xs font-semibold text-slate-600">Metodo *</label>
+                        <select name="payment_method" class="w-full rounded-lg border-slate-300 text-sm" required>
                             <option value="">Selecione...</option>
-                            <option value="cash">Dinheiro</option>
-                            <option value="mpesa">M-Pesa</option>
-                            <option value="emola">e-Mola</option>
-                            <option value="bank">Transferência Bancária</option>
-                            <option value="multicaixa">Multicaixa</option>
+                            <option value="cash">Dinheiro</option><option value="mpesa">M-Pesa</option><option value="emola">e-Mola</option><option value="bank">Transferencia Bancaria</option><option value="multicaixa">Multicaixa</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">ID da Transação</label>
-                        <input type="text" name="transaction_id" class="form-control">
+                    <div><label class="mb-1 block text-xs font-semibold text-slate-600">ID da Transacao</label><input type="text" name="transaction_id" class="w-full rounded-lg border-slate-300 text-sm"></div>
+                    <div><label class="mb-1 block text-xs font-semibold text-slate-600">Data *</label><input type="date" name="payment_date" value="{{ date('Y-m-d') }}" class="w-full rounded-lg border-slate-300 text-sm" required></div>
+                    <div><label class="mb-1 block text-xs font-semibold text-slate-600">Observacoes</label><textarea name="notes" rows="2" class="w-full rounded-lg border-slate-300 text-sm"></textarea></div>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" @click="processOpen=false" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">Cancelar</button>
+                        <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">Confirmar</button>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Data do Pagamento *</label>
-                        <input type="date" name="payment_date" class="form-control" value="{{ date('Y-m-d') }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Observações</label>
-                        <textarea name="notes" class="form-control" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-check"></i> Confirmar Pagamento
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 @endsection
+
+@push('styles')
+<style>
+    [data-bs-theme="dark"] .payments-overdue .bg-white { background-color: var(--card-bg) !important; }
+    [data-bs-theme="dark"] .payments-overdue .bg-slate-50,
+    [data-bs-theme="dark"] .payments-overdue .bg-slate-100 { background-color: rgba(148, 163, 184, 0.08) !important; }
+    [data-bs-theme="dark"] .payments-overdue .border-slate-200,
+    [data-bs-theme="dark"] .payments-overdue .border-slate-300 { border-color: var(--border-color) !important; }
+    [data-bs-theme="dark"] .payments-overdue .text-slate-900,
+    [data-bs-theme="dark"] .payments-overdue .text-slate-800,
+    [data-bs-theme="dark"] .payments-overdue .text-slate-700,
+    [data-bs-theme="dark"] .payments-overdue .text-slate-600,
+    [data-bs-theme="dark"] .payments-overdue .text-slate-500 { color: var(--text-secondary) !important; }
+</style>
+@endpush
 
 @push('scripts')
 <script>
-// Selecionar todos
-document.getElementById('select-all')?.addEventListener('change', function() {
-    document.querySelectorAll('.payment-checkbox').forEach(cb => cb.checked = this.checked);
-});
-
-// Abrir modal de processamento
-function openProcessModal(id, ref, value) {
-    document.getElementById('processForm').action = `/payments/${id}/process`;
-    document.getElementById('modal-ref').textContent = ref;
-    document.getElementById('modal-value').textContent = value.toLocaleString('pt-MZ', {minimumFractionDigits: 2});
-    new bootstrap.Modal(document.getElementById('processModal')).show();
+function overduePage() {
+    return {
+        processOpen: false,
+        processAction: '',
+        processRef: '',
+        processValue: 0,
+        toggleAll(event) {
+            document.querySelectorAll('.payment-checkbox').forEach(cb => cb.checked = event.target.checked);
+        },
+        openProcessModal(id, ref, value) {
+            this.processAction = `/payments/${id}/process`;
+            this.processRef = ref;
+            this.processValue = value;
+            this.processOpen = true;
+        },
+        formatValue(value) {
+            return parseFloat(value || 0).toLocaleString('pt-MZ', { minimumFractionDigits: 2 });
+        },
+        sendReminder(studentId) {
+            if (confirm('Enviar lembrete de pagamento para o encarregado deste aluno?')) {
+                window.VisionariosSchool?.showToast?.('Lembrete enviado com sucesso!', 'success');
+            }
+        },
+        sendBulkReminder() {
+            const selected = document.querySelectorAll('.payment-checkbox:checked');
+            if (selected.length === 0) {
+                window.VisionariosSchool?.showToast?.('Selecione pelo menos um pagamento', 'warning');
+                return;
+            }
+            if (confirm(`Enviar lembretes para ${selected.length} pagamentos selecionados?`)) {
+                window.VisionariosSchool?.showToast?.(`Lembretes enviados para ${selected.length} encarregados!`, 'success');
+            }
+        }
+    };
 }
 
-// Enviar lembrete individual
-function sendReminder(studentId) {
-    if (confirm('Enviar lembrete de pagamento para o encarregado deste aluno?')) {
-        // Implementar envio de lembrete
-        VisionariosSchool.showToast('Lembrete enviado com sucesso!', 'success');
-    }
-}
-
-// Enviar lembretes em massa
-function sendBulkReminder() {
-    const selected = document.querySelectorAll('.payment-checkbox:checked');
-    if (selected.length === 0) {
-        VisionariosSchool.showToast('Selecione pelo menos um pagamento', 'warning');
-        return;
-    }
-    if (confirm(`Enviar lembretes para ${selected.length} pagamentos selecionados?`)) {
-        // Implementar envio em massa
-        VisionariosSchool.showToast(`Lembretes enviados para ${selected.length} encarregados!`, 'success');
-    }
-}
-
-// Gráficos (se Chart.js estiver disponível)
 @if($payments->count() > 0)
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     if (typeof Chart !== 'undefined') {
-        // Dados agregados
         const byClass = @json($payments->groupBy('enrollment.class.name')->map->count());
         const byDays = {
-            'Até 30 dias': {{ $payments->filter(fn($p) => $p->due_date->diffInDays(now()) <= 30)->count() }},
+            'Ate 30 dias': {{ $payments->filter(fn($p) => $p->due_date->diffInDays(now()) <= 30)->count() }},
             '31-60 dias': {{ $payments->filter(fn($p) => $p->due_date->diffInDays(now()) > 30 && $p->due_date->diffInDays(now()) <= 60)->count() }},
             'Mais de 60 dias': {{ $payments->filter(fn($p) => $p->due_date->diffInDays(now()) > 60)->count() }}
         };
 
-        // Gráfico por turma
         new Chart(document.getElementById('chartByClass'), {
             type: 'doughnut',
             data: {
                 labels: Object.keys(byClass),
-                datasets: [{
-                    data: Object.values(byClass),
-                    backgroundColor: ['#19437C', '#4BA83C', '#F9A825', '#DC3545', '#17a2b8', '#6c757d']
-                }]
+                datasets: [{ data: Object.values(byClass), backgroundColor: ['#19437C', '#4BA83C', '#F9A825', '#DC3545', '#17a2b8', '#6c757d'] }]
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
 
-        // Gráfico por dias
         new Chart(document.getElementById('chartByDays'), {
             type: 'bar',
             data: {
                 labels: Object.keys(byDays),
-                datasets: [{
-                    label: 'Pagamentos',
-                    data: Object.values(byDays),
-                    backgroundColor: ['#F9A825', '#fd7e14', '#DC3545']
-                }]
+                datasets: [{ label: 'Pagamentos', data: Object.values(byDays), backgroundColor: ['#F9A825', '#fd7e14', '#DC3545'] }]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });

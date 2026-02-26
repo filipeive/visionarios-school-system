@@ -9,388 +9,197 @@
 @endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        {{-- Coluna Principal --}}
-        <div class="col-lg-8">
-            {{-- Card de Status --}}
-            <div class="school-card mb-4">
-                <div class="school-card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h4 class="mb-1">
-                                <code class="bg-light px-3 py-2 rounded fs-5">{{ $payment->reference_number }}</code>
-                            </h4>
-                            <p class="text-muted mb-0">Referência de Pagamento</p>
-                        </div>
-                        <div class="text-end">
-                            @switch($payment->status)
-                                @case('paid')
-                                    <span class="badge bg-success fs-6 px-3 py-2">
-                                        <i class="fas fa-check-circle"></i> PAGO
-                                    </span>
-                                    @break
-                                @case('pending')
-                                    <span class="badge bg-warning text-dark fs-6 px-3 py-2">
-                                        <i class="fas fa-clock"></i> PENDENTE
-                                    </span>
-                                    @break
-                                @case('overdue')
-                                    <span class="badge bg-danger fs-6 px-3 py-2">
-                                        <i class="fas fa-exclamation-circle"></i> EM ATRASO
-                                    </span>
-                                    @break
-                                @case('cancelled')
-                                    <span class="badge bg-secondary fs-6 px-3 py-2">
-                                        <i class="fas fa-ban"></i> CANCELADO
-                                    </span>
-                                    @break
-                            @endswitch
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Informações do Pagamento --}}
-            <div class="school-card mb-4">
-                <div class="school-card-header">
-                    <i class="fas fa-file-invoice-dollar"></i> Detalhes do Pagamento
-                </div>
-                <div class="school-card-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-4">
-                            <h6 class="text-muted mb-2">Tipo de Pagamento</h6>
-                            <p class="fs-5 mb-0">
-                                @switch($payment->type)
-                                    @case('matricula')
-                                        <span class="badge bg-primary">Taxa de Matrícula</span>
-                                        @break
-                                    @case('mensalidade')
-                                        <span class="badge bg-success">Mensalidade</span>
-                                        @break
-                                    @case('material')
-                                        <span class="badge bg-info">Material Escolar</span>
-                                        @break
-                                    @case('uniforme')
-                                        <span class="badge bg-secondary">Uniforme</span>
-                                        @break
-                                    @default
-                                        <span class="badge bg-dark">Outro</span>
-                                @endswitch
-                            </p>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <h6 class="text-muted mb-2">Período de Referência</h6>
-                            <p class="fs-5 mb-0">
-                                @if($payment->month)
-                                    {{ $payment->month_name }} / {{ $payment->year }}
-                                @else
-                                    {{ $payment->year }}
-                                @endif
-                            </p>
-                        </div>
-                        <div class="col-md-6 mb-4">
-                            <h6 class="text-muted mb-2">Data de Vencimento</h6>
-                            <p class="fs-5 mb-0 {{ $payment->due_date && $payment->due_date < now() && $payment->status != 'paid' ? 'text-danger' : '' }}">
-                                <i class="fas fa-calendar"></i> {{ $payment->due_date?->format('d/m/Y') ?? 'N/A' }}
-                                @if($payment->due_date && $payment->due_date < now() && $payment->status != 'paid')
-                                    <small class="text-danger">(Vencido há {{ $payment->due_date->diffInDays(now()) }} dias)</small>
-                                @endif
-                            </p>
-                        </div>
-                        @if($payment->payment_date)
-                        <div class="col-md-6 mb-4">
-                            <h6 class="text-muted mb-2">Data do Pagamento</h6>
-                            <p class="fs-5 mb-0 text-success">
-                                <i class="fas fa-check"></i> {{ $payment->payment_date?->format('d/m/Y') ?? 'N/A' }}
-                            </p>
-                        </div>
-                        @endif
-                    </div>
-
-                    <hr>
-
-                    {{-- Valores --}}
-                    <div class="row">
-                        <div class="col-md-4 text-center mb-3">
-                            <h6 class="text-muted">Valor Base</h6>
-                            <p class="fs-4 fw-bold mb-0">{{ number_format($payment->amount, 2, ',', '.') }} MT</p>
-                        </div>
-                        <div class="col-md-4 text-center mb-3">
-                            <h6 class="text-muted">Desconto</h6>
-                            <p class="fs-4 fw-bold mb-0 text-success">
-                                - {{ number_format($payment->discount, 2, ',', '.') }} MT
-                            </p>
-                        </div>
-                        <div class="col-md-4 text-center mb-3">
-                            <h6 class="text-muted">Total a Pagar</h6>
-                            <p class="fs-3 fw-bold mb-0 text-primary">
-                                {{ number_format($payment->total_amount, 2, ',', '.') }} MT
-                            </p>
-                        </div>
-                    </div>
-
-                    @if($payment->payment_method)
-                    <hr>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6 class="text-muted mb-2">Método de Pagamento</h6>
-                            <p class="mb-0">
-                                @switch($payment->payment_method)
-                                    @case('cash') <i class="fas fa-money-bill"></i> Dinheiro @break
-                                    @case('mpesa') <i class="fas fa-mobile-alt"></i> M-Pesa @break
-                                    @case('emola') <i class="fas fa-mobile-alt"></i> e-Mola @break
-                                    @case('bank') <i class="fas fa-university"></i> Transferência Bancária @break
-                                    @case('multicaixa') <i class="fas fa-credit-card"></i> Multicaixa @break
-                                @endswitch
-                            </p>
-                        </div>
-                        @if($payment->transaction_id)
-                        <div class="col-md-6">
-                            <h6 class="text-muted mb-2">ID da Transação</h6>
-                            <p class="mb-0"><code>{{ $payment->transaction_id }}</code></p>
-                        </div>
-                        @endif
-                    </div>
-                    @endif
-
-                    @if($payment->notes)
-                    <hr>
+    <div class="payments-show grid gap-6 xl:grid-cols-12" x-data="{ processOpen:false, cancelOpen:false }">
+        <section class="xl:col-span-8 space-y-6">
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <div class="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                        <h6 class="text-muted mb-2">Observações</h6>
-                        <p class="mb-0">{{ $payment->notes }}</p>
+                        <p class="font-mono text-sm font-semibold text-slate-800">{{ $payment->reference_number }}</p>
+                        <p class="mt-1 text-xs text-slate-500">Referencia de Pagamento</p>
                     </div>
+                    @php
+                        $statusClass = $payment->status === 'paid'
+                            ? 'bg-emerald-100 text-emerald-700'
+                            : ($payment->status === 'overdue'
+                                ? 'bg-rose-100 text-rose-700'
+                                : ($payment->status === 'cancelled' ? 'bg-slate-100 text-slate-700' : 'bg-amber-100 text-amber-700'));
+                    @endphp
+                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $statusClass }}">{{ strtoupper($payment->status) }}</span>
+                </div>
+            </article>
+
+            <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="border-b border-slate-200 px-5 py-4"><h3 class="text-sm font-semibold text-slate-900">Detalhes do Pagamento</h3></header>
+                <div class="grid gap-4 p-5 md:grid-cols-2">
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-slate-500">Tipo</p>
+                        <p class="mt-1 text-sm font-semibold text-slate-900">{{ ucfirst($payment->type) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-slate-500">Periodo</p>
+                        <p class="mt-1 text-sm font-semibold text-slate-900">@if($payment->month){{ $payment->month_name }} / {{ $payment->year }}@else{{ $payment->year }}@endif</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-slate-500">Vencimento</p>
+                        <p class="mt-1 text-sm font-semibold {{ $payment->due_date && $payment->due_date < now() && $payment->status != 'paid' ? 'text-rose-700' : 'text-slate-900' }}">{{ $payment->due_date?->format('d/m/Y') ?? 'N/A' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs uppercase tracking-wide text-slate-500">Data de Pagamento</p>
+                        <p class="mt-1 text-sm font-semibold text-slate-900">{{ $payment->payment_date?->format('d/m/Y') ?? 'N/A' }}</p>
+                    </div>
+                </div>
+
+                <div class="grid gap-4 border-t border-slate-200 p-5 md:grid-cols-3">
+                    <div class="rounded-lg bg-slate-50 p-4 text-center">
+                        <p class="text-xs text-slate-500">Valor Base</p>
+                        <p class="mt-1 text-xl font-semibold text-slate-900">{{ number_format($payment->amount, 2, ',', '.') }} MT</p>
+                    </div>
+                    <div class="rounded-lg bg-slate-50 p-4 text-center">
+                        <p class="text-xs text-slate-500">Desconto</p>
+                        <p class="mt-1 text-xl font-semibold text-emerald-700">- {{ number_format($payment->discount, 2, ',', '.') }} MT</p>
+                    </div>
+                    <div class="rounded-lg bg-slate-50 p-4 text-center">
+                        <p class="text-xs text-slate-500">Total</p>
+                        <p class="mt-1 text-2xl font-bold text-sky-700">{{ number_format($payment->total_amount, 2, ',', '.') }} MT</p>
+                    </div>
+                </div>
+
+                @if($payment->payment_method || $payment->notes)
+                    <div class="space-y-3 border-t border-slate-200 p-5">
+                        @if($payment->payment_method)
+                            <p class="text-sm text-slate-700"><strong>Metodo:</strong> {{ strtoupper($payment->payment_method) }} @if($payment->transaction_id)- <code>{{ $payment->transaction_id }}</code>@endif</p>
+                        @endif
+                        @if($payment->notes)
+                            <p class="text-sm text-slate-700"><strong>Observacoes:</strong> {{ $payment->notes }}</p>
+                        @endif
+                    </div>
+                @endif
+            </article>
+
+            <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="border-b border-slate-200 px-5 py-4"><h3 class="text-sm font-semibold text-slate-900">Informacoes do Aluno</h3></header>
+                <div class="p-5">
+                    <div class="mb-4 flex items-center gap-3">
+                        @if($payment->student->photo_url)
+                            <img src="{{ $payment->student->photo_url }}" class="h-16 w-16 rounded-full object-cover" alt="{{ $payment->student->full_name }}">
+                        @else
+                            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-500">{{ strtoupper(substr($payment->student->full_name,0,1)) }}</div>
+                        @endif
+                        <div>
+                            <p class="text-base font-semibold text-slate-900">{{ $payment->student->full_name }}</p>
+                            <p class="font-mono text-xs text-slate-500">{{ $payment->student->student_number }}</p>
+                        </div>
+                    </div>
+                    <div class="grid gap-3 md:grid-cols-2">
+                        <p class="text-sm text-slate-700"><strong>Turma:</strong> {{ $payment->enrollment?->class?->name ?? 'N/A' }}</p>
+                        <p class="text-sm text-slate-700"><strong>Encarregado:</strong> {{ $payment->student->parent?->first_name ?? 'N/A' }} {{ $payment->student->parent?->last_name ?? '' }}</p>
+                        <p class="text-sm text-slate-700"><strong>Contacto:</strong> {{ $payment->student->parent?->phone ?? $payment->student->emergency_phone ?? 'N/A' }}</p>
+                        <p class="text-sm text-slate-700"><strong>Mensalidade Base:</strong> {{ number_format($payment->enrollment?->monthly_fee ?? $payment->student->monthly_fee, 2, ',', '.') }} MT</p>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <a href="{{ route('students.show', $payment->student) }}" class="rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50">Perfil Completo</a>
+                        <a href="{{ route('students.payments', $payment->student) }}" class="rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50">Historico</a>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <aside class="xl:col-span-4 space-y-6">
+            <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="border-b border-slate-200 px-5 py-4"><h3 class="text-sm font-semibold text-slate-900">Acoes</h3></header>
+                <div class="space-y-2 p-5">
+                    @if($payment->status == 'pending' || $payment->status == 'overdue')
+                        @can('process_payments')
+                            <button type="button" @click="processOpen = true" class="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Processar Pagamento</button>
+                        @endcan
+                        <button type="button" @click="cancelOpen = true" class="w-full rounded-lg border border-rose-300 px-4 py-2 text-sm text-rose-700 hover:bg-rose-50">Cancelar Pagamento</button>
+                    @endif
+                    <a href="{{ route('payments.download-reference', $payment) }}" target="_blank" class="block w-full rounded-lg border border-slate-300 px-4 py-2 text-center text-sm text-slate-700 hover:bg-slate-50">Imprimir Referencia</a>
+                    <a href="{{ route('payments.index') }}" class="block w-full rounded-lg border border-slate-300 px-4 py-2 text-center text-sm text-slate-700 hover:bg-slate-50">Voltar</a>
+                </div>
+            </section>
+
+            <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="border-b border-slate-200 px-5 py-4"><h3 class="text-sm font-semibold text-slate-900">Historico</h3></header>
+                <div class="space-y-3 p-5">
+                    <div class="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+                        <p class="font-semibold">Pagamento Criado</p>
+                        <p class="text-xs text-slate-500">{{ $payment->created_at->format('d/m/Y H:i') }}</p>
+                    </div>
+                    @if($payment->status == 'paid')
+                        <div class="rounded-lg bg-emerald-50 p-3 text-sm text-emerald-800">
+                            <p class="font-semibold">Pagamento Confirmado</p>
+                            <p class="text-xs">{{ $payment->payment_date?->format('d/m/Y') ?? $payment->updated_at->format('d/m/Y H:i') }}</p>
+                        </div>
+                    @elseif($payment->status == 'cancelled')
+                        <div class="rounded-lg bg-slate-100 p-3 text-sm text-slate-800">
+                            <p class="font-semibold">Pagamento Cancelado</p>
+                            <p class="text-xs">{{ $payment->updated_at->format('d/m/Y H:i') }}</p>
+                        </div>
                     @endif
                 </div>
-            </div>
+            </section>
+        </aside>
 
-            {{-- Informações do Aluno --}}
-            <div class="school-card">
-                <div class="school-card-header">
-                    <i class="fas fa-user-graduate"></i> Informações do Aluno
-                </div>
-                <div class="school-card-body">
-                    <div class="d-flex align-items-center mb-4">
-                        <img src="{{ $payment->student->photo_url }}" 
-                             class="rounded-circle me-3" width="80" height="80"
-                             alt="{{ $payment->student->full_name }}">
-                        <div>
-                            <h5 class="mb-1">{{ $payment->student->full_name }}</h5>
-                            <p class="text-muted mb-0">
-                                <code>{{ $payment->student->student_number }}</code>
-                            </p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <h6 class="text-muted mb-1">Turma</h6>
-                            <p class="mb-0">
-                                <span class="badge bg-info">{{ $payment->enrollment?->class?->name ?? 'N/A' }}</span>
-                            </p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <h6 class="text-muted mb-1">Encarregado</h6>
-                            <p class="mb-0">{{ $payment->student->parent?->first_name ?? 'N/A' }} {{ $payment->student->parent?->last_name ?? '' }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <h6 class="text-muted mb-1">Contacto</h6>
-                            <p class="mb-0">{{ $payment->student->parent?->phone ?? $payment->student->emergency_phone ?? 'N/A' }}</p>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <h6 class="text-muted mb-1">Mensalidade Base</h6>
-                            <p class="mb-0">{{ number_format($payment->enrollment?->monthly_fee ?? $payment->student->monthly_fee, 2, ',', '.') }} MT</p>
-                        </div>
-                    </div>
-                    <div class="text-end">
-                        <a href="{{ route('students.show', $payment->student) }}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-eye"></i> Ver Perfil Completo
-                        </a>
-                        <a href="{{ route('students.payments', $payment->student) }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-history"></i> Histórico de Pagamentos
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- Coluna Lateral --}}
-        <div class="col-lg-4">
-            {{-- Ações --}}
-            <div class="school-card mb-4">
-                <div class="school-card-header">
-                    <i class="fas fa-cogs"></i> Ações
-                </div>
-                <div class="school-card-body">
-                    <div class="d-grid gap-2">
-                        @if($payment->status == 'pending' || $payment->status == 'overdue')
-                            @can('process_payments')
-                            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#processModal">
-                                <i class="fas fa-check-circle"></i> Processar Pagamento
-                            </button>
-                            @endcan
-                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#cancelModal">
-                                <i class="fas fa-ban"></i> Cancelar Pagamento
-                            </button>
-                        @endif
-                        <a href="{{ route('payments.download-reference', $payment) }}" class="btn btn-outline-primary" target="_blank">
-                            <i class="fas fa-print"></i> Imprimir Referência
-                        </a>
-                        <a href="{{ route('payments.index') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-arrow-left"></i> Voltar à Lista
-                        </a>
-                    </div>
-                </div>
-            </div>
-
-            {{-- Timeline --}}
-            <div class="school-card">
-                <div class="school-card-header">
-                    <i class="fas fa-history"></i> Histórico
-                </div>
-                <div class="school-card-body">
-                    <div class="timeline">
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-primary"></div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">Pagamento Criado</h6>
-                                <small class="text-muted">{{ $payment->created_at->format('d/m/Y H:i') }}</small>
-                            </div>
-                        </div>
-                        @if($payment->status == 'paid')
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-success"></div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">Pagamento Confirmado</h6>
-                                <small class="text-muted">{{ $payment->payment_date?->format('d/m/Y') ?? $payment->updated_at->format('d/m/Y H:i') }}</small>
-                            </div>
-                        </div>
-                        @elseif($payment->status == 'cancelled')
-                        <div class="timeline-item">
-                            <div class="timeline-marker bg-secondary"></div>
-                            <div class="timeline-content">
-                                <h6 class="mb-1">Pagamento Cancelado</h6>
-                                <small class="text-muted">{{ $payment->updated_at->format('d/m/Y H:i') }}</small>
-                            </div>
-                        </div>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-{{-- Modal de Processamento --}}
-<div class="modal fade" id="processModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="{{ route('payments.process', $payment) }}" method="POST">
-                @csrf
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title"><i class="fas fa-check-circle"></i> Processar Pagamento</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-info">
-                        <strong>Valor a Receber:</strong> {{ number_format($payment->total_amount, 2, ',', '.') }} MT
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Método de Pagamento *</label>
-                        <select name="payment_method" class="form-select" required>
+        <div x-show="processOpen" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" style="display:none;">
+            <div class="w-full max-w-md rounded-xl bg-white p-5 shadow-xl" @click.outside="processOpen = false">
+                <h4 class="text-base font-semibold text-slate-900">Processar Pagamento</h4>
+                <div class="mt-3 rounded-lg bg-sky-50 p-3 text-sm text-sky-800">Valor a receber: <strong>{{ number_format($payment->total_amount, 2, ',', '.') }} MT</strong></div>
+                <form action="{{ route('payments.process', $payment) }}" method="POST" class="mt-4 space-y-3">
+                    @csrf
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Metodo *</label>
+                        <select name="payment_method" class="w-full rounded-lg border-slate-300 text-sm" required>
                             <option value="">Selecione...</option>
                             <option value="cash">Dinheiro</option>
                             <option value="mpesa">M-Pesa</option>
                             <option value="emola">e-Mola</option>
-                            <option value="bank">Transferência Bancária</option>
+                            <option value="bank">Transferencia Bancaria</option>
                             <option value="multicaixa">Multicaixa</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">ID da Transação</label>
-                        <input type="text" name="transaction_id" class="form-control" placeholder="Ex: MP123456789">
+                    <div><label class="mb-1 block text-xs font-semibold text-slate-600">ID da Transacao</label><input type="text" name="transaction_id" class="w-full rounded-lg border-slate-300 text-sm"></div>
+                    <div><label class="mb-1 block text-xs font-semibold text-slate-600">Data *</label><input type="date" name="payment_date" value="{{ date('Y-m-d') }}" class="w-full rounded-lg border-slate-300 text-sm" required></div>
+                    <div><label class="mb-1 block text-xs font-semibold text-slate-600">Observacoes</label><textarea name="notes" rows="2" class="w-full rounded-lg border-slate-300 text-sm"></textarea></div>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" @click="processOpen = false" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">Cancelar</button>
+                        <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">Confirmar</button>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Data do Pagamento *</label>
-                        <input type="date" name="payment_date" class="form-control" value="{{ date('Y-m-d') }}" required>
+                </form>
+            </div>
+        </div>
+
+        <div x-show="cancelOpen" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" style="display:none;">
+            <div class="w-full max-w-md rounded-xl bg-white p-5 shadow-xl" @click.outside="cancelOpen = false">
+                <h4 class="text-base font-semibold text-slate-900">Cancelar Pagamento</h4>
+                <div class="mt-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-800">Esta acao nao pode ser desfeita.</div>
+                <form action="{{ route('payments.cancel', $payment) }}" method="POST" class="mt-4 space-y-3">
+                    @csrf
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Motivo *</label>
+                        <textarea name="reason" rows="3" required class="w-full rounded-lg border-slate-300 text-sm" placeholder="Informe o motivo..."></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Observações</label>
-                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" @click="cancelOpen = false" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">Voltar</button>
+                        <button type="submit" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white">Confirmar Cancelamento</button>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-check"></i> Confirmar Pagamento
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-
-{{-- Modal de Cancelamento --}}
-<div class="modal fade" id="cancelModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form action="{{ route('payments.cancel', $payment) }}" method="POST">
-                @csrf
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="fas fa-ban"></i> Cancelar Pagamento</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        Esta ação não pode ser desfeita. Tem certeza que deseja cancelar este pagamento?
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Motivo do Cancelamento *</label>
-                        <textarea name="reason" class="form-control" rows="3" required 
-                                  placeholder="Informe o motivo do cancelamento..."></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Voltar</button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-ban"></i> Confirmar Cancelamento
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<style>
-.timeline {
-    position: relative;
-    padding-left: 30px;
-}
-.timeline::before {
-    content: '';
-    position: absolute;
-    left: 10px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: var(--border-color);
-}
-.timeline-item {
-    position: relative;
-    margin-bottom: 20px;
-}
-.timeline-marker {
-    position: absolute;
-    left: -25px;
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    border: 2px solid white;
-    box-shadow: 0 0 0 2px var(--border-color);
-}
-.timeline-content h6 {
-    font-size: 14px;
-    margin-bottom: 2px;
-}
-</style>
 @endsection
+
+@push('styles')
+    <style>
+        [data-bs-theme="dark"] .payments-show .bg-white { background-color: var(--card-bg) !important; }
+        [data-bs-theme="dark"] .payments-show .bg-slate-50,
+        [data-bs-theme="dark"] .payments-show .bg-slate-100 { background-color: rgba(148, 163, 184, 0.08) !important; }
+        [data-bs-theme="dark"] .payments-show .border-slate-200,
+        [data-bs-theme="dark"] .payments-show .border-slate-300 { border-color: var(--border-color) !important; }
+        [data-bs-theme="dark"] .payments-show .text-slate-900,
+        [data-bs-theme="dark"] .payments-show .text-slate-800,
+        [data-bs-theme="dark"] .payments-show .text-slate-700,
+        [data-bs-theme="dark"] .payments-show .text-slate-600,
+        [data-bs-theme="dark"] .payments-show .text-slate-500 { color: var(--text-secondary) !important; }
+    </style>
+@endpush
