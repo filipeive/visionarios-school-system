@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Gestão de Pagamentos')
+@section('title', 'Gestao de Pagamentos')
 @section('page-title', 'Pagamentos')
 
 @section('breadcrumbs')
@@ -8,623 +8,400 @@
 @endsection
 
 @section('content')
-<div class="container-fluid">
-    {{-- Cards de Estatísticas --}}
-    <div class="row mb-4">
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="stat-card payments">
-                <div class="stat-icon payments">
-                    <i class="fas fa-money-bill-wave"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ number_format($stats['paid'], 2, ',', '.') }} MT</div>
-                    <div class="stat-label">Total Recebido</div>
-                    <span class="stat-change positive">
-                        <i class="fas fa-check"></i> Pagos
-                    </span>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="stat-card students">
-                <div class="stat-icon students">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ number_format($stats['pending'], 2, ',', '.') }} MT</div>
-                    <div class="stat-label">Pendente</div>
-                    <span class="stat-change">
-                        <i class="fas fa-hourglass-half"></i> {{ $stats['count_pending'] }} pagamentos
-                    </span>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="stat-card events">
-                <div class="stat-icon events">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ number_format($stats['overdue'], 2, ',', '.') }} MT</div>
-                    <div class="stat-label">Em Atraso</div>
-                    <span class="stat-change negative">
-                        <i class="fas fa-arrow-up"></i> {{ $stats['count_overdue'] }} em atraso
-                    </span>
-                </div>
-            </div>
-        </div>
-        <div class="col-xl-3 col-md-6 mb-3">
-            <div class="stat-card teachers">
-                <div class="stat-icon teachers">
-                    <i class="fas fa-money-bill-wave"></i>
-                </div>
-                <div class="stat-content">
-                    @php
-                        $totalPenalties = \App\Models\Payment::where('penalty', '>', 0)->sum('penalty');
-                    @endphp
-                    <div class="stat-value">{{ number_format($totalPenalties, 2, ',', '.') }} MT</div>
-                    <div class="stat-label">Multas Aplicadas</div>
-                    <span class="stat-change negative">
-                        <i class="fas fa-balance-scale"></i> Total em multas
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
+    @php
+        $totalPenalties = \App\Models\Payment::where('penalty', '>', 0)->sum('penalty');
+        $countWithPenalties = \App\Models\Payment::where('penalty', '>', 0)->count();
+    @endphp
 
-    {{-- Filtros e Ações --}}
-    <div class="school-card mb-4">
-        <div class="school-card-body">
-            <form method="GET" action="{{ route('payments.index') }}" id="filter-form">
-                <div class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label class="form-label fw-semibold">Pesquisar</label>
-                        <input type="text" name="search" class="form-control" 
-                               placeholder="Nome, matrícula ou referência..." 
-                               value="{{ request('search') }}">
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Status</label>
-                        <select name="status" class="form-select">
-                            <option value="">Todos</option>
-                            <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pendente</option>
-                            <option value="paid" {{ request('status') == 'paid' ? 'selected' : '' }}>Pago</option>
-                            <option value="overdue" {{ request('status') == 'overdue' ? 'selected' : '' }}>Em Atraso</option>
-                            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Cancelado</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Tipo</label>
-                        <select name="type" class="form-select">
-                            <option value="">Todos</option>
-                            <option value="matricula" {{ request('type') == 'matricula' ? 'selected' : '' }}>Matrícula</option>
-                            <option value="mensalidade" {{ request('type') == 'mensalidade' ? 'selected' : '' }}>Mensalidade</option>
-                            <option value="material" {{ request('type') == 'material' ? 'selected' : '' }}>Material</option>
-                            <option value="uniforme" {{ request('type') == 'uniforme' ? 'selected' : '' }}>Uniforme</option>
-                            <option value="outro" {{ request('type') == 'outro' ? 'selected' : '' }}>Outro</option>
-                        </select>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label fw-semibold">Mês</label>
-                        <select name="month" class="form-select">
-                            <option value="">Todos</option>
-                            @foreach($months as $num => $name)
-                                <option value="{{ $num }}" {{ request('month') == $num ? 'selected' : '' }}>{{ $name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-primary-school flex-grow-1">
-                                <i class="fas fa-search"></i> Filtrar
-                            </button>
-                            <a href="{{ route('payments.index') }}" class="btn btn-outline-secondary">
-                                <i class="fas fa-times"></i>
-                            </a>
-                        </div>
-                    </div>
+    <div class="payments-index space-y-6" x-data="paymentsIndex()">
+        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Total Recebido</p>
+                <p class="mt-2 text-3xl font-bold text-emerald-700">{{ number_format($stats['paid'], 2, ',', '.') }} MT</p>
+                <p class="mt-2 text-sm text-emerald-700">Pagos</p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Pendente</p>
+                <p class="mt-2 text-3xl font-bold text-amber-700">{{ number_format($stats['pending'], 2, ',', '.') }} MT</p>
+                <p class="mt-2 text-sm text-amber-700">{{ $stats['count_pending'] }} pagamentos</p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Em Atraso</p>
+                <p class="mt-2 text-3xl font-bold text-rose-700">{{ number_format($stats['overdue'], 2, ',', '.') }} MT</p>
+                <p class="mt-2 text-sm text-rose-700">{{ $stats['count_overdue'] }} em atraso</p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Multas Aplicadas</p>
+                <p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($totalPenalties, 2, ',', '.') }} MT</p>
+                <p class="mt-2 text-sm text-slate-600">Total em multas</p>
+            </article>
+        </section>
+
+        <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <form method="GET" action="{{ route('payments.index') }}" class="grid gap-3 md:grid-cols-12 md:items-end">
+                <div class="md:col-span-3">
+                    <label class="mb-1 block text-xs font-semibold text-slate-600">Pesquisar</label>
+                    <input type="text" name="search" value="{{ request('search') }}"
+                        class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500"
+                        placeholder="Nome, matricula ou referencia...">
+                </div>
+                <div class="md:col-span-2">
+                    <label class="mb-1 block text-xs font-semibold text-slate-600">Status</label>
+                    <select name="status" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500">
+                        <option value="">Todos</option>
+                        <option value="pending" @selected(request('status') == 'pending')>Pendente</option>
+                        <option value="paid" @selected(request('status') == 'paid')>Pago</option>
+                        <option value="overdue" @selected(request('status') == 'overdue')>Em Atraso</option>
+                        <option value="cancelled" @selected(request('status') == 'cancelled')>Cancelado</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="mb-1 block text-xs font-semibold text-slate-600">Tipo</label>
+                    <select name="type" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500">
+                        <option value="">Todos</option>
+                        <option value="matricula" @selected(request('type') == 'matricula')>Matricula</option>
+                        <option value="mensalidade" @selected(request('type') == 'mensalidade')>Mensalidade</option>
+                        <option value="material" @selected(request('type') == 'material')>Material</option>
+                        <option value="uniforme" @selected(request('type') == 'uniforme')>Uniforme</option>
+                        <option value="outro" @selected(request('type') == 'outro')>Outro</option>
+                    </select>
+                </div>
+                <div class="md:col-span-2">
+                    <label class="mb-1 block text-xs font-semibold text-slate-600">Mes</label>
+                    <select name="month" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500">
+                        <option value="">Todos</option>
+                        @foreach($months as $num => $name)
+                            <option value="{{ $num }}" @selected(request('month') == $num)>{{ $name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="md:col-span-3 flex gap-2">
+                    <button type="submit" class="flex-1 rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800">Filtrar</button>
+                    <a href="{{ route('payments.index') }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Limpar</a>
                 </div>
             </form>
-        </div>
-    </div>
+        </section>
 
-    {{-- Ações Rápidas --}}
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div class="d-flex gap-2">
-            @can('create_payments')
-            <a href="{{ route('payments.create') }}" class="btn btn-primary-school">
-                <i class="fas fa-plus"></i> Novo Pagamento
-            </a>
-            @endcan
-            <a href="{{ route('payments.overdue') }}" class="btn btn-warning-school">
-                <i class="fas fa-exclamation-triangle"></i> Em Atraso ({{ $stats['count_overdue'] }})
-            </a>
-            <a href="{{ route('payments.with-penalties') }}" class="btn btn-danger-school">
-                <i class="fas fa-balance-scale"></i> Com Multas
-                @php
-                    $countWithPenalties = \App\Models\Payment::where('penalty', '>', 0)->count();
-                @endphp
-                @if($countWithPenalties > 0)
-                <span class="badge bg-white text-danger ms-1">{{ $countWithPenalties }}</span>
-                @endif
-            </a>
-            <a href="{{ route('payments.reports') }}" class="btn btn-success-school">
-                <i class="fas fa-chart-bar"></i> Relatórios
-            </a>
-        </div>
-        <div>
-            <a href="{{ route('payments.references') }}" class="btn btn-secondary-school">
-                <i class="fas fa-receipt"></i> Gerar Referências
-            </a>
-        </div>
-    </div>
+        <section class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap gap-2">
+                @can('create_payments')
+                    <a href="{{ route('payments.create') }}" class="rounded-lg bg-sky-700 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-800">Novo Pagamento</a>
+                @endcan
+                <a href="{{ route('payments.overdue') }}" class="rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-600">Em Atraso ({{ $stats['count_overdue'] }})</a>
+                <a href="{{ route('payments.with-penalties') }}" class="rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white hover:bg-rose-700">Com Multas @if($countWithPenalties > 0)<span class="ml-1 rounded-full bg-white px-2 py-0.5 text-xs text-rose-700">{{ $countWithPenalties }}</span>@endif</a>
+                <a href="{{ route('payments.reports') }}" class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Relatorios</a>
+            </div>
+            <a href="{{ route('payments.references') }}" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Gerar Referencias</a>
+        </section>
 
-    {{-- Tabela de Pagamentos --}}
-    <div class="school-table-container">
-        <div class="school-table-header">
-            <h5 class="school-table-title">
-                <i class="fas fa-list"></i> Lista de Pagamentos
-            </h5>
-            <span class="badge bg-light text-dark">{{ $payments->total() }} registros</span>
-        </div>
-        <div class="table-responsive">
-            <table class="table table-school table-hover mb-0">
-                <thead>
-                    <tr>
-                        <th>Referência</th>
-                        <th>Aluno</th>
-                        <th>Turma</th>
-                        <th>Tipo</th>
-                        <th>Mês/Ano</th>
-                        <th class="text-end">Valor</th>
-                        <th>Vencimento</th>
-                        <th>Status</th>
-                        <th class="text-center">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($payments as $payment)
-                    <tr class="{{ $payment->penalty > 0 ? 'table-warning' : '' }} {{ $payment->is_blocked ? 'table-danger' : '' }}">
-                        <td>
-                            <code class="bg-light px-2 py-1 rounded">{{ $payment->reference_number }}</code>
-                            @if($payment->penalty > 0)
-                                <br><small class="text-danger">Multa: {{ $payment->penalty_percentage }}%</small>
-                            @endif
-                        </td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <img src="{{ $payment->student->photo_url }}" 
-                                     class="rounded-circle me-2" 
-                                     width="35" height="35"
-                                     alt="{{ $payment->student->full_name }}">
-                                <div>
-                                    <div class="fw-semibold">{{ $payment->student->full_name }}</div>
-                                    <small class="text-muted">{{ $payment->student->student_number }}</small>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <span class="badge bg-info">
-                                {{ $payment->enrollment?->class?->name ?? 'N/A' }}
-                            </span>
-                        </td>
-                        <td>
-                            @switch($payment->type)
-                                @case('matricula')
-                                    <span class="badge bg-primary">Matrícula</span>
-                                    @break
-                                @case('mensalidade')
-                                    <span class="badge bg-success">Mensalidade</span>
-                                    @break
-                                @case('material')
-                                    <span class="badge bg-secondary">Material</span>
-                                    @break
-                                @case('uniforme')
-                                    <span class="badge bg-info">Uniforme</span>
-                                    @break
-                                @default
-                                    <span class="badge bg-dark">Outro</span>
-                            @endswitch
-                        </td>
-                        <td>
-                            @if($payment->month)
-                                {{ $payment->month_name }}/{{ $payment->year }}
-                            @else
-                                {{ $payment->year }}
-                            @endif
-                            @if($payment->days_late > 0)
-                                <br><small class="text-danger">{{ $payment->days_late }} dias atrasado</small>
-                            @endif
-                        </td>
-                        <td class="text-end">
-                            <div>
-                                <strong>{{ number_format($payment->total_amount, 2, ',', '.') }} MT</strong>
-                                @if($payment->discount > 0)
-                                    <br><small class="text-success">-{{ number_format($payment->discount, 2, ',', '.') }} MT</small>
-                                @endif
-                                @if($payment->penalty > 0)
-                                    <br><small class="text-danger">+{{ number_format($payment->penalty, 2, ',', '.') }} MT</small>
-                                @endif
-                            </div>
-                        </td>
-                        <td>
-                            <span class="{{ $payment->due_date && $payment->due_date < now() && $payment->status != 'paid' ? 'text-danger fw-bold' : '' }}">
-                                {{ $payment->due_date?->format('d/m/Y') ?? 'N/A' }}
-                            </span>
-                        </td>
-                        <td>
-                            @switch($payment->status)
-                                @case('paid')
-                                    <span class="badge bg-success">
-                                        <i class="fas fa-check-circle"></i> Pago
-                                    </span>
-                                    @break
-                                @case('pending')
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="fas fa-clock"></i> Pendente
-                                    </span>
-                                    @break
-                                @case('overdue')
-                                    <span class="badge bg-danger">
-                                        <i class="fas fa-exclamation-circle"></i> Em Atraso
-                                    </span>
-                                    @break
-                                @case('cancelled')
-                                    <span class="badge bg-secondary">
-                                        <i class="fas fa-ban"></i> Cancelado
-                                    </span>
-                                    @break
-                            @endswitch
-                            @if($payment->is_blocked)
-                                <br><span class="badge bg-dark mt-1">BLOQUEADO</span>
-                            @endif
-                        </td>
-                        <td>
-                            <div class="d-flex justify-content-center gap-1">
-                                <a href="{{ route('payments.show', $payment) }}" 
-                                   class="btn btn-sm btn-outline-primary" title="Ver Detalhes">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                
-                                @if($payment->status == 'pending' || $payment->status == 'overdue')
-                                    @can('process_payments')
-                                    <button type="button" class="btn btn-sm btn-success" 
-                                            onclick="openProcessModal({{ $payment->id }})" title="Processar">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                    
-                                    {{-- Botão para aplicar multa --}}
-                                    @if($payment->penalty == 0 && $payment->days_late >= 15)
-                                        <button type="button" class="btn btn-sm btn-warning" 
-                                                onclick="openPenaltyModal({{ $payment->id }})" title="Aplicar Multa">
-                                            <i class="fas fa-balance-scale"></i>
-                                        </button>
+        <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
+            <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                <h3 class="text-sm font-semibold text-slate-900">Lista de Pagamentos</h3>
+                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{{ $payments->total() }} registros</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-600">
+                        <tr>
+                            <th class="px-3 py-2 text-left font-semibold">Referencia</th>
+                            <th class="px-3 py-2 text-left font-semibold">Aluno</th>
+                            <th class="px-3 py-2 text-left font-semibold">Turma</th>
+                            <th class="px-3 py-2 text-left font-semibold">Tipo</th>
+                            <th class="px-3 py-2 text-left font-semibold">Mes/Ano</th>
+                            <th class="px-3 py-2 text-right font-semibold">Valor</th>
+                            <th class="px-3 py-2 text-left font-semibold">Vencimento</th>
+                            <th class="px-3 py-2 text-left font-semibold">Status</th>
+                            <th class="px-3 py-2 text-center font-semibold">Acoes</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($payments as $payment)
+                            <tr class="{{ $payment->penalty > 0 ? 'bg-amber-50/40' : '' }} {{ $payment->is_blocked ? 'bg-rose-50/50' : '' }}">
+                                <td class="px-3 py-2">
+                                    <p class="font-mono text-xs font-semibold text-slate-800">{{ $payment->reference_number }}</p>
+                                    @if($payment->penalty > 0)
+                                        <p class="text-xs text-rose-700">Multa: {{ $payment->penalty_percentage }}%</p>
                                     @endif
-                                    @endcan
-                                @endif
-                                
-                                {{-- Botão para remover multa --}}
-                                @if($payment->penalty > 0)
-                                    @can('process_payments')
-                                    <button type="button" class="btn btn-sm btn-outline-danger" 
-                                            onclick="openRemovePenaltyModal({{ $payment->id }})" title="Remover Multa">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                    @endcan
-                                @endif
-                                
-                                <a href="{{ route('payments.download-reference', $payment) }}" 
-                                   class="btn btn-sm btn-outline-secondary" title="Imprimir" target="_blank">
-                                    <i class="fas fa-print"></i>
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    @empty
-                    <tr>
-                        <td colspan="9" class="text-center py-5">
-                            <div class="text-muted">
-                                <i class="fas fa-inbox fa-3x mb-3"></i>
-                                <p>Nenhum pagamento encontrado</p>
-                                <a href="{{ route('payments.create') }}" class="btn btn-primary-school btn-sm">
-                                    <i class="fas fa-plus"></i> Criar Primeiro Pagamento
-                                </a>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-        @if($payments->hasPages())
-        <div class="card-footer bg-white">
-            {{ $payments->links() }}
-        </div>
-        @endif
-    </div>
-</div>
+                                </td>
+                                <td class="px-3 py-2">
+                                    <div class="flex items-center gap-2">
+                                        @if($payment->student->photo_url)
+                                            <img src="{{ $payment->student->photo_url }}" class="h-8 w-8 rounded-full object-cover" alt="{{ $payment->student->full_name }}">
+                                        @else
+                                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs text-slate-500">
+                                                {{ strtoupper(substr($payment->student->full_name, 0, 1)) }}
+                                            </div>
+                                        @endif
+                                        <div>
+                                            <p class="text-sm font-semibold text-slate-900">{{ $payment->student->full_name }}</p>
+                                            <p class="text-xs text-slate-500">{{ $payment->student->student_number }}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-3 py-2 text-slate-700">{{ $payment->enrollment?->class?->name ?? 'N/A' }}</td>
+                                <td class="px-3 py-2">
+                                    @php
+                                        $typeClass = $payment->type === 'matricula' ? 'bg-sky-100 text-sky-700' : ($payment->type === 'mensalidade' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700');
+                                    @endphp
+                                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $typeClass }}">{{ ucfirst($payment->type) }}</span>
+                                </td>
+                                <td class="px-3 py-2 text-slate-700">
+                                    @if($payment->month)
+                                        {{ $payment->month_name }}/{{ $payment->year }}
+                                    @else
+                                        {{ $payment->year }}
+                                    @endif
+                                    @if($payment->days_late > 0)
+                                        <p class="text-xs text-rose-700">{{ $payment->days_late }} dias atrasado</p>
+                                    @endif
+                                </td>
+                                <td class="px-3 py-2 text-right">
+                                    <p class="font-semibold text-slate-900">{{ number_format($payment->total_amount, 2, ',', '.') }} MT</p>
+                                    @if($payment->discount > 0)
+                                        <p class="text-xs text-emerald-700">-{{ number_format($payment->discount, 2, ',', '.') }} MT</p>
+                                    @endif
+                                    @if($payment->penalty > 0)
+                                        <p class="text-xs text-rose-700">+{{ number_format($payment->penalty, 2, ',', '.') }} MT</p>
+                                    @endif
+                                </td>
+                                <td class="px-3 py-2 {{ $payment->due_date && $payment->due_date < now() && $payment->status != 'paid' ? 'font-semibold text-rose-700' : 'text-slate-700' }}">{{ $payment->due_date?->format('d/m/Y') ?? 'N/A' }}</td>
+                                <td class="px-3 py-2">
+                                    @php
+                                        $statusClass = $payment->status === 'paid' ? 'bg-emerald-100 text-emerald-700' : ($payment->status === 'overdue' ? 'bg-rose-100 text-rose-700' : ($payment->status === 'cancelled' ? 'bg-slate-100 text-slate-700' : 'bg-amber-100 text-amber-700'));
+                                    @endphp
+                                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $statusClass }}">{{ ucfirst($payment->status) }}</span>
+                                    @if($payment->is_blocked)
+                                        <p class="mt-1 inline-block rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-semibold text-white">BLOQUEADO</p>
+                                    @endif
+                                </td>
+                                <td class="px-3 py-2 text-center">
+                                    <div class="inline-flex flex-wrap justify-center gap-1">
+                                        <a href="{{ route('payments.show', $payment) }}" class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Ver</a>
 
-{{-- Modal de Processamento --}}
-<div class="modal fade" id="processModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="processForm" method="POST">
-                @csrf
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title"><i class="fas fa-check-circle"></i> Processar Pagamento</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Método de Pagamento *</label>
-                        <select name="payment_method" class="form-select" required>
+                                        @if($payment->status == 'pending' || $payment->status == 'overdue')
+                                            @can('process_payments')
+                                                <button type="button" class="rounded-lg bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+                                                    @click="openProcessModal({{ $payment->id }})">Processar</button>
+                                                @if($payment->penalty == 0 && $payment->days_late >= 15)
+                                                    <button type="button" class="rounded-lg bg-amber-500 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-600"
+                                                        @click="openPenaltyModal({{ $payment->id }})">Multa</button>
+                                                @endif
+                                            @endcan
+                                        @endif
+
+                                        @if($payment->penalty > 0)
+                                            @can('process_payments')
+                                                <button type="button" class="rounded-lg border border-rose-300 px-2 py-1 text-xs text-rose-700 hover:bg-rose-50"
+                                                    @click="openRemovePenaltyModal({{ $payment->id }})">Remover Multa</button>
+                                            @endcan
+                                        @endif
+
+                                        <a href="{{ route('payments.download-reference', $payment) }}" target="_blank" class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Imprimir</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="9" class="px-3 py-8 text-center text-sm text-slate-500">
+                                    Nenhum pagamento encontrado.
+                                    <div class="mt-3">
+                                        <a href="{{ route('payments.create') }}" class="rounded-lg bg-sky-700 px-3 py-2 text-xs font-semibold text-white hover:bg-sky-800">Criar Primeiro Pagamento</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            @if($payments->hasPages())
+                <div class="border-t border-slate-200 px-5 py-4">{{ $payments->links() }}</div>
+            @endif
+        </section>
+
+        <div x-show="processModal.open" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" style="display: none;">
+            <div class="w-full max-w-md rounded-xl bg-white p-5 shadow-xl" @click.outside="processModal.open = false">
+                <h4 class="text-base font-semibold text-slate-900">Processar Pagamento</h4>
+                <form :action="processModal.action" method="POST" class="mt-4 space-y-3">
+                    @csrf
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Metodo de Pagamento *</label>
+                        <select name="payment_method" class="w-full rounded-lg border-slate-300 text-sm" required>
                             <option value="">Selecione...</option>
                             <option value="cash">Dinheiro</option>
                             <option value="mpesa">M-Pesa</option>
                             <option value="emola">e-Mola</option>
-                            <option value="bank">Transferência Bancária</option>
+                            <option value="bank">Transferencia Bancaria</option>
                             <option value="multicaixa">Multicaixa</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">ID da Transação</label>
-                        <input type="text" name="transaction_id" class="form-control" 
-                               placeholder="Ex: MP123456789">
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">ID da Transacao</label>
+                        <input type="text" name="transaction_id" class="w-full rounded-lg border-slate-300 text-sm" placeholder="Ex: MP123456789">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Data do Pagamento *</label>
-                        <input type="date" name="payment_date" class="form-control" 
-                               value="{{ date('Y-m-d') }}" required>
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Data do Pagamento *</label>
+                        <input type="date" name="payment_date" class="w-full rounded-lg border-slate-300 text-sm" value="{{ date('Y-m-d') }}" required>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Observações</label>
-                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Observacoes</label>
+                        <textarea name="notes" class="w-full rounded-lg border-slate-300 text-sm" rows="2"></textarea>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-check"></i> Confirmar Pagamento
-                    </button>
-                </div>
-            </form>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" @click="processModal.open = false" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">Cancelar</button>
+                        <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">Confirmar</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
-</div>
 
-{{-- Modal de Aplicar Multa --}}
-<div class="modal fade" id="penaltyModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="penaltyForm" method="POST">
-                @csrf
-                <div class="modal-header bg-warning text-dark">
-                    <h5 class="modal-title"><i class="fas fa-balance-scale"></i> Aplicar Multa</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="penaltyInfo" class="mb-3 p-3 bg-light rounded">
-                        {{-- Informações serão preenchidas via JavaScript --}}
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Porcentagem da Multa *</label>
-                        <select name="penalty_percentage" class="form-select" required id="penaltyPercentage">
+        <div x-show="penaltyModal.open" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" style="display: none;">
+            <div class="w-full max-w-md rounded-xl bg-white p-5 shadow-xl" @click.outside="penaltyModal.open = false">
+                <h4 class="text-base font-semibold text-slate-900">Aplicar Multa</h4>
+                <div class="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-700" x-html="penaltyModal.info"></div>
+                <form :action="penaltyModal.action" method="POST" class="mt-4 space-y-3">
+                    @csrf
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Porcentagem da Multa *</label>
+                        <select x-model="penaltyModal.option" class="w-full rounded-lg border-slate-300 text-sm" required>
                             <option value="">Selecione...</option>
-                            <option value="10">10% (15-29 dias de atraso)</option>
-                            <option value="25">25% (30-59 dias de atraso)</option>
-                            <option value="50">50% (60-89 dias de atraso)</option>
-                            <option value="100">100% (90+ dias de atraso)</option>
+                            <option value="10">10% (15-29 dias)</option>
+                            <option value="25">25% (30-59 dias)</option>
+                            <option value="50">50% (60-89 dias)</option>
+                            <option value="100">100% (90+ dias)</option>
                             <option value="custom">Personalizado...</option>
                         </select>
                     </div>
-                    <div class="mb-3" id="customPenaltyContainer" style="display: none;">
-                        <label class="form-label fw-semibold">Porcentagem Personalizada</label>
-                        <input type="number" name="custom_penalty_percentage" class="form-control" 
-                               min="0" max="100" step="0.01" placeholder="Digite a porcentagem...">
+                    <div x-show="penaltyModal.option === 'custom'" style="display:none;">
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Porcentagem Personalizada</label>
+                        <input type="number" x-model="penaltyModal.custom" min="0" max="100" step="0.01" class="w-full rounded-lg border-slate-300 text-sm" placeholder="Digite a porcentagem...">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Motivo da Multa *</label>
-                        <textarea name="reason" class="form-control" rows="3" required 
-                                  placeholder="Explique o motivo da aplicação da multa..."></textarea>
+                    <input type="hidden" name="penalty_percentage" :value="resolvedPenaltyPercentage()">
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Motivo da Multa *</label>
+                        <textarea name="reason" rows="3" required class="w-full rounded-lg border-slate-300 text-sm" placeholder="Explique o motivo..."></textarea>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-warning">
-                        <i class="fas fa-balance-scale"></i> Aplicar Multa
-                    </button>
-                </div>
-            </form>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" @click="penaltyModal.open = false" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">Cancelar</button>
+                        <button type="submit" @click="validatePenaltySubmit($event)" class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white">Aplicar Multa</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
-</div>
 
-{{-- Modal de Remover Multa --}}
-<div class="modal fade" id="removePenaltyModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form id="removePenaltyForm" method="POST">
-                @csrf
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="fas fa-times-circle"></i> Remover Multa</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="removePenaltyInfo" class="mb-3 p-3 bg-light rounded">
-                        {{-- Informações serão preenchidas via JavaScript --}}
+        <div x-show="removePenaltyModal.open" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" style="display: none;">
+            <div class="w-full max-w-md rounded-xl bg-white p-5 shadow-xl" @click.outside="removePenaltyModal.open = false">
+                <h4 class="text-base font-semibold text-slate-900">Remover Multa</h4>
+                <div class="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-700" x-html="removePenaltyModal.info"></div>
+                <form :action="removePenaltyModal.action" method="POST" class="mt-4 space-y-3">
+                    @csrf
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Motivo da Remocao *</label>
+                        <textarea name="reason" rows="3" required class="w-full rounded-lg border-slate-300 text-sm" placeholder="Explique o motivo..."></textarea>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Motivo da Remoção *</label>
-                        <textarea name="reason" class="form-control" rows="3" required 
-                                  placeholder="Explique o motivo da remoção da multa..."></textarea>
+                    <div class="flex justify-end gap-2 pt-2">
+                        <button type="button" @click="removePenaltyModal.open = false" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">Cancelar</button>
+                        <button type="submit" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white">Remover Multa</button>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-times"></i> Remover Multa
-                    </button>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 @endsection
+
+@push('styles')
+    <style>
+        [data-bs-theme="dark"] .payments-index .bg-white { background-color: var(--card-bg) !important; }
+        [data-bs-theme="dark"] .payments-index .bg-slate-50 { background-color: rgba(148, 163, 184, 0.08) !important; }
+        [data-bs-theme="dark"] .payments-index .border-slate-100,
+        [data-bs-theme="dark"] .payments-index .border-slate-200,
+        [data-bs-theme="dark"] .payments-index .border-slate-300 { border-color: var(--border-color) !important; }
+        [data-bs-theme="dark"] .payments-index .text-slate-900,
+        [data-bs-theme="dark"] .payments-index .text-slate-800,
+        [data-bs-theme="dark"] .payments-index .text-slate-700,
+        [data-bs-theme="dark"] .payments-index .text-slate-600,
+        [data-bs-theme="dark"] .payments-index .text-slate-500 { color: var(--text-secondary) !important; }
+    </style>
+@endpush
 
 @push('scripts')
 <script>
-function openProcessModal(paymentId) {
-    const form = document.getElementById('processForm');
-    form.action = `/payments/${paymentId}/process`;
-    new bootstrap.Modal(document.getElementById('processModal')).show();
-}
+    function paymentsIndex() {
+        return {
+            processModal: { open: false, action: '' },
+            penaltyModal: { open: false, action: '', info: '', option: '', custom: '' },
+            removePenaltyModal: { open: false, action: '', info: '' },
 
-function openPenaltyModal(paymentId) {
-    // Buscar dados do pagamento via fetch simples
-    fetch(`/payments/${paymentId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro na resposta do servidor');
+            openProcessModal(paymentId) {
+                this.processModal.action = `/payments/${paymentId}/process`;
+                this.processModal.open = true;
+            },
+
+            async fetchPayment(paymentId) {
+                const response = await fetch(`/payments/${paymentId}`, {
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+                if (!response.ok) throw new Error('Erro ao carregar pagamento');
+                return response.json();
+            },
+
+            formatMoney(value) {
+                return parseFloat(value || 0).toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            },
+
+            async openPenaltyModal(paymentId) {
+                try {
+                    const data = await this.fetchPayment(paymentId);
+                    this.penaltyModal.info = `
+                        <strong>Referencia:</strong> ${data.reference_number || 'N/A'}<br>
+                        <strong>Aluno:</strong> ${data.student?.full_name || 'N/A'}<br>
+                        <strong>Valor Original:</strong> ${this.formatMoney(data.amount)} MT<br>
+                        <strong>Dias em Atraso:</strong> <span class="text-rose-700">${data.days_late || 0} dias</span><br>
+                        <strong>Multa Sugerida:</strong> <span class="text-amber-700">${data.suggested_penalty_percentage || 0}%</span>
+                    `;
+                    this.penaltyModal.action = `/payments/${paymentId}/apply-penalty`;
+                    this.penaltyModal.option = String(data.suggested_penalty_percentage || '');
+                    this.penaltyModal.custom = '';
+                    this.penaltyModal.open = true;
+                } catch {
+                    window.location.href = `/payments/${paymentId}`;
+                }
+            },
+
+            async openRemovePenaltyModal(paymentId) {
+                try {
+                    const data = await this.fetchPayment(paymentId);
+                    this.removePenaltyModal.info = `
+                        <strong>Referencia:</strong> ${data.reference_number || 'N/A'}<br>
+                        <strong>Aluno:</strong> ${data.student?.full_name || 'N/A'}<br>
+                        <strong>Valor Original:</strong> ${this.formatMoney(data.amount)} MT<br>
+                        <strong>Multa Atual:</strong> <span class="text-rose-700">${data.penalty_percentage || 0}% (${this.formatMoney(data.penalty)} MT)</span><br>
+                        <strong>Total com Multa:</strong> ${this.formatMoney(data.total_amount)} MT
+                    `;
+                    this.removePenaltyModal.action = `/payments/${paymentId}/remove-penalty`;
+                    this.removePenaltyModal.open = true;
+                } catch {
+                    window.location.href = `/payments/${paymentId}`;
+                }
+            },
+
+            resolvedPenaltyPercentage() {
+                return this.penaltyModal.option === 'custom' ? this.penaltyModal.custom : this.penaltyModal.option;
+            },
+
+            validatePenaltySubmit(event) {
+                const value = this.resolvedPenaltyPercentage();
+                if (!value || parseFloat(value) < 0 || parseFloat(value) > 100) {
+                    event.preventDefault();
+                    window.VisionariosSchool?.showToast?.('Informe uma porcentagem valida de multa.', 'warning');
+                }
             }
-            return response.text(); // Primeiro tenta como texto
-        })
-        .then(text => {
-            try {
-                // Tenta parsear como JSON
-                const data = JSON.parse(text);
-                updatePenaltyModal(data, paymentId);
-            } catch (e) {
-                // Se não for JSON, redireciona para a página normal
-                window.location.href = `/payments/${paymentId}`;
-                return;
-            }
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            // Redireciona para a página normal em caso de erro
-            window.location.href = `/payments/${paymentId}`;
-        });
-}
-
-function updatePenaltyModal(data, paymentId) {
-    const infoDiv = document.getElementById('penaltyInfo');
-    const form = document.getElementById('penaltyForm');
-    
-    // Formatar valores monetários
-    const amount = parseFloat(data.amount || 0).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-    
-    const penalty = parseFloat(data.penalty || 0).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-    
-    const totalAmount = parseFloat(data.total_amount || 0).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-
-    infoDiv.innerHTML = `
-        <strong>Referência:</strong> ${data.reference_number || 'N/A'}<br>
-        <strong>Aluno:</strong> ${data.student?.full_name || 'N/A'}<br>
-        <strong>Valor Original:</strong> ${amount} MT<br>
-        <strong>Dias em Atraso:</strong> <span class="text-danger">${data.days_late || 0} dias</span><br>
-        <strong>Multa Sugerida:</strong> <span class="text-warning">${data.suggested_penalty_percentage || 0}%</span>
-    `;
-    
-    form.action = `/payments/${paymentId}/apply-penalty`;
-    
-    // Selecionar a porcentagem sugerida
-    const percentageSelect = document.getElementById('penaltyPercentage');
-    if (percentageSelect && data.suggested_penalty_percentage) {
-        percentageSelect.value = data.suggested_penalty_percentage;
+        };
     }
-    
-    new bootstrap.Modal(document.getElementById('penaltyModal')).show();
-}
-
-function openRemovePenaltyModal(paymentId) {
-    // Buscar dados do pagamento via fetch simples
-    fetch(`/payments/${paymentId}`)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro na resposta do servidor');
-            }
-            return response.text(); // Primeiro tenta como texto
-        })
-        .then(text => {
-            try {
-                // Tenta parsear como JSON
-                const data = JSON.parse(text);
-                updateRemovePenaltyModal(data, paymentId);
-            } catch (e) {
-                // Se não for JSON, redireciona para a página normal
-                window.location.href = `/payments/${paymentId}`;
-                return;
-            }
-        })
-        .catch(error => {
-            console.error('Erro:', error);
-            // Redireciona para a página normal em caso de erro
-            window.location.href = `/payments/${paymentId}`;
-        });
-}
-
-function updateRemovePenaltyModal(data, paymentId) {
-    const infoDiv = document.getElementById('removePenaltyInfo');
-    const form = document.getElementById('removePenaltyForm');
-    
-    // Formatar valores monetários
-    const amount = parseFloat(data.amount || 0).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-    
-    const currentPenalty = parseFloat(data.penalty || 0).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-    
-    const totalAmount = parseFloat(data.total_amount || 0).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    });
-
-    infoDiv.innerHTML = `
-        <strong>Referência:</strong> ${data.reference_number || 'N/A'}<br>
-        <strong>Aluno:</strong> ${data.student?.full_name || 'N/A'}<br>
-        <strong>Valor Original:</strong> ${amount} MT<br>
-        <strong>Multa Atual:</strong> <span class="text-danger">${data.penalty_percentage || 0}% (${currentPenalty} MT)</span><br>
-        <strong>Total com Multa:</strong> ${totalAmount} MT
-    `;
-    
-    form.action = `/payments/${paymentId}/remove-penalty`;
-    new bootstrap.Modal(document.getElementById('removePenaltyModal')).show();
-}
-
-// Mostrar/ocultar campo de porcentagem personalizada
-document.addEventListener('DOMContentLoaded', function() {
-    const penaltyPercentage = document.getElementById('penaltyPercentage');
-    if (penaltyPercentage) {
-        penaltyPercentage.addEventListener('change', function() {
-            const customContainer = document.getElementById('customPenaltyContainer');
-            if (customContainer) {
-                customContainer.style.display = this.value === 'custom' ? 'block' : 'none';
-            }
-        });
-    }
-});
-
-// Função auxiliar para formatar valores
-function formatCurrency(value) {
-    return parseFloat(value || 0).toLocaleString('pt-BR', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-        style: 'currency',
-        currency: 'MZN'
-    });
-}
 </script>
 @endpush
