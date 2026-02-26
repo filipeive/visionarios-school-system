@@ -14,6 +14,7 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\Admin\AuditController;
 use App\Http\Controllers\Admin\AcademicYearController;
 use App\Http\Controllers\Admin\StudentPromotionController;
 use App\Http\Controllers\ParentController;
@@ -704,6 +705,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // Logs
             Route::middleware('permission:view_logs')->group(function () {
                 Route::get('/logs', [SettingsController::class, 'logs'])->name('logs');
+            });
+
+            // Auditoria
+            Route::middleware('permission:view_audit_logs')->group(function () {
+                Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
             });
         });
 

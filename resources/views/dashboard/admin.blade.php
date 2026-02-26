@@ -39,7 +39,7 @@
 @endsection
 
 @section('content')
-    <div class="space-y-6">
+    <div class="admin-dashboard space-y-6">
         <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Total de Alunos</p>
@@ -254,6 +254,43 @@
     </div>
 @endsection
 
+@push('styles')
+    <style>
+        [data-bs-theme="dark"] .admin-dashboard .bg-white {
+            background-color: var(--card-bg) !important;
+        }
+
+        [data-bs-theme="dark"] .admin-dashboard .bg-slate-50 {
+            background-color: rgba(148, 163, 184, 0.08) !important;
+        }
+
+        [data-bs-theme="dark"] .admin-dashboard .border-slate-100,
+        [data-bs-theme="dark"] .admin-dashboard .border-slate-200,
+        [data-bs-theme="dark"] .admin-dashboard .border-slate-300 {
+            border-color: var(--border-color) !important;
+        }
+
+        [data-bs-theme="dark"] .admin-dashboard .text-slate-900 {
+            color: var(--text-primary) !important;
+        }
+
+        [data-bs-theme="dark"] .admin-dashboard .text-slate-800,
+        [data-bs-theme="dark"] .admin-dashboard .text-slate-700 {
+            color: var(--text-secondary) !important;
+        }
+
+        [data-bs-theme="dark"] .admin-dashboard .text-slate-600,
+        [data-bs-theme="dark"] .admin-dashboard .text-slate-500 {
+            color: var(--text-muted) !important;
+        }
+
+        [data-bs-theme="dark"] .admin-dashboard .hover\:bg-slate-50:hover,
+        [data-bs-theme="dark"] .admin-dashboard .hover\:bg-slate-100:hover {
+            background-color: rgba(148, 163, 184, 0.12) !important;
+        }
+    </style>
+@endpush
+
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
@@ -340,7 +377,7 @@
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
             btn.disabled = true;
 
-            fetch('{{ route('dashboard.counters') }}')
+            fetch('{{ route('api.dashboard.counters') }}')
                 .then(response => response.json())
                 .then(() => window.location.reload())
                 .catch(() => {
@@ -353,7 +390,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             initializeCharts();
             setInterval(() => {
-                fetch('{{ route('dashboard.counters') }}').catch(() => {});
+                fetch('{{ route('api.dashboard.counters') }}').catch(() => {});
             }, 120000);
         });
 
