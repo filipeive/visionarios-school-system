@@ -76,8 +76,12 @@
                     </select>
                 </div>
                 <div class="md:col-span-3 flex gap-2">
-                    <button type="submit" class="flex-1 rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800">Filtrar</button>
-                    <a href="{{ route('payments.index') }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Limpar</a>
+                    <button type="submit" class="flex-1 rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800">
+                        <i class="fas fa-search mr-1"></i> Filtrar
+                    </button>
+                    <a href="{{ route('payments.index') }}" class="inline-flex items-center rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 no-underline hover:bg-slate-50">
+                        <i class="fas fa-times mr-1"></i> Limpar
+                    </a>
                 </div>
             </form>
         </section>
@@ -85,13 +89,24 @@
         <section class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex flex-wrap gap-2">
                 @can('create_payments')
-                    <a href="{{ route('payments.create') }}" class="rounded-lg bg-sky-700 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-800">Novo Pagamento</a>
+                    <a href="{{ route('payments.create') }}" class="inline-flex items-center rounded-lg bg-sky-700 px-3 py-2 text-sm font-semibold text-white no-underline hover:bg-sky-800">
+                        <i class="fas fa-plus mr-1"></i> Novo Pagamento
+                    </a>
                 @endcan
-                <a href="{{ route('payments.overdue') }}" class="rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-600">Em Atraso ({{ $stats['count_overdue'] }})</a>
-                <a href="{{ route('payments.with-penalties') }}" class="rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white hover:bg-rose-700">Com Multas @if($countWithPenalties > 0)<span class="ml-1 rounded-full bg-white px-2 py-0.5 text-xs text-rose-700">{{ $countWithPenalties }}</span>@endif</a>
-                <a href="{{ route('payments.reports') }}" class="rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Relatorios</a>
+                <a href="{{ route('payments.overdue') }}" class="inline-flex items-center rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-white no-underline hover:bg-amber-600">
+                    <i class="fas fa-exclamation-triangle mr-1"></i> Em Atraso ({{ $stats['count_overdue'] }})
+                </a>
+                <a href="{{ route('payments.with-penalties') }}" class="inline-flex items-center rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white no-underline hover:bg-rose-700">
+                    <i class="fas fa-balance-scale mr-1"></i> Com Multas
+                    @if($countWithPenalties > 0)<span class="ml-1 rounded-full bg-white px-2 py-0.5 text-xs text-rose-700">{{ $countWithPenalties }}</span>@endif
+                </a>
+                <a href="{{ route('payments.reports') }}" class="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white no-underline hover:bg-emerald-700">
+                    <i class="fas fa-chart-bar mr-1"></i> Relatorios
+                </a>
             </div>
-            <a href="{{ route('payments.references') }}" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Gerar Referencias</a>
+            <a href="{{ route('payments.references') }}" class="inline-flex items-center rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 no-underline hover:bg-slate-50">
+                <i class="fas fa-receipt mr-1"></i> Gerar Referencias
+            </a>
         </section>
 
         <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -176,15 +191,17 @@
                                 </td>
                                 <td class="px-3 py-2 text-center">
                                     <div class="inline-flex flex-wrap justify-center gap-1">
-                                        <a href="{{ route('payments.show', $payment) }}" class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Ver</a>
+                                        <a href="{{ route('payments.show', $payment) }}" class="inline-flex items-center rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 no-underline hover:bg-slate-50">
+                                            <i class="fas fa-eye mr-1"></i> Ver
+                                        </a>
 
                                         @if($payment->status == 'pending' || $payment->status == 'overdue')
                                             @can('process_payments')
                                                 <button type="button" class="rounded-lg bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
-                                                    @click="openProcessModal({{ $payment->id }})">Processar</button>
+                                                    @click="openProcessModal({{ $payment->id }})"><i class="fas fa-check mr-1"></i>Processar</button>
                                                 @if($payment->penalty == 0 && $payment->days_late >= 15)
                                                     <button type="button" class="rounded-lg bg-amber-500 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-600"
-                                                        @click="openPenaltyModal({{ $payment->id }})">Multa</button>
+                                                        @click="openPenaltyModal({{ $payment->id }})"><i class="fas fa-balance-scale mr-1"></i>Multa</button>
                                                 @endif
                                             @endcan
                                         @endif
@@ -192,11 +209,13 @@
                                         @if($payment->penalty > 0)
                                             @can('process_payments')
                                                 <button type="button" class="rounded-lg border border-rose-300 px-2 py-1 text-xs text-rose-700 hover:bg-rose-50"
-                                                    @click="openRemovePenaltyModal({{ $payment->id }})">Remover Multa</button>
+                                                    @click="openRemovePenaltyModal({{ $payment->id }})"><i class="fas fa-times mr-1"></i>Remover Multa</button>
                                             @endcan
                                         @endif
 
-                                        <a href="{{ route('payments.download-reference', $payment) }}" target="_blank" class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Imprimir</a>
+                                        <a href="{{ route('payments.download-reference', $payment) }}" target="_blank" class="inline-flex items-center rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 no-underline hover:bg-slate-50">
+                                            <i class="fas fa-print mr-1"></i> Imprimir
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -205,7 +224,9 @@
                                 <td colspan="9" class="px-3 py-8 text-center text-sm text-slate-500">
                                     Nenhum pagamento encontrado.
                                     <div class="mt-3">
-                                        <a href="{{ route('payments.create') }}" class="rounded-lg bg-sky-700 px-3 py-2 text-xs font-semibold text-white hover:bg-sky-800">Criar Primeiro Pagamento</a>
+                                        <a href="{{ route('payments.create') }}" class="inline-flex items-center rounded-lg bg-sky-700 px-3 py-2 text-xs font-semibold text-white no-underline hover:bg-sky-800">
+                                            <i class="fas fa-plus mr-1"></i> Criar Primeiro Pagamento
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -320,6 +341,10 @@
         [data-bs-theme="dark"] .payments-index .text-slate-700,
         [data-bs-theme="dark"] .payments-index .text-slate-600,
         [data-bs-theme="dark"] .payments-index .text-slate-500 { color: var(--text-secondary) !important; }
+
+        .payments-index a {
+            text-decoration: none !important;
+        }
     </style>
 @endpush
 
