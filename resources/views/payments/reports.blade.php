@@ -1,328 +1,240 @@
 @extends('layouts.app')
 
-@section('title', 'Relatórios Financeiros')
-@section('page-title', 'Relatórios Financeiros')
+@section('title', 'Relatorios Financeiros')
+@section('page-title', 'Relatorios Financeiros')
 
 @section('breadcrumbs')
     <li class="breadcrumb-item"><a href="{{ route('payments.index') }}">Pagamentos</a></li>
-    <li class="breadcrumb-item active">Relatórios</li>
+    <li class="breadcrumb-item active">Relatorios</li>
 @endsection
 
 @section('content')
-<div class="container-fluid">
-    {{-- Filtro de Ano --}}
-    <div class="school-card mb-4">
-        <div class="school-card-body">
-            <form method="GET" class="row g-3 align-items-end">
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">Ano de Referência</label>
-                    <select name="year" class="form-select" onchange="this.form.submit()">
-                        @for($y = date('Y') - 2; $y <= date('Y'); $y++)
+    <div class="payments-reports space-y-6">
+        <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <form method="GET" class="grid gap-3 md:grid-cols-2 md:items-end">
+                <div>
+                    <label class="mb-1 block text-xs font-semibold text-slate-600">Ano de Referencia</label>
+                    <select name="year" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500" onchange="this.form.submit()">
+                        @for($y = current_school_year() - 2; $y <= current_school_year(); $y++)
                             <option value="{{ $y }}" {{ $year == $y ? 'selected' : '' }}>{{ $y }}</option>
                         @endfor
                     </select>
                 </div>
-                <div class="col-md-9 text-end">
-                    <button type="button" class="btn btn-outline-primary" onclick="exportReport('pdf')">
-                        <i class="fas fa-file-pdf"></i> Exportar PDF
-                    </button>
-                    <button type="button" class="btn btn-outline-success" onclick="exportReport('excel')">
-                        <i class="fas fa-file-excel"></i> Exportar Excel
-                    </button>
+                <div class="md:text-right">
+                    <button type="button" class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onclick="exportReport('pdf')">Exportar PDF</button>
+                    <button type="button" class="ml-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700" onclick="exportReport('excel')">Exportar Excel</button>
                 </div>
             </form>
-        </div>
-    </div>
+        </section>
 
-    {{-- Cards de Resumo --}}
-    <div class="row mb-4">
-        <div class="col-md-4">
-            <div class="stat-card payments">
-                <div class="stat-icon payments">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ number_format($stats['total_year'], 2, ',', '.') }}</div>
-                    <div class="stat-label">MT Recebidos em {{ $year }}</div>
-                    <span class="stat-change positive">
-                        <i class="fas fa-arrow-up"></i> Total do ano
-                    </span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card events">
-                <div class="stat-icon events">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ number_format($stats['total_pending'], 2, ',', '.') }}</div>
-                    <div class="stat-label">MT em Dívida</div>
-                    <span class="stat-change negative">
-                        <i class="fas fa-clock"></i> Pendente
-                    </span>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="stat-card teachers">
-                <div class="stat-icon teachers">
-                    <i class="fas fa-users"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $stats['total_students_debt'] }}</div>
-                    <div class="stat-label">Alunos com Dívida</div>
-                    <span class="stat-change">
-                        <i class="fas fa-user-clock"></i> Inadimplentes
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
+        <section class="grid gap-4 md:grid-cols-3">
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Recebidos em {{ $year }}</p>
+                <p class="mt-2 text-3xl font-bold text-emerald-700">{{ number_format($stats['total_year'], 2, ',', '.') }} MT</p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Total em Divida</p>
+                <p class="mt-2 text-3xl font-bold text-rose-700">{{ number_format($stats['total_pending'], 2, ',', '.') }} MT</p>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Alunos com Divida</p>
+                <p class="mt-2 text-3xl font-bold text-amber-700">{{ $stats['total_students_debt'] }}</p>
+            </article>
+        </section>
 
-    {{-- Gráficos --}}
-    <div class="row mb-4">
-        {{-- Receita Mensal --}}
-        <div class="col-lg-8 mb-4">
-            <div class="school-card h-100">
-                <div class="school-card-header">
-                    <i class="fas fa-chart-line"></i> Receita Mensal - {{ $year }}
-                </div>
-                <div class="school-card-body">
-                    <canvas id="monthlyRevenueChart" height="100"></canvas>
-                </div>
-            </div>
-        </div>
+        <section class="grid gap-6 xl:grid-cols-3">
+            <article class="xl:col-span-2 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="mb-3 text-sm font-semibold text-slate-900">Receita Mensal - {{ $year }}</h3>
+                <div class="h-[320px]"><canvas id="monthlyRevenueChart"></canvas></div>
+            </article>
+            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="mb-3 text-sm font-semibold text-slate-900">Receita por Tipo</h3>
+                <div class="h-[320px]"><canvas id="revenueByTypeChart"></canvas></div>
+            </article>
+        </section>
 
-        {{-- Receita por Tipo --}}
-        <div class="col-lg-4 mb-4">
-            <div class="school-card h-100">
-                <div class="school-card-header">
-                    <i class="fas fa-chart-pie"></i> Receita por Tipo
-                </div>
-                <div class="school-card-body">
-                    <canvas id="revenueByTypeChart" height="180"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {{-- Tabela de Receita Mensal --}}
-    <div class="row mb-4">
-        <div class="col-lg-6">
-            <div class="school-card">
-                <div class="school-card-header">
-                    <i class="fas fa-table"></i> Resumo Mensal
-                </div>
-                <div class="school-card-body p-0">
-                    <table class="table table-school mb-0">
-                        <thead>
+        <section class="grid gap-6 xl:grid-cols-2">
+            <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="border-b border-slate-200 px-5 py-4"><h3 class="text-sm font-semibold text-slate-900">Resumo Mensal</h3></header>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600">
                             <tr>
-                                <th>Mês</th>
-                                <th class="text-end">Valor Recebido</th>
-                                <th class="text-center">Status</th>
+                                <th class="px-3 py-2 text-left font-semibold">Mes</th>
+                                <th class="px-3 py-2 text-right font-semibold">Valor Recebido</th>
+                                <th class="px-3 py-2 text-center font-semibold">Status</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-100">
                             @php
-                                $meses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
-                                          'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                                $meses = ['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
                             @endphp
                             @foreach($meses as $i => $mes)
-                            <tr>
-                                <td>{{ $mes }}</td>
-                                <td class="text-end">
-                                    <strong>{{ number_format($monthlyRevenue[$i + 1] ?? 0, 2, ',', '.') }} MT</strong>
-                                </td>
-                                <td class="text-center">
-                                    @if(($monthlyRevenue[$i + 1] ?? 0) > 0)
-                                        <span class="badge bg-success">Recebido</span>
-                                    @elseif($i + 1 <= date('n') && $year == date('Y'))
-                                        <span class="badge bg-warning text-dark">Pendente</span>
-                                    @else
-                                        <span class="badge bg-secondary">-</span>
-                                    @endif
-                                </td>
-                            </tr>
+                                @php $value = $monthlyRevenue[$i + 1] ?? 0; @endphp
+                                <tr>
+                                    <td class="px-3 py-2 text-slate-700">{{ $mes }}</td>
+                                    <td class="px-3 py-2 text-right font-semibold text-slate-900">{{ number_format($value, 2, ',', '.') }} MT</td>
+                                    <td class="px-3 py-2 text-center">
+                                        @if($value > 0)
+                                            <span class="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">Recebido</span>
+                                        @elseif($i + 1 <= date('n') && $year == current_school_year())
+                                            <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">Pendente</span>
+                                        @else
+                                            <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">-</span>
+                                        @endif
+                                    </td>
+                                </tr>
                             @endforeach
                         </tbody>
-                        <tfoot class="table-light">
+                        <tfoot class="bg-slate-50">
                             <tr>
-                                <th>TOTAL</th>
-                                <th class="text-end">{{ number_format(array_sum($monthlyRevenue), 2, ',', '.') }} MT</th>
+                                <th class="px-3 py-2 text-left font-semibold text-slate-900">TOTAL</th>
+                                <th class="px-3 py-2 text-right font-semibold text-slate-900">{{ number_format(array_sum($monthlyRevenue), 2, ',', '.') }} MT</th>
                                 <th></th>
                             </tr>
                         </tfoot>
                     </table>
                 </div>
-            </div>
-        </div>
+            </article>
 
-        {{-- Inadimplência por Turma --}}
-        <div class="col-lg-6">
-            <div class="school-card">
-                <div class="school-card-header bg-danger text-white">
-                    <i class="fas fa-exclamation-circle"></i> Inadimplência por Turma
-                </div>
-                <div class="school-card-body p-0">
-                    <table class="table table-school mb-0">
-                        <thead>
+            <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <header class="border-b border-slate-200 px-5 py-4"><h3 class="text-sm font-semibold text-slate-900">Inadimplencia por Turma</h3></header>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600">
                             <tr>
-                                <th>Turma</th>
-                                <th class="text-center">Alunos</th>
-                                <th class="text-end">Valor em Dívida</th>
+                                <th class="px-3 py-2 text-left font-semibold">Turma</th>
+                                <th class="px-3 py-2 text-center font-semibold">Alunos</th>
+                                <th class="px-3 py-2 text-right font-semibold">Valor em Divida</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-100">
                             @forelse($defaultersByClass as $item)
-                            <tr>
-                                <td>
-                                    <span class="badge bg-info">{{ $item->name }}</span>
-                                </td>
-                                <td class="text-center">
-                                    <span class="badge bg-danger">{{ $item->count }}</span>
-                                </td>
-                                <td class="text-end">
-                                    <strong class="text-danger">{{ number_format($item->total, 2, ',', '.') }} MT</strong>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td class="px-3 py-2 text-slate-700">{{ $item->name }}</td>
+                                    <td class="px-3 py-2 text-center"><span class="rounded-full bg-rose-100 px-2.5 py-1 text-xs font-semibold text-rose-700">{{ $item->count }}</span></td>
+                                    <td class="px-3 py-2 text-right font-semibold text-rose-700">{{ number_format($item->total, 2, ',', '.') }} MT</td>
+                                </tr>
                             @empty
-                            <tr>
-                                <td colspan="3" class="text-center py-4 text-success">
-                                    <i class="fas fa-check-circle"></i> Nenhuma inadimplência registrada
-                                </td>
-                            </tr>
+                                <tr><td colspan="3" class="px-3 py-6 text-center text-sm text-emerald-700">Nenhuma inadimplencia registrada.</td></tr>
                             @endforelse
                         </tbody>
                         @if($defaultersByClass->count() > 0)
-                        <tfoot class="table-light">
-                            <tr>
-                                <th>TOTAL</th>
-                                <th class="text-center">{{ $defaultersByClass->sum('count') }}</th>
-                                <th class="text-end text-danger">{{ number_format($defaultersByClass->sum('total'), 2, ',', '.') }} MT</th>
-                            </tr>
-                        </tfoot>
+                            <tfoot class="bg-slate-50">
+                                <tr>
+                                    <th class="px-3 py-2 text-left font-semibold text-slate-900">TOTAL</th>
+                                    <th class="px-3 py-2 text-center font-semibold text-slate-900">{{ $defaultersByClass->sum('count') }}</th>
+                                    <th class="px-3 py-2 text-right font-semibold text-rose-700">{{ number_format($defaultersByClass->sum('total'), 2, ',', '.') }} MT</th>
+                                </tr>
+                            </tfoot>
                         @endif
                     </table>
                 </div>
-            </div>
-        </div>
-    </div>
+            </article>
+        </section>
 
-    {{-- Ações Rápidas --}}
-    <div class="school-card">
-        <div class="school-card-header">
-            <i class="fas fa-bolt"></i> Ações Rápidas
-        </div>
-        <div class="school-card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <a href="{{ route('payments.overdue') }}" class="btn btn-outline-danger w-100 py-3">
-                        <i class="fas fa-exclamation-triangle fa-2x d-block mb-2"></i>
-                        Ver Pagamentos em Atraso
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="{{ route('payments.references') }}" class="btn btn-outline-primary w-100 py-3">
-                        <i class="fas fa-receipt fa-2x d-block mb-2"></i>
-                        Gerar Referências
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="{{ route('payments.index', ['status' => 'paid']) }}" class="btn btn-outline-success w-100 py-3">
-                        <i class="fas fa-check-circle fa-2x d-block mb-2"></i>
-                        Pagamentos Confirmados
-                    </a>
-                </div>
-                <div class="col-md-3">
-                    <a href="{{ route('reports.export.payments') }}" class="btn btn-outline-secondary w-100 py-3">
-                        <i class="fas fa-download fa-2x d-block mb-2"></i>
-                        Exportar Todos os Dados
-                    </a>
-                </div>
+        <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 class="mb-3 text-sm font-semibold text-slate-900">Acoes Rapidas</h3>
+            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                <a href="{{ route('payments.overdue') }}" class="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm text-slate-700 hover:bg-slate-50">Pagamentos em Atraso</a>
+                <a href="{{ route('payments.references') }}" class="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm text-slate-700 hover:bg-slate-50">Gerar Referencias</a>
+                <a href="{{ route('payments.index', ['status' => 'paid']) }}" class="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm text-slate-700 hover:bg-slate-50">Pagamentos Confirmados</a>
+                <a href="{{ route('reports.export.payments') }}" class="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm text-slate-700 hover:bg-slate-50">Exportar Dados</a>
             </div>
-        </div>
+        </section>
     </div>
-</div>
 @endsection
+
+@push('styles')
+<style>
+    [data-bs-theme="dark"] .payments-reports .bg-white { background-color: var(--card-bg) !important; }
+    [data-bs-theme="dark"] .payments-reports .bg-slate-50 { background-color: rgba(148, 163, 184, 0.08) !important; }
+    [data-bs-theme="dark"] .payments-reports .border-slate-100,
+    [data-bs-theme="dark"] .payments-reports .border-slate-200,
+    [data-bs-theme="dark"] .payments-reports .border-slate-300 { border-color: var(--border-color) !important; }
+    [data-bs-theme="dark"] .payments-reports .text-slate-900,
+    [data-bs-theme="dark"] .payments-reports .text-slate-800,
+    [data-bs-theme="dark"] .payments-reports .text-slate-700,
+    [data-bs-theme="dark"] .payments-reports .text-slate-600,
+    [data-bs-theme="dark"] .payments-reports .text-slate-500 { color: var(--text-secondary) !important; }
+</style>
+@endpush
 
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Dados do backend
-    const monthlyData = @json($monthlyRevenue);
-    const typeData = @json($revenueByType);
-    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    document.addEventListener('DOMContentLoaded', function() {
+        const monthlyData = @json($monthlyRevenue);
+        const typeData = @json($revenueByType);
+        const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
-    // Gráfico de Receita Mensal
-    new Chart(document.getElementById('monthlyRevenueChart'), {
-        type: 'bar',
-        data: {
-            labels: months,
-            datasets: [{
-                label: 'Receita (MT)',
-                data: months.map((_, i) => monthlyData[i + 1] || 0),
-                backgroundColor: 'rgba(25, 67, 124, 0.8)',
-                borderColor: '#19437C',
-                borderWidth: 1,
-                borderRadius: 5
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
+        new Chart(document.getElementById('monthlyRevenueChart'), {
+            type: 'bar',
+            data: {
+                labels: months,
+                datasets: [{
+                    label: 'Receita (MT)',
+                    data: months.map((_, i) => monthlyData[i + 1] || 0),
+                    backgroundColor: 'rgba(25, 67, 124, 0.8)',
+                    borderColor: '#19437C',
+                    borderWidth: 1,
+                    borderRadius: 5
+                }]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        callback: function(value) {
-                            return value.toLocaleString('pt-MZ') + ' MT';
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('pt-MZ') + ' MT';
+                            }
                         }
                     }
                 }
             }
-        }
-    });
+        });
 
-    // Gráfico de Receita por Tipo
-    const typeLabels = {
-        'matricula': 'Matrícula',
-        'mensalidade': 'Mensalidade',
-        'material': 'Material',
-        'uniforme': 'Uniforme',
-        'outro': 'Outro'
-    };
-    
-    new Chart(document.getElementById('revenueByTypeChart'), {
-        type: 'doughnut',
-        data: {
-            labels: Object.keys(typeData).map(k => typeLabels[k] || k),
-            datasets: [{
-                data: Object.values(typeData),
-                backgroundColor: ['#19437C', '#4BA83C', '#F9A825', '#17a2b8', '#6c757d'],
-                borderWidth: 2,
-                borderColor: '#fff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { padding: 15 }
+        const typeLabels = {
+            matricula: 'Matricula',
+            mensalidade: 'Mensalidade',
+            material: 'Material',
+            uniforme: 'Uniforme',
+            outro: 'Outro'
+        };
+
+        new Chart(document.getElementById('revenueByTypeChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(typeData).map(k => typeLabels[k] || k),
+                datasets: [{
+                    data: Object.values(typeData),
+                    backgroundColor: ['#19437C', '#4BA83C', '#F9A825', '#17a2b8', '#6c757d'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 15 }
+                    }
                 }
             }
-        }
+        });
     });
-});
 
-function exportReport(format) {
-    const year = document.querySelector('select[name="year"]').value;
-    window.location.href = `/reports/export/financial?year=${year}&format=${format}`;
-}
+    function exportReport(format) {
+        const year = document.querySelector('select[name="year"]').value;
+        const target = format === 'pdf'
+            ? `/reports/export/payments?year=${year}&format=pdf`
+            : `/reports/export/payments?year=${year}&format=excel`;
+        window.location.href = target;
+    }
 </script>
 @endpush

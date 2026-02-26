@@ -1,256 +1,200 @@
 @extends('layouts.app')
 
-@section('title', 'Referências de Pagamento')
-@section('page-title', 'Gerar Referências')
+@section('title', 'Referencias de Pagamento')
+@section('page-title', 'Gerar Referencias')
 
 @section('breadcrumbs')
     <li class="breadcrumb-item"><a href="{{ route('payments.index') }}">Pagamentos</a></li>
-    <li class="breadcrumb-item active">Referências</li>
+    <li class="breadcrumb-item active">Referencias</li>
 @endsection
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        {{-- Formulário de Geração --}}
-        <div class="col-lg-4 mb-4">
-            <div class="school-card">
-                <div class="school-card-header">
-                    <i class="fas fa-plus-circle"></i> Gerar Nova Referência
-                </div>
-                <div class="school-card-body">
-                    <form action="{{ route('payments.generate-reference') }}" method="POST">
-                        @csrf
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Aluno *</label>
-                            <select name="student_id" class="form-select" required>
-                                <option value="">Selecione o aluno...</option>
-                                @foreach(\App\Models\Student::active()->with('currentEnrollment.class')->whereHas('currentEnrollment')->orderBy('first_name')->get() as $student)
-                                    <option value="{{ $student->id }}">
-                                        {{ $student->student_number }} - {{ $student->full_name }}
-                                        ({{ $student->currentEnrollment?->class?->name ?? 'Sem turma' }})
-                                    </option>
+    <div class="payments-references grid gap-6 xl:grid-cols-12">
+        <aside class="xl:col-span-4 space-y-6">
+            <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="mb-4 text-sm font-semibold text-slate-900">Gerar Nova Referencia</h3>
+                <form action="{{ route('payments.generate-reference') }}" method="POST" class="space-y-3">
+                    @csrf
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Aluno *</label>
+                        <select name="student_id" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500" required>
+                            <option value="">Selecione o aluno...</option>
+                            @foreach(\App\Models\Student::active()->with('currentEnrollment.class')->whereHas('currentEnrollment')->orderBy('first_name')->get() as $student)
+                                <option value="{{ $student->id }}">{{ $student->student_number }} - {{ $student->full_name }} ({{ $student->currentEnrollment?->class?->name ?? 'Sem turma' }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Tipo *</label>
+                        <select name="type" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500" required>
+                            <option value="mensalidade">Mensalidade</option>
+                            <option value="matricula">Taxa de Matricula</option>
+                            <option value="material">Material Escolar</option>
+                            <option value="uniforme">Uniforme</option>
+                            <option value="outro">Outro</option>
+                        </select>
+                    </div>
+                    <div class="grid gap-3 md:grid-cols-2">
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-slate-600">Mes</label>
+                            <select name="month" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500">
+                                @foreach(['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] as $i => $mes)
+                                    <option value="{{ $i + 1 }}" {{ date('n') == $i + 1 ? 'selected' : '' }}>{{ $mes }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Tipo *</label>
-                            <select name="type" class="form-select" required>
-                                <option value="mensalidade">Mensalidade</option>
-                                <option value="matricula">Taxa de Matrícula</option>
-                                <option value="material">Material Escolar</option>
-                                <option value="uniforme">Uniforme</option>
-                                <option value="outro">Outro</option>
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-slate-600">Ano *</label>
+                            <select name="year" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500" required>
+                                @for($y = current_school_year() - 1; $y <= current_school_year() + 1; $y++)
+                                    <option value="{{ $y }}" {{ $y == current_school_year() ? 'selected' : '' }}>{{ $y }}</option>
+                                @endfor
                             </select>
                         </div>
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label fw-semibold">Mês</label>
-                                <select name="month" class="form-select">
-                                    @foreach(['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'] as $i => $mes)
-                                        <option value="{{ $i + 1 }}" {{ date('n') == $i + 1 ? 'selected' : '' }}>{{ $mes }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <label class="form-label fw-semibold">Ano *</label>
-                                <select name="year" class="form-select" required>
-                                    @for($y = date('Y') - 1; $y <= date('Y') + 1; $y++)
-                                        <option value="{{ $y }}" {{ $y == date('Y') ? 'selected' : '' }}>{{ $y }}</option>
-                                    @endfor
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary-school w-100">
-                            <i class="fas fa-receipt"></i> Gerar Referência
-                        </button>
-                    </form>
-                </div>
-            </div>
+                    </div>
+                    <button type="submit" class="w-full rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800">Gerar Referencia</button>
+                </form>
+            </section>
 
-            {{-- Geração em Massa --}}
-            <div class="school-card mt-4">
-                <div class="school-card-header">
-                    <i class="fas fa-layer-group"></i> Geração em Massa
-                </div>
-                <div class="school-card-body">
-                    <p class="text-muted small mb-3">
-                        Gere referências de mensalidade para todos os alunos de uma turma de uma só vez.
-                    </p>
-                    <form action="{{ route('payments.generate-reference') }}" method="POST" id="bulk-form">
-                        @csrf
-                        <input type="hidden" name="bulk" value="1">
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Turma</label>
-                            <select name="class_id" class="form-select" required>
-                                <option value="">Selecione a turma...</option>
-                                @foreach($classes as $class)
-                                    <option value="{{ $class->id }}">{{ $class->name }}</option>
+            <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <h3 class="mb-2 text-sm font-semibold text-slate-900">Geracao em Massa</h3>
+                <p class="mb-4 text-xs text-slate-500">Gera referencias de mensalidade para uma turma inteira.</p>
+                <form action="{{ route('payments.generate-reference') }}" method="POST" id="bulk-form" class="space-y-3">
+                    @csrf
+                    <input type="hidden" name="bulk" value="1">
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Turma</label>
+                        <select name="class_id" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500" required>
+                            <option value="">Selecione a turma...</option>
+                            @foreach($classes as $class)
+                                <option value="{{ $class->id }}">{{ $class->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="grid gap-3 md:grid-cols-2">
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-slate-600">Mes</label>
+                            <select name="bulk_month" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500">
+                                @foreach(['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] as $i => $mes)
+                                    <option value="{{ $i + 1 }}" {{ date('n') == $i + 1 ? 'selected' : '' }}>{{ $mes }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="row">
-                            <div class="col-6 mb-3">
-                                <label class="form-label fw-semibold">Mês</label>
-                                <select name="bulk_month" class="form-select">
-                                    @foreach(['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'] as $i => $mes)
-                                        <option value="{{ $i + 1 }}" {{ date('n') == $i + 1 ? 'selected' : '' }}>{{ $mes }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-6 mb-3">
-                                <label class="form-label fw-semibold">Ano</label>
-                                <select name="bulk_year" class="form-select">
-                                    @for($y = date('Y') - 1; $y <= date('Y') + 1; $y++)
-                                        <option value="{{ $y }}" {{ $y == date('Y') ? 'selected' : '' }}>{{ $y }}</option>
-                                    @endfor
-                                </select>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-secondary-school w-100">
-                            <i class="fas fa-magic"></i> Gerar para Toda Turma
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        {{-- Lista de Referências Pendentes --}}
-        <div class="col-lg-8">
-            <div class="school-card mb-4">
-                <div class="school-card-body">
-                    <form method="GET" class="row g-2 align-items-end">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Filtrar por Turma</label>
-                            <select name="class_id" class="form-select" onchange="this.form.submit()">
-                                <option value="">Todas as turmas</option>
-                                @foreach($classes as $class)
-                                    <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
-                                        {{ $class->name }}
-                                    </option>
-                                @endforeach
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-slate-600">Ano</label>
+                            <select name="bulk_year" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500">
+                                @for($y = current_school_year() - 1; $y <= current_school_year() + 1; $y++)
+                                    <option value="{{ $y }}" {{ $y == current_school_year() ? 'selected' : '' }}>{{ $y }}</option>
+                                @endfor
                             </select>
                         </div>
-                        <div class="col-md-6 text-end">
-                            <button type="button" class="btn btn-outline-primary" onclick="printSelected()">
-                                <i class="fas fa-print"></i> Imprimir Selecionados
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    </div>
+                    <button type="submit" class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Gerar para Turma</button>
+                </form>
+            </section>
+        </aside>
+
+        <section class="xl:col-span-8 space-y-4">
+            <div class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+                <form method="GET" class="grid gap-3 md:grid-cols-2 md:items-end">
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Filtrar por Turma</label>
+                        <select name="class_id" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500" onchange="this.form.submit()">
+                            <option value="">Todas as turmas</option>
+                            @foreach($classes as $class)
+                                <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>{{ $class->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="md:text-right">
+                        <button type="button" class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onclick="printSelected()">Imprimir Selecionados</button>
+                    </div>
+                </form>
             </div>
 
-            <div class="school-table-container">
-                <div class="school-table-header">
-                    <h5 class="school-table-title">
-                        <i class="fas fa-list"></i> Referências Pendentes
-                    </h5>
-                    <span class="badge bg-light text-dark">{{ $references->total() }} registros</span>
+            <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                    <h3 class="text-sm font-semibold text-slate-900">Referencias Pendentes</h3>
+                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{{ $references->total() }} registros</span>
                 </div>
-                <div class="table-responsive">
-                    <table class="table table-school table-hover mb-0">
-                        <thead>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full text-sm">
+                        <thead class="bg-slate-50 text-slate-600">
                             <tr>
-                                <th><input type="checkbox" id="select-all" class="form-check-input"></th>
-                                <th>Referência</th>
-                                <th>Aluno</th>
-                                <th>Turma</th>
-                                <th>Tipo</th>
-                                <th>Período</th>
-                                <th class="text-end">Valor</th>
-                                <th>Vencimento</th>
-                                <th class="text-center">Ações</th>
+                                <th class="px-3 py-2 text-left"><input type="checkbox" id="select-all" class="rounded border-slate-300"></th>
+                                <th class="px-3 py-2 text-left font-semibold">Referencia</th>
+                                <th class="px-3 py-2 text-left font-semibold">Aluno</th>
+                                <th class="px-3 py-2 text-left font-semibold">Turma</th>
+                                <th class="px-3 py-2 text-left font-semibold">Tipo</th>
+                                <th class="px-3 py-2 text-left font-semibold">Periodo</th>
+                                <th class="px-3 py-2 text-right font-semibold">Valor</th>
+                                <th class="px-3 py-2 text-left font-semibold">Vencimento</th>
+                                <th class="px-3 py-2 text-center font-semibold">Acoes</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody class="divide-y divide-slate-100">
                             @forelse($references as $ref)
-                            <tr>
-                                <td>
-                                    <input type="checkbox" class="form-check-input ref-checkbox" value="{{ $ref->id }}">
-                                </td>
-                                <td>
-                                    <code class="bg-light px-2 py-1 rounded fw-bold">{{ $ref->reference_number }}</code>
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img src="{{ $ref->student->photo_url }}" class="rounded-circle me-2" width="30" height="30">
-                                        <div>
-                                            <div class="fw-semibold small">{{ $ref->student->full_name }}</div>
-                                            <small class="text-muted">{{ $ref->student->student_number }}</small>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td>
-                                    <span class="badge bg-info">{{ $ref->enrollment?->class?->name ?? 'N/A' }}</span>
-                                </td>
-                                <td>
-                                    <span class="badge bg-{{ $ref->type == 'mensalidade' ? 'success' : 'primary' }}">
-                                        {{ ucfirst($ref->type) }}
-                                    </span>
-                                </td>
-                                <td>
-                                    @if($ref->month)
-                                        {{ $ref->month_name }}/{{ $ref->year }}
-                                    @else
-                                        {{ $ref->year }}
-                                    @endif
-                                </td>
-                                <td class="text-end">
-                                    <strong>{{ number_format($ref->total_amount, 2, ',', '.') }} MT</strong>
-                                </td>
-                                <td>
-                                    <span class="{{ $ref->due_date < now() ? 'text-danger fw-bold' : '' }}">
-                                        {{ $ref->due_date->format('d/m/Y') }}
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="d-flex justify-content-center gap-1">
-                                        <a href="{{ route('payments.show', $ref) }}" class="btn btn-sm btn-outline-primary" title="Ver">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                        <a href="{{ route('payments.download-reference', $ref) }}" class="btn btn-sm btn-outline-secondary" title="Imprimir" target="_blank">
-                                            <i class="fas fa-print"></i>
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td class="px-3 py-2"><input type="checkbox" class="ref-checkbox rounded border-slate-300" value="{{ $ref->id }}"></td>
+                                    <td class="px-3 py-2 font-mono text-xs font-semibold text-slate-800">{{ $ref->reference_number }}</td>
+                                    <td class="px-3 py-2">
+                                        <p class="text-sm font-semibold text-slate-900">{{ $ref->student->full_name }}</p>
+                                        <p class="text-xs text-slate-500">{{ $ref->student->student_number }}</p>
+                                    </td>
+                                    <td class="px-3 py-2 text-slate-700">{{ $ref->enrollment?->class?->name ?? 'N/A' }}</td>
+                                    <td class="px-3 py-2"><span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $ref->type == 'mensalidade' ? 'bg-emerald-100 text-emerald-700' : 'bg-sky-100 text-sky-700' }}">{{ ucfirst($ref->type) }}</span></td>
+                                    <td class="px-3 py-2 text-slate-700">@if($ref->month){{ $ref->month_name }}/{{ $ref->year }}@else{{ $ref->year }}@endif</td>
+                                    <td class="px-3 py-2 text-right font-semibold text-slate-900">{{ number_format($ref->total_amount, 2, ',', '.') }} MT</td>
+                                    <td class="px-3 py-2 {{ $ref->due_date < now() ? 'font-semibold text-rose-700' : 'text-slate-700' }}">{{ $ref->due_date->format('d/m/Y') }}</td>
+                                    <td class="px-3 py-2 text-center">
+                                        <a href="{{ route('payments.show', $ref) }}" class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Ver</a>
+                                        <a href="{{ route('payments.download-reference', $ref) }}" target="_blank" class="ml-1 rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Imprimir</a>
+                                    </td>
+                                </tr>
                             @empty
-                            <tr>
-                                <td colspan="9" class="text-center py-5">
-                                    <div class="text-muted">
-                                        <i class="fas fa-receipt fa-3x mb-3"></i>
-                                        <p>Nenhuma referência pendente encontrada</p>
-                                    </div>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td colspan="9" class="px-3 py-8 text-center text-sm text-slate-500">Nenhuma referencia pendente encontrada.</td>
+                                </tr>
                             @endforelse
                         </tbody>
                     </table>
                 </div>
                 @if($references->hasPages())
-                <div class="card-footer bg-white">
-                    {{ $references->links() }}
-                </div>
+                    <div class="border-t border-slate-200 px-5 py-4">{{ $references->links() }}</div>
                 @endif
             </div>
-        </div>
+        </section>
     </div>
-</div>
 @endsection
+
+@push('styles')
+<style>
+    [data-bs-theme="dark"] .payments-references .bg-white { background-color: var(--card-bg) !important; }
+    [data-bs-theme="dark"] .payments-references .bg-slate-50 { background-color: rgba(148, 163, 184, 0.08) !important; }
+    [data-bs-theme="dark"] .payments-references .border-slate-100,
+    [data-bs-theme="dark"] .payments-references .border-slate-200,
+    [data-bs-theme="dark"] .payments-references .border-slate-300 { border-color: var(--border-color) !important; }
+    [data-bs-theme="dark"] .payments-references .text-slate-900,
+    [data-bs-theme="dark"] .payments-references .text-slate-800,
+    [data-bs-theme="dark"] .payments-references .text-slate-700,
+    [data-bs-theme="dark"] .payments-references .text-slate-600,
+    [data-bs-theme="dark"] .payments-references .text-slate-500 { color: var(--text-secondary) !important; }
+</style>
+@endpush
 
 @push('scripts')
 <script>
-document.getElementById('select-all')?.addEventListener('change', function() {
-    document.querySelectorAll('.ref-checkbox').forEach(cb => cb.checked = this.checked);
-});
+    document.getElementById('select-all')?.addEventListener('change', function() {
+        document.querySelectorAll('.ref-checkbox').forEach(cb => cb.checked = this.checked);
+    });
 
-function printSelected() {
-    const selected = Array.from(document.querySelectorAll('.ref-checkbox:checked')).map(cb => cb.value);
-    if (selected.length === 0) {
-        VisionariosSchool.showToast('Selecione pelo menos uma referência', 'warning');
-        return;
+    function printSelected() {
+        const selected = Array.from(document.querySelectorAll('.ref-checkbox:checked')).map(cb => cb.value);
+        if (selected.length === 0) {
+            window.VisionariosSchool?.showToast?.('Selecione pelo menos uma referencia', 'warning');
+            return;
+        }
+        window.open(`/payments/print-bulk?ids=${selected.join(',')}`, '_blank');
     }
-    // Abrir página de impressão em massa
-    window.open(`/payments/print-bulk?ids=${selected.join(',')}`, '_blank');
-}
 </script>
 @endpush
