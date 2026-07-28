@@ -83,7 +83,7 @@ class ClassRoom extends Model
 
     public function scopeCurrentYear($query)
     {
-        return $query->where('school_year', date('Y'));
+        return $query->where('school_year', current_school_year());
     }
 
     public function scopeByGrade($query, $grade)

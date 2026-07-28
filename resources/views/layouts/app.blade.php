@@ -746,6 +746,26 @@
             background: linear-gradient(135deg, var(--warning), #c05621);
         }
 
+        .stat-icon.primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+
+        .stat-icon.success {
+            background: linear-gradient(135deg, var(--success), #2f855a);
+        }
+
+        .stat-icon.warning {
+            background: linear-gradient(135deg, var(--warning), #c05621);
+        }
+
+        .stat-icon.info {
+            background: linear-gradient(135deg, var(--info), #2b6cb0);
+        }
+
+        .stat-icon.pending {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+
         .stat-content {
             flex: 1;
         }
@@ -1035,14 +1055,90 @@
             border-left-color: var(--info);
         }
 
-        /* Footer Escolar - Reduzido */
+        /* Footer Escolar */
         .school-footer {
-            background: var(--card-bg);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(25, 67, 124, 0.08), rgba(75, 168, 60, 0.08)), var(--card-bg);
             border-top: 1px solid var(--border-color);
-            padding: 20px 0;
-            /* Reduzido */
+            padding: 22px 0;
             margin-top: auto;
-            box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 -6px 18px rgba(15, 23, 42, 0.06);
+        }
+
+        .school-footer::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at 10% -20%, rgba(249, 168, 37, 0.18), transparent 35%);
+            pointer-events: none;
+        }
+
+        .footer-shell {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-brand,
+        .footer-meta {
+            background: rgba(255, 255, 255, 0.78);
+            border: 1px solid rgba(148, 163, 184, 0.25);
+            border-radius: 12px;
+            padding: 10px 14px;
+            backdrop-filter: blur(8px);
+        }
+
+        .footer-brand .brand-main {
+            color: var(--primary);
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .footer-brand .brand-sub {
+            color: var(--text-muted);
+            font-size: 11px;
+        }
+
+        .footer-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .footer-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .footer-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--text-primary);
+            font-size: 12px;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 5px 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .footer-link:hover {
+            color: var(--primary);
+            background: rgba(25, 67, 124, 0.08);
         }
 
         /* Responsividade */
@@ -1098,6 +1194,16 @@
             .sidebar-toggle-btn {
                 display: none !important;
             }
+
+            .footer-shell {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .footer-brand,
+            .footer-meta {
+                width: 100%;
+            }
         }
 
         @media (max-width: 767.98px) {
@@ -1151,6 +1257,25 @@
         .sidebar-overlay.show {
             opacity: 1;
             visibility: visible;
+        }
+
+        [data-bs-theme="dark"] .school-footer {
+            background: linear-gradient(135deg, rgba(25, 67, 124, 0.2), rgba(75, 168, 60, 0.14)), var(--card-bg);
+        }
+
+        [data-bs-theme="dark"] .footer-brand,
+        [data-bs-theme="dark"] .footer-meta {
+            background: rgba(15, 23, 42, 0.46);
+            border-color: rgba(148, 163, 184, 0.26);
+        }
+
+        [data-bs-theme="dark"] .footer-link {
+            color: var(--text-secondary);
+        }
+
+        [data-bs-theme="dark"] .footer-link:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.12);
         }
 
         /* Sistema de Toasts - Reduzido */
@@ -1462,6 +1587,39 @@
                                         @endif
                                     </a>
                                 </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.enrollments.renewals') }}"
+                                        class="nav-link {{ request()->routeIs('admin.enrollments.renewals') ? 'active' : '' }}">
+                                        <span class="nav-icon">
+                                            <i class="fas fa-sync-alt"></i>
+                                        </span>
+                                        <span class="nav-text">Renovar Matrículas</span>
+                                        @php
+                                            $pendingRenewals = \App\Models\Student::where('status', 'pending_renewal')->count();
+                                        @endphp
+                                        @if ($pendingRenewals > 0)
+                                            <span class="nav-badge badge-warning">{{ $pendingRenewals }}</span>
+                                        @endif
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.students-archive.index') }}"
+                                        class="nav-link {{ request()->routeIs('admin.students-archive.*') ? 'active' : '' }}">
+                                        <span class="nav-icon">
+                                            <i class="fas fa-archive"></i>
+                                        </span>
+                                        <span class="nav-text">Arquivados</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.promotion.index') }}"
+                                        class="nav-link {{ request()->routeIs('admin.promotion.*') ? 'active' : '' }}">
+                                        <span class="nav-icon">
+                                            <i class="fas fa-layer-group"></i>
+                                        </span>
+                                        <span class="nav-text">Passagem de Classe</span>
+                                    </a>
+                                </li>
                             @endcan
                         </ul>
                     </div>
@@ -1585,10 +1743,11 @@
                 </div>
             @endcanany
 
-            @can('manage_events')
+            @canany(['manage_events', 'send_notifications'])
                 <div class="nav-section">
                     <div class="nav-section-title">Comunicação</div>
                     <ul class="nav-list">
+                        @can('manage_events')
                         <li class="nav-item">
                             <a href="{{ route('events.index') }}"
                                 class="nav-link {{ request()->routeIs('events.*') ? 'active' : '' }}">
@@ -1598,8 +1757,9 @@
                                 <span class="nav-text">Eventos</span>
                             </a>
                         </li>
+                        @endcan
                         <li class="nav-item">
-                            <a href="{{ route('communications.index') }}"
+                            <a href="{{ route('admin.communications.index') }}"
                                 class="nav-link {{ request()->routeIs('communications.*') ? 'active' : '' }}">
                                 <span class="nav-icon">
                                     <i class="fas fa-bullhorn"></i>
@@ -1609,7 +1769,7 @@
                         </li>
                     </ul>
                 </div>
-            @endcan
+            @endcanany
 
             @canany(['view_reports', 'export_reports'])
                 <div class="nav-section">
@@ -1631,10 +1791,11 @@
                 </div>
             @endcanany
 
-            @can('manage_users')
+            @canany(['manage_users', 'manage_settings'])
                 <div class="nav-section">
                     <div class="nav-section-title">Administração</div>
                     <ul class="nav-list">
+                        @can('manage_users')
                         <li class="nav-item">
                             <a href="{{ route('admin.users.index') }}"
                                 class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
@@ -1645,19 +1806,22 @@
                                 <span class="nav-badge badge-danger">Admin</span>
                             </a>
                         </li>
+                        @endcan
+                        @can('manage_settings')
                         <li class="nav-item">
                             <a href="{{ route('admin.settings.index') }}"
-                                class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}">
+                                class="nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
                                 <span class="nav-icon">
                                     <i class="fas fa-cog"></i>
                                 </span>
                                 <span class="nav-text">Configurações</span>
                             </a>
                         </li>
+                        @endcan
                     </ul>
                 </div>
-            @endcan
-            
+            @endcanany
+
             <!-- ========== PORTAL DOS PAIS (apenas para pais) ========== -->
             @if (auth()->user()->role === 'parent')
                 <div class="nav-section">
@@ -2042,25 +2206,19 @@
         <!-- Footer Escolar -->
         <footer class="school-footer">
             <div class="content-area">
-                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center py-3">
-                    <div class="text-center text-sm-start mb-2 mb-sm-0">
-                        <small class="text-muted">
-                            © {{ current_school_year() }} <strong class="text-primary">Escola dos Visionários</strong> -
-                            Sistema de Gestão Escolar
-                        </small>
-                        <br class="d-block d-sm-none">
-                        <small class="text-muted">
-                            Quelimane, Província da Zambézia - Moçambique
-                        </small>
+                <div class="footer-shell py-2">
+                    <div class="footer-brand">
+                        <div class="brand-main"><i class="fas fa-school me-2"></i>Escola dos Visionários</div>
+                        <div class="brand-sub">© {{ current_school_year() }} Sistema de Gestão Escolar • Quelimane, Zambézia</div>
                     </div>
-                    <div class="text-center text-sm-end">
-                        <small class="text-muted">
-                            <span class="badge" style="background: var(--success);">v1.0.0</span>
-                            <a href="mailto:suporte@visionarios.co.mz" class="text-decoration-none me-2">Suporte
-                                Técnico</a>
-                            <a href="#" class="text-decoration-none" onclick="showHelpModal()">Manual do
-                                Sistema</a>
-                        </small>
+                    <div class="footer-meta">
+                        <span class="footer-pill"><i class="fas fa-code-branch"></i>v1.0.0</span>
+                        <a href="mailto:suporte@visionarios.co.mz" class="footer-link">
+                            <i class="fas fa-headset"></i>Suporte Técnico
+                        </a>
+                        <a href="#" class="footer-link" onclick="showHelpModal(); return false;">
+                            <i class="fas fa-book-open"></i>Manual do Sistema
+                        </a>
                     </div>
                 </div>
             </div>

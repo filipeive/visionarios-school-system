@@ -8,6 +8,7 @@ use App\Models\Payment;
 use App\Models\Communication;
 use App\Models\Enrollment;
 use App\Services\PaymentService;
+use App\Services\AcademicYearService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Carbon\Carbon;
@@ -39,20 +40,20 @@ class ParentPortalController extends Controller
             }
         ])->get();
 
+        $currentYear = app(AcademicYearService::class)->getCurrentYear();
+        $nextYear = app(AcademicYearService::class)->getNextYear();
+
         foreach ($children as $child) {
             // Identificar se o aluno é elegível para renovação
-            // (Inativo em 2025 e sem matrícula ativa/pendente em 2026)
-            $child->is_eligible_for_renewal = $child->enrollments()
-                ->where('school_year', 2025)
-                ->where('status', 'inactive')
-                ->exists() && !$child->enrollments()
-                    ->where('school_year', 2026)
-                    ->whereIn('status', ['active', 'pending'])
-                    ->exists();
+            // (Status pending_renewal e sem matrícula activa/pendente no próximo ano)
+            $child->is_eligible_for_renewal = ($child->status === 'pending_renewal') && !$child->enrollments()
+                ->where('school_year', $nextYear)
+                ->whereIn('status', ['active', 'pending'])
+                ->exists();
 
             // Verificar se já existe um pedido de renovação
             $child->renewal_application = \App\Models\EnrollmentApplication::where('student_id', $child->id)
-                ->where('academic_year', 2026)
+                ->where('academic_year', $nextYear)
                 ->where('type', 'RENEWAL')
                 ->latest()
                 ->first();

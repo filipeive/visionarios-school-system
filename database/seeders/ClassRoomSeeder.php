@@ -8,7 +8,7 @@ class ClassRoomSeeder extends Seeder
 {
     public function run()
     {
-        $currentYear = date('Y');
+        $currentYear = current_school_year();
 
         $classes = [
             // Pré-Infantil

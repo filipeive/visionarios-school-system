@@ -6,7 +6,7 @@
     <div class="container py-5">
         <div class="text-center mb-5">
             <h1 class="fw-bold text-primary-school">Lista de Materiais Escolares</h1>
-            <p class="lead text-muted">Ano Letivo 2026</p>
+            <p class="lead text-muted">Ano Letivo {{ next_school_year() }}</p>
         </div>
 
         <div class="row g-4">

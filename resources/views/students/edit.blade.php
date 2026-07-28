@@ -181,11 +181,17 @@
                             </h5>
 
                             <div class="mb-3">
-                                <label for="medical_info" class="form-label">Informações Médicas</label>
-                                <textarea class="form-control @error('medical_info') is-invalid @enderror" 
-                                          id="medical_info" name="medical_info" rows="3"
-                                          placeholder="Alergias, condições médicas, medicamentos...">{{ old('medical_info', $student->medical_certificate) }}</textarea>
-                                @error('medical_info')
+                                <label for="medical_certificate" class="form-label">Atestado Médico (PDF/JPG)</label>
+                                @if($student->medical_certificate)
+                                <div class="mb-2">
+                                    <a href="{{ Storage::url($student->medical_certificate) }}" target="_blank" class="btn btn-sm btn-outline-info">
+                                        <i class="fas fa-file-pdf me-1"></i> Ver Atestado Atual
+                                    </a>
+                                </div>
+                                @endif
+                                <input type="file" class="form-control @error('medical_certificate') is-invalid @enderror" 
+                                       id="medical_certificate" name="medical_certificate" accept=".pdf,.jpg,.jpeg,.png">
+                                @error('medical_certificate')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -254,7 +260,7 @@
                                     <option value="">Selecione a turma...</option>
                                     @foreach($classes as $class)
                                         <option value="{{ $class->id }}" 
-                                            {{ old('class_id', $currentEnrollment?->class_id) == $class->id ? 'selected' : '' }}>
+                                            {{ (old('class_id') ?? $currentEnrollment?->class_id) == $class->id ? 'selected' : '' }}>
                                             {{ $class->name }} ({{ $class->grade_level }}º Ano)
                                         </option>
                                     @endforeach

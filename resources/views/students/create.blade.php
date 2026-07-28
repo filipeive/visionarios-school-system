@@ -195,10 +195,13 @@
                             </h5>
 
                             <div class="mb-3">
-                                <label for="medical_info" class="form-label">Informações Médicas</label>
-                                <textarea class="form-control @error('medical_info') is-invalid @enderror" 
-                                          id="medical_info" name="medical_info" rows="3"
-                                          placeholder="Alergias, condições médicas, medicamentos...">{{ old('medical_info') }}</textarea>
+                                <label for="medical_certificate" class="form-label">Atestado Médico (PDF/JPG)</label>
+                                <input type="file" class="form-control @error('medical_certificate') is-invalid @enderror" 
+                                       id="medical_certificate" name="medical_certificate" accept=".pdf,.jpg,.jpeg,.png">
+                                @error('medical_certificate')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
                             <div class="mb-3">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="has_special_needs" name="has_special_needs" value="1" {{ old('has_special_needs') ? 'checked' : '' }}>

@@ -12,18 +12,18 @@ class EnrollmentSystemSeeder extends Seeder
      */
     public function run(): void
     {
-        // Fee Types for 2026
+        // Fee Types for next_school_year()
         $fees = [
             // Pre-School
-            ['name' => 'Matrícula (Pré-Escolar)', 'code' => 'MAT_PRE', 'grade_level' => 'pre-school', 'amount' => 1875, 'academic_year' => 2026],
-            ['name' => 'Manuais (PT+MAT+ING)', 'code' => 'MAN_PRE', 'grade_level' => 'pre-school', 'amount' => 1850, 'academic_year' => 2026],
-            ['name' => 'Mensalidade (Pré-Escolar)', 'code' => 'TUI_PRE', 'grade_level' => 'pre-school', 'amount' => 2300, 'academic_year' => 2026],
+            ['name' => 'Matrícula (Pré-Escolar)', 'code' => 'MAT_PRE', 'grade_level' => 'pre-school', 'amount' => 1875, 'academic_year' => next_school_year()],
+            ['name' => 'Manuais (PT+MAT+ING)', 'code' => 'MAN_PRE', 'grade_level' => 'pre-school', 'amount' => 1850, 'academic_year' => next_school_year()],
+            ['name' => 'Mensalidade (Pré-Escolar)', 'code' => 'TUI_PRE', 'grade_level' => 'pre-school', 'amount' => 2300, 'academic_year' => next_school_year()],
 
             // Primary (1st to 6th)
-            ['name' => 'Matrícula (Primário)', 'code' => 'MAT_PRI', 'grade_level' => 'primary', 'amount' => 1875, 'academic_year' => 2026],
-            ['name' => 'Avaliação Anual', 'code' => 'EVA_PRI', 'grade_level' => 'primary', 'amount' => 1000, 'academic_year' => 2026],
-            ['name' => 'Manual de Inglês', 'code' => 'MAN_ENG_PRI', 'grade_level' => 'primary', 'amount' => 850, 'academic_year' => 2026],
-            ['name' => 'Mensalidade (Primário)', 'code' => 'TUI_PRI', 'grade_level' => 'primary', 'amount' => 2300, 'academic_year' => 2026],
+            ['name' => 'Matrícula (Primário)', 'code' => 'MAT_PRI', 'grade_level' => 'primary', 'amount' => 1875, 'academic_year' => next_school_year()],
+            ['name' => 'Avaliação Anual', 'code' => 'EVA_PRI', 'grade_level' => 'primary', 'amount' => 1000, 'academic_year' => next_school_year()],
+            ['name' => 'Manual de Inglês', 'code' => 'MAN_ENG_PRI', 'grade_level' => 'primary', 'amount' => 850, 'academic_year' => next_school_year()],
+            ['name' => 'Mensalidade (Primário)', 'code' => 'TUI_PRI', 'grade_level' => 'primary', 'amount' => 2300, 'academic_year' => next_school_year()],
         ];
 
         foreach ($fees as $fee) {
@@ -34,7 +34,7 @@ class EnrollmentSystemSeeder extends Seeder
         $materials = [
             [
                 'grade_level' => 'pre-school',
-                'academic_year' => 2026,
+                'academic_year' => next_school_year(),
                 'items' => [
                     ['name' => 'Caderno de desenho A4', 'quantity' => '1'],
                     ['name' => 'Lápis de cor (caixa 12)', 'quantity' => '2'],
@@ -44,7 +44,7 @@ class EnrollmentSystemSeeder extends Seeder
             ],
             [
                 'grade_level' => 'primary',
-                'academic_year' => 2026,
+                'academic_year' => next_school_year(),
                 'items' => [
                     ['name' => 'Caderno de 48 folhas', 'quantity' => '6'],
                     ['name' => 'Lápis HB', 'quantity' => '3'],

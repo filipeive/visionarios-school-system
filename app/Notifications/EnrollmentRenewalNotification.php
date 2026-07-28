@@ -36,9 +36,10 @@ class EnrollmentRenewalNotification extends Notification
      */
     public function toArray(object $notifiable): array
     {
+        $nextYear = next_school_year();
         return [
-            'title' => 'Renovação de Matrículas 2026',
-            'message' => 'O período de renovação de matrículas para 2026 já está aberto. Acesse seu portal para renovar.',
+            'title' => "Renovação de Matrículas {$nextYear}",
+            'message' => "O período de renovação de matrículas para {$nextYear} já está aberto. Acesse seu portal para renovar.",
             'action_url' => route('parent.dashboard'),
             'type' => 'renewal'
         ];

@@ -25,8 +25,8 @@ class AttendanceController extends Controller
             $search = $request->search;
             $query->whereHas('student', function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('student_number', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('student_number', 'like', "%{$search}%");
             });
         }
 
@@ -49,7 +49,7 @@ class AttendanceController extends Controller
         $attendances = $query->latest('attendance_date')->paginate(25);
 
         $classes = ClassRoom::active()
-            ->where('school_year', date('Y'))
+            ->where('school_year', current_school_year())
             ->orderBy('name')
             ->get();
 
@@ -74,10 +74,12 @@ class AttendanceController extends Controller
         $this->authorize('mark_attendances');
 
         $classes = ClassRoom::active()
-            ->where('school_year', date('Y'))
-            ->with(['students' => function($q) {
-                $q->where('status', 'active');
-            }])
+            ->where('school_year', current_school_year())
+            ->with([
+                'students' => function ($q) {
+                    $q->where('status', 'active');
+                }
+            ])
             ->orderBy('name')
             ->get();
 
@@ -99,7 +101,7 @@ class AttendanceController extends Controller
         ]);
 
         DB::beginTransaction();
-        
+
         try {
             $class = ClassRoom::findOrFail($validated['class_id']);
             $attendanceDate = Carbon::parse($validated['attendance_date']);
@@ -114,11 +116,11 @@ class AttendanceController extends Controller
             }
 
             $markedCount = 0;
-            
+
             foreach ($validated['attendance'] as $studentId => $status) {
                 // Verificar se o aluno pertence à turma
                 $student = Student::findOrFail($studentId);
-                
+
                 if (!$student->currentEnrollment || $student->currentEnrollment->class_id != $class->id) {
                     continue;
                 }
@@ -142,7 +144,7 @@ class AttendanceController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return back()
                 ->withInput()
                 ->with('error', 'Erro ao marcar presenças: ' . $e->getMessage());
@@ -188,7 +190,7 @@ class AttendanceController extends Controller
         ]);
 
         DB::beginTransaction();
-        
+
         try {
             $attendanceDate = Carbon::parse($validated['attendance_date']);
 
@@ -198,7 +200,7 @@ class AttendanceController extends Controller
                 ->delete();
 
             $markedCount = 0;
-            
+
             foreach ($validated['attendance'] as $studentId => $status) {
                 $notes = $validated['notes'][$studentId] ?? null;
 
@@ -227,7 +229,7 @@ class AttendanceController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            
+
             return back()
                 ->withInput()
                 ->with('error', 'Erro ao salvar: ' . $e->getMessage());
@@ -282,7 +284,7 @@ class AttendanceController extends Controller
 
         // Dados para gráficos
         $dailyStats = Attendance::whereBetween('attendance_date', [$startDate, $endDate])
-            ->when($classId, function($q) use ($classId) {
+            ->when($classId, function ($q) use ($classId) {
                 $q->where('class_id', $classId);
             })
             ->select(
@@ -305,7 +307,7 @@ class AttendanceController extends Controller
             ->groupBy('class_id')
             ->with('class')
             ->get()
-            ->map(function($item) {
+            ->map(function ($item) {
                 $item->absence_rate = $item->total > 0 ? ($item->absent_count / $item->total) * 100 : 0;
                 return $item;
             })
@@ -315,7 +317,7 @@ class AttendanceController extends Controller
         // Alunos com mais faltas
         $studentsWithMostAbsences = Attendance::whereBetween('attendance_date', [$startDate, $endDate])
             ->where('status', 'absent')
-            ->when($classId, function($q) use ($classId) {
+            ->when($classId, function ($q) use ($classId) {
                 $q->where('class_id', $classId);
             })
             ->select('student_id', DB::raw('COUNT(*) as absence_count'))
@@ -326,7 +328,7 @@ class AttendanceController extends Controller
             ->get();
 
         $classes = ClassRoom::active()
-            ->where('school_year', date('Y'))
+            ->where('school_year', current_school_year())
             ->orderBy('name')
             ->get();
 
@@ -353,15 +355,17 @@ class AttendanceController extends Controller
 
         $students = $class->students()
             ->where('status', 'active')
-            ->with(['attendances' => function($q) {
-                $q->whereMonth('attendance_date', now()->month)
-                  ->whereYear('attendance_date', now()->year);
-            }])
+            ->with([
+                'attendances' => function ($q) {
+                    $q->whereMonth('attendance_date', now()->month)
+                        ->whereYear('attendance_date', now()->year);
+                }
+            ])
             ->get()
-            ->map(function($student) {
+            ->map(function ($student) {
                 $attendances = $student->attendances;
                 $total = $attendances->count();
-                
+
                 return [
                     'student' => $student,
                     'total_days' => $total,
@@ -402,12 +406,12 @@ class AttendanceController extends Controller
                 ->count(),
         ];
 
-        $stats['attendance_rate'] = $stats['total'] > 0 
-            ? round(($stats['present'] / $stats['total']) * 100, 1) 
+        $stats['attendance_rate'] = $stats['total'] > 0
+            ? round(($stats['present'] / $stats['total']) * 100, 1)
             : 0;
 
-        $stats['this_month_rate'] = $stats['this_month_total'] > 0 
-            ? round(($stats['this_month_present'] / $stats['this_month_total']) * 100, 1) 
+        $stats['this_month_rate'] = $stats['this_month_total'] > 0
+            ? round(($stats['this_month_present'] / $stats['this_month_total']) * 100, 1)
             : 0;
 
         return view('attendances.student-report', compact('student', 'attendances', 'stats'));
@@ -496,7 +500,7 @@ class AttendanceController extends Controller
             ->orderBy('first_name')
             ->orderBy('last_name')
             ->get()
-            ->map(function($student) {
+            ->map(function ($student) {
                 return [
                     'id' => $student->id,
                     'full_name' => $student->full_name,
@@ -514,7 +518,7 @@ class AttendanceController extends Controller
     private function notifyParentAbsence($studentId, $date)
     {
         $student = Student::with('parent')->find($studentId);
-        
+
         if ($student && $student->parent) {
             // Implementar notificação por email/SMS
             // Notification::send($student->parent->user, new StudentAbsenceNotification($student, $date));
@@ -538,14 +542,14 @@ class AttendanceApiController extends Controller
     public function getClassStudents($classId)
     {
         $class = ClassRoom::findOrFail($classId);
-        
+
         $students = $class->students()
             ->where('status', 'active')
             ->select('id', 'first_name', 'last_name', 'student_number', 'passport_photo')
             ->orderBy('first_name')
             ->orderBy('last_name')
             ->get()
-            ->map(function($student) {
+            ->map(function ($student) {
                 return [
                     'id' => $student->id,
                     'full_name' => $student->full_name,

@@ -11,7 +11,7 @@ class Enrollment extends Model
 
     protected $fillable = [
         'student_id',
-        'class_id', 
+        'class_id',
         'school_year',
         'status',
         'enrollment_date',
@@ -66,10 +66,10 @@ class Enrollment extends Model
     {
         return $query->where('school_year', $year);
     }
-   
+
     public function scopeCurrentYear($query)
     {
-        return $query->where('school_year', now()->year);
+        return $query->where('school_year', current_school_year());
     }
 
     // Métodos de verificação de status
@@ -91,9 +91,9 @@ class Enrollment extends Model
     // Gera número de matrícula automático
     public static function generateEnrollmentNumber()
     {
-        $year = date('Y');
+        $year = current_school_year();
         $lastEnrollment = self::where('school_year', $year)->latest()->first();
-        
+
         if ($lastEnrollment) {
             $lastNumber = intval(substr($lastEnrollment->enrollment_number, -4));
             $nextNumber = str_pad($lastNumber + 1, 4, '0', STR_PAD_LEFT);

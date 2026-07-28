@@ -4,7 +4,7 @@
 @section('page-title', 'Novo Pagamento')
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('payments.index') }}">Pagamentos</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('payments.index') }}" class="no-underline"><i class="fas fa-wallet me-1"></i>Pagamentos</a></li>
     <li class="breadcrumb-item active">Novo</li>
 @endsection
 
@@ -110,8 +110,8 @@
                 </div>
 
                 <div class="md:col-span-12 flex items-center justify-between pt-2">
-                    <a href="{{ route('payments.index') }}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Voltar</a>
-                    <button type="submit" class="rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800">Registrar Pagamento</button>
+                    <a href="{{ route('payments.index') }}" class="inline-flex items-center rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-arrow-left me-2"></i>Voltar</a>
+                    <button type="submit" class="inline-flex items-center rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800"><i class="fas fa-floppy-disk me-2"></i>Registrar Pagamento</button>
                 </div>
             </form>
         </section>

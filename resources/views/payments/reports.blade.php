@@ -4,7 +4,7 @@
 @section('page-title', 'Relatorios Financeiros')
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('payments.index') }}">Pagamentos</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('payments.index') }}" class="no-underline"><i class="fas fa-wallet me-1"></i>Pagamentos</a></li>
     <li class="breadcrumb-item active">Relatorios</li>
 @endsection
 
@@ -21,8 +21,8 @@
                     </select>
                 </div>
                 <div class="md:text-right">
-                    <button type="button" class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onclick="exportReport('pdf')">Exportar PDF</button>
-                    <button type="button" class="ml-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700" onclick="exportReport('excel')">Exportar Excel</button>
+                    <button type="button" class="inline-flex items-center rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 no-underline hover:bg-slate-50" onclick="exportReport('pdf')"><i class="fas fa-file-pdf me-2"></i>Exportar PDF</button>
+                    <button type="button" class="ml-2 inline-flex items-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white no-underline hover:bg-emerald-700" onclick="exportReport('excel')"><i class="fas fa-file-excel me-2"></i>Exportar Excel</button>
                 </div>
             </form>
         </section>
@@ -136,10 +136,10 @@
         <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <h3 class="mb-3 text-sm font-semibold text-slate-900">Acoes Rapidas</h3>
             <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                <a href="{{ route('payments.overdue') }}" class="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm text-slate-700 hover:bg-slate-50">Pagamentos em Atraso</a>
-                <a href="{{ route('payments.references') }}" class="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm text-slate-700 hover:bg-slate-50">Gerar Referencias</a>
-                <a href="{{ route('payments.index', ['status' => 'paid']) }}" class="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm text-slate-700 hover:bg-slate-50">Pagamentos Confirmados</a>
-                <a href="{{ route('reports.export.payments') }}" class="rounded-lg border border-slate-300 px-4 py-3 text-center text-sm text-slate-700 hover:bg-slate-50">Exportar Dados</a>
+                <a href="{{ route('payments.overdue') }}" class="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-3 text-center text-sm text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-triangle-exclamation me-2 text-amber-500"></i>Pagamentos em Atraso</a>
+                <a href="{{ route('payments.references') }}" class="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-3 text-center text-sm text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-barcode me-2 text-sky-600"></i>Gerar Referencias</a>
+                <a href="{{ route('payments.index', ['status' => 'paid']) }}" class="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-3 text-center text-sm text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-circle-check me-2 text-emerald-600"></i>Pagamentos Confirmados</a>
+                <a href="{{ route('reports.export.payments') }}" class="inline-flex items-center justify-center rounded-lg border border-slate-300 px-4 py-3 text-center text-sm text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-download me-2 text-slate-500"></i>Exportar Dados</a>
             </div>
         </section>
     </div>
@@ -163,39 +163,54 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js indisponivel para payments.reports');
+            return;
+        }
+
         const monthlyData = @json($monthlyRevenue);
         const typeData = @json($revenueByType);
         const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+        const monthCanvas = document.getElementById('monthlyRevenueChart');
+        const typeCanvas = document.getElementById('revenueByTypeChart');
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const gridColor = isDark ? 'rgba(148,163,184,0.25)' : 'rgba(15,23,42,0.12)';
+        const tickColor = isDark ? '#cbd5e1' : '#334155';
 
-        new Chart(document.getElementById('monthlyRevenueChart'), {
-            type: 'bar',
-            data: {
-                labels: months,
-                datasets: [{
-                    label: 'Receita (MT)',
-                    data: months.map((_, i) => monthlyData[i + 1] || 0),
-                    backgroundColor: 'rgba(25, 67, 124, 0.8)',
-                    borderColor: '#19437C',
-                    borderWidth: 1,
-                    borderRadius: 5
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value.toLocaleString('pt-MZ') + ' MT';
-                            }
+        if (monthCanvas) {
+            new Chart(monthCanvas, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Receita (MT)',
+                        data: months.map((_, i) => monthlyData[i + 1] || 0),
+                        backgroundColor: 'rgba(25, 67, 124, 0.8)',
+                        borderColor: '#19437C',
+                        borderWidth: 1,
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { color: tickColor }, grid: { color: gridColor } },
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: tickColor,
+                                callback: function(value) {
+                                    return value.toLocaleString('pt-MZ') + ' MT';
+                                }
+                            },
+                            grid: { color: gridColor }
                         }
                     }
                 }
-            }
-        });
+            });
+        }
 
         const typeLabels = {
             matricula: 'Matricula',
@@ -205,28 +220,34 @@
             outro: 'Outro'
         };
 
-        new Chart(document.getElementById('revenueByTypeChart'), {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(typeData).map(k => typeLabels[k] || k),
-                datasets: [{
-                    data: Object.values(typeData),
-                    backgroundColor: ['#19437C', '#4BA83C', '#F9A825', '#17a2b8', '#6c757d'],
-                    borderWidth: 2,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: { padding: 15 }
+        if (typeCanvas) {
+            const keys = Object.keys(typeData || {});
+            const values = Object.values(typeData || {});
+            const hasData = values.some(v => Number(v) > 0);
+
+            new Chart(typeCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: hasData ? keys.map(k => typeLabels[k] || k) : ['Sem dados'],
+                    datasets: [{
+                        data: hasData ? values : [1],
+                        backgroundColor: hasData ? ['#19437C', '#4BA83C', '#F9A825', '#17a2b8', '#6c757d'] : ['#94a3b8'],
+                        borderWidth: 2,
+                        borderColor: '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { padding: 15, color: tickColor }
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
     });
 
     function exportReport(format) {

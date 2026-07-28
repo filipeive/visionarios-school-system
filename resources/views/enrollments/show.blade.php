@@ -75,9 +75,12 @@
                                     'transferred' => 'info',
                                     'pending' => 'warning',
                                     'cancelled' => 'danger',
+                                    'completed' => 'secondary',
+                                    'suspended' => 'dark',
+                                    'pending_renewal' => 'warning',
                                 ];
                             @endphp
-                            <span class="badge bg-{{ $statusColors[$enrollment->status] }} fs-6">
+                            <span class="badge bg-{{ $statusColors[$enrollment->status] ?? 'secondary' }} fs-6">
                                 {{ ucfirst($enrollment->status) }}
                             </span>
                         </div>

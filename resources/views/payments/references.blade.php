@@ -4,13 +4,48 @@
 @section('page-title', 'Gerar Referencias')
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('payments.index') }}">Pagamentos</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('payments.index') }}" class="no-underline"><i class="fas fa-wallet me-1"></i>Pagamentos</a></li>
     <li class="breadcrumb-item active">Referencias</li>
 @endsection
 
 @section('content')
     <div class="payments-references grid gap-6 xl:grid-cols-12">
         <aside class="xl:col-span-4 space-y-6">
+            <section class="rounded-xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
+                <h3 class="mb-2 text-sm font-semibold text-emerald-900">Gerar Propinas do Mês (Secretaria)</h3>
+                <p class="mb-3 text-xs text-emerald-700">Fluxo recomendado: gerar no dia <strong>20</strong> e vencimento automático no dia <strong>5</strong> do mês seguinte.</p>
+                <form action="{{ route('payments.generate-monthly-fees') }}" method="POST" class="space-y-3">
+                    @csrf
+                    <div class="grid gap-3 md:grid-cols-2">
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-emerald-800">Mês de Referência</label>
+                            <select name="month" class="w-full rounded-lg border-emerald-300 bg-white text-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                @foreach(['Janeiro','Fevereiro','Marco','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] as $i => $mes)
+                                    <option value="{{ $i + 1 }}" {{ date('n') == $i + 1 ? 'selected' : '' }}>{{ $mes }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label class="mb-1 block text-xs font-semibold text-emerald-800">Ano Letivo</label>
+                            <select name="school_year" class="w-full rounded-lg border-emerald-300 bg-white text-sm focus:border-emerald-500 focus:ring-emerald-500">
+                                @for($y = current_school_year() - 1; $y <= current_school_year() + 1; $y++)
+                                    <option value="{{ $y }}" {{ $y == current_school_year() ? 'selected' : '' }}>{{ $y }}</option>
+                                @endfor
+                            </select>
+                        </div>
+                    </div>
+                    <input type="hidden" name="calendar_year" value="{{ date('Y') }}">
+                    <label class="inline-flex items-center gap-2 text-xs text-emerald-800">
+                        <input type="hidden" name="notify_parents" value="0">
+                        <input type="checkbox" name="notify_parents" value="1" class="rounded border-emerald-300 text-emerald-600 focus:ring-emerald-500" checked>
+                        Notificar encarregados automaticamente
+                    </label>
+                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-lg bg-emerald-700 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-800">
+                        <i class="fas fa-bolt me-2"></i>Gerar Propinas Agora
+                    </button>
+                </form>
+            </section>
+
             <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <h3 class="mb-4 text-sm font-semibold text-slate-900">Gerar Nova Referencia</h3>
                 <form action="{{ route('payments.generate-reference') }}" method="POST" class="space-y-3">
@@ -52,7 +87,7 @@
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="w-full rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800">Gerar Referencia</button>
+                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800"><i class="fas fa-barcode me-2"></i>Gerar Referencia</button>
                 </form>
             </section>
 
@@ -89,7 +124,7 @@
                             </select>
                         </div>
                     </div>
-                    <button type="submit" class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Gerar para Turma</button>
+                    <button type="submit" class="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-users me-2"></i>Gerar para Turma</button>
                 </form>
             </section>
         </aside>
@@ -107,7 +142,7 @@
                         </select>
                     </div>
                     <div class="md:text-right">
-                        <button type="button" class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50" onclick="printSelected()">Imprimir Selecionados</button>
+                        <button type="button" class="inline-flex items-center rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 no-underline hover:bg-slate-50" onclick="printSelected()"><i class="fas fa-print me-2"></i>Imprimir Selecionados</button>
                     </div>
                 </form>
             </div>
@@ -147,8 +182,8 @@
                                     <td class="px-3 py-2 text-right font-semibold text-slate-900">{{ number_format($ref->total_amount, 2, ',', '.') }} MT</td>
                                     <td class="px-3 py-2 {{ $ref->due_date < now() ? 'font-semibold text-rose-700' : 'text-slate-700' }}">{{ $ref->due_date->format('d/m/Y') }}</td>
                                     <td class="px-3 py-2 text-center">
-                                        <a href="{{ route('payments.show', $ref) }}" class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Ver</a>
-                                        <a href="{{ route('payments.download-reference', $ref) }}" target="_blank" class="ml-1 rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Imprimir</a>
+                                        <a href="{{ route('payments.show', $ref) }}" class="inline-flex items-center rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-eye me-1"></i>Ver</a>
+                                        <a href="{{ route('payments.download-reference', $ref) }}" target="_blank" class="ml-1 inline-flex items-center rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-print me-1"></i>Imprimir</a>
                                     </td>
                                 </tr>
                             @empty
@@ -171,14 +206,20 @@
 <style>
     [data-bs-theme="dark"] .payments-references .bg-white { background-color: var(--card-bg) !important; }
     [data-bs-theme="dark"] .payments-references .bg-slate-50 { background-color: rgba(148, 163, 184, 0.08) !important; }
+    [data-bs-theme="dark"] .payments-references .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.14) !important; }
     [data-bs-theme="dark"] .payments-references .border-slate-100,
     [data-bs-theme="dark"] .payments-references .border-slate-200,
     [data-bs-theme="dark"] .payments-references .border-slate-300 { border-color: var(--border-color) !important; }
+    [data-bs-theme="dark"] .payments-references .border-emerald-200,
+    [data-bs-theme="dark"] .payments-references .border-emerald-300 { border-color: rgba(16, 185, 129, 0.35) !important; }
     [data-bs-theme="dark"] .payments-references .text-slate-900,
     [data-bs-theme="dark"] .payments-references .text-slate-800,
     [data-bs-theme="dark"] .payments-references .text-slate-700,
     [data-bs-theme="dark"] .payments-references .text-slate-600,
     [data-bs-theme="dark"] .payments-references .text-slate-500 { color: var(--text-secondary) !important; }
+    [data-bs-theme="dark"] .payments-references .text-emerald-900,
+    [data-bs-theme="dark"] .payments-references .text-emerald-800,
+    [data-bs-theme="dark"] .payments-references .text-emerald-700 { color: #86efac !important; }
 </style>
 @endpush
 

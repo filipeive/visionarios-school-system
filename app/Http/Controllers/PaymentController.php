@@ -331,6 +331,11 @@ class PaymentController extends Controller
             ? ($student->currentEnrollment?->monthly_fee ?? $student->monthly_fee ?? 500)
             : 500;
 
+        $dueDate = Carbon::create($validated['year'], $validated['month'] ?? 1, 10);
+        if ($validated['type'] === 'mensalidade' && !empty($validated['month'])) {
+            $dueDate = Carbon::create($validated['year'], $validated['month'], 5)->addMonthNoOverflow();
+        }
+
         $payment = Payment::create([
             'reference_number' => $reference,
             'student_id' => $student->id,
@@ -339,13 +344,44 @@ class PaymentController extends Controller
             'amount' => $amount,
             'month' => $validated['month'],
             'year' => $validated['year'],
-            'due_date' => Carbon::create($validated['year'], $validated['month'] ?? 1, 10),
+            'due_date' => $dueDate,
             'status' => 'pending',
         ]);
 
         return redirect()
             ->route('payments.show', $payment)
             ->with('success', 'Referência gerada: ' . $reference);
+    }
+
+    /**
+     * Geração mensal de propinas para todas as matrículas ativas
+     * do ano letivo corrente (ou informado).
+     */
+    public function generateMonthlyFees(Request $request)
+    {
+        $validated = $request->validate([
+            'month' => 'nullable|integer|min:1|max:12',
+            'school_year' => 'nullable|integer|min:2020|max:2100',
+            'calendar_year' => 'nullable|integer|min:2020|max:2100',
+            'notify_parents' => 'nullable|boolean',
+        ]);
+
+        $result = $this->paymentService->generateMonthlyTuitionsForActiveEnrollments(
+            month: $validated['month'] ?? null,
+            schoolYear: $validated['school_year'] ?? current_school_year(),
+            calendarYear: $validated['calendar_year'] ?? (int) now()->year,
+            notifyParents: (bool) ($validated['notify_parents'] ?? true)
+        );
+
+        $message = "Propinas geradas: {$result['created']} | Já existentes: {$result['skipped']} | Notificados: {$result['notified']} | Vencimento: " . Carbon::parse($result['due_date'])->format('d/m/Y');
+
+        if (!empty($result['errors'])) {
+            $message .= ' | Falhas de notificação: ' . count($result['errors']);
+        }
+
+        return redirect()
+            ->route('payments.references')
+            ->with('success', $message);
     }
 
     /**
@@ -388,7 +424,7 @@ class PaymentController extends Controller
                         'amount' => $student->currentEnrollment?->monthly_fee ?? 500,
                         'month' => $validated['bulk_month'],
                         'year' => $validated['bulk_year'],
-                        'due_date' => Carbon::create($validated['bulk_year'], $validated['bulk_month'], 10),
+                        'due_date' => Carbon::create($validated['bulk_year'], $validated['bulk_month'], 5)->addMonthNoOverflow(),
                         'status' => 'pending',
                     ]);
 
@@ -444,7 +480,7 @@ class PaymentController extends Controller
      */
     public function reports(Request $request)
     {
-        $year = $request->get('year', date('Y'));
+        $year = $request->get('year', current_school_year());
         $month = $request->get('month');
 
         // Receita mensal
@@ -637,6 +673,18 @@ class PaymentController extends Controller
             12 => 'Dezembro'
         ];
     }
+
+    private function getPaymentTypes()
+    {
+        return [
+            'matricula' => 'Matrícula',
+            'mensalidade' => 'Mensalidade',
+            'material' => 'Material Escolar',
+            'uniforme' => 'Uniforme',
+            'outro' => 'Outro'
+        ];
+    }
+
     // ========== WEBHOOKS ==========
     public function webhookMpesa(Request $request)
     {

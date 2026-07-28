@@ -1,18 +1,17 @@
 <?php
+
 // app/Http/Controllers/GradeController.php
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreGradeRequest;
+use App\Models\ClassRoom;
 use App\Models\Grade;
 use App\Models\Student;
 use App\Models\Subject;
-use App\Models\ClassRoom;
-use App\Models\Teacher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Log;
-use Carbon\Carbon;
 
 class GradeController extends Controller
 {
@@ -58,7 +57,7 @@ class GradeController extends Controller
         $grades = $query->latest()->paginate(25);
         $subjects = Subject::active()->get();
         $classes = ClassRoom::active()->get();
-        $currentYear = date('Y');
+        $currentYear = current_school_year();
 
         return view('grades.index', compact('grades', 'subjects', 'classes', 'currentYear'));
     }
@@ -73,7 +72,7 @@ class GradeController extends Controller
         $students = Student::active()->with('currentEnrollment.class')->get();
         $subjects = Subject::active()->get();
         $classes = ClassRoom::active()->get();
-        $currentYear = date('Y');
+        $currentYear = current_school_year();
 
         return view('grades.create', compact('students', 'subjects', 'classes', 'currentYear'));
     }
@@ -81,40 +80,34 @@ class GradeController extends Controller
     /**
      * Store a newly created grade.
      */
-    public function store(Request $request)
+    public function store(StoreGradeRequest $request)
     {
         $this->authorize('create_grades');
 
-        $request->validate([
-            'student_id' => 'required|exists:students,id',
-            'subject_id' => 'required|exists:subjects,id',
-            'grade' => 'required|numeric|min:0|max:20',
-            'assessment_type' => 'required|in:test,assignment,exam,project,participation',
-            'term' => 'required|in:1,2,3',
-            'year' => 'required|integer|min:2020|max:2030',
-            'class_id' => 'required|exists:classes,id',
-            'date_recorded' => 'required|date',
-            'comments' => 'nullable|string|max:500',
-        ]);
-
         try {
+            $user = $request->user();
+
             // Verificar se o aluno está ativo
             $student = Student::findOrFail($request->student_id);
-            if ($student->status !== 'active') {
+            if (! in_array($student->status, ['active', 'pending_renewal'])) {
                 return back()->with('error', 'Não é possível atribuir nota a um aluno inativo.')->withInput();
             }
 
-            // Verificar se o professor ou admin está logado
-            $teacherId = auth()->user()->teacher?->id;
-            $adminId = auth()->user()->hasRole('admin');
-            if (!$teacherId || !$adminId) {
+            // Determinar teacher_id
+            $teacherId = $user->teacher?->id;
+            if (! $teacherId && ! $user->hasRole('admin')) {
                 return back()->with('error', 'Apenas professores podem atribuir notas.')->withInput();
             }
-            /*  if (!auth()->user()->hasRole('teacher') && !auth()->user()->hasRole('admin')) {
-                 return back()->with('error', 'Apenas professores e administradores podem atribuir notas.')->withInput();
-             } */
 
-            // Verificar se o aluno está matriculado
+            // Verificar se o aluno está matriculado na turma
+            $isEnrolled = \App\Models\Enrollment::where('student_id', $request->student_id)
+                ->where('class_id', $request->class_id)
+                ->where('status', 'active')
+                ->exists();
+
+            if (! $isEnrolled) {
+                return back()->with('error', 'O aluno não está matrículado nesta turma.')->withInput();
+            }
 
             $grade = Grade::create([
                 'student_id' => $request->student_id,
@@ -125,7 +118,7 @@ class GradeController extends Controller
                 'term' => $request->term,
                 'year' => $request->year,
                 'date_recorded' => $request->date_recorded,
-                'teacher_id' => $teacherId ? $teacherId : $adminId,
+                'teacher_id' => $teacherId,
                 'comments' => $request->comments,
             ]);
 
@@ -133,7 +126,13 @@ class GradeController extends Controller
                 ->with('success', 'Nota atribuída com sucesso!');
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Erro ao atribuir nota: ' . $e->getMessage())->withInput();
+            Log::error('Erro ao criar nota: '.$e->getMessage(), [
+                'student_id' => $request->student_id,
+                'class_id' => $request->class_id,
+                'user_id' => auth()->id(),
+            ]);
+
+            return back()->with('error', 'Erro ao atribuir nota. Contacte o administrador.')->withInput();
         }
     }
 
@@ -147,7 +146,7 @@ class GradeController extends Controller
         $classId = $request->get('class_id');
         $subjectId = $request->get('subject_id');
         $term = $request->get('term', 1);
-        $year = $request->get('year', date('Y'));
+        $year = $request->get('year', current_school_year());
         $assessmentType = $request->get('assessment_type', 'test');
 
         $classes = ClassRoom::active()->get();
@@ -196,7 +195,7 @@ class GradeController extends Controller
             'subject_id' => 'required|exists:subjects,id',
             'term' => 'required|in:1,2,3',
             'year' => 'required|integer|min:2020|max:2030',
-            'assessment_type' => 'required|in:test,assignment,exam,project,participation',
+            'assessment_type' => 'required|in:test,assignment,exam,project,participation,ACS1,ACS2,ACS3,ACP,ACF,behavioral',
             'grades' => 'required|array',
             'grades.*.student_id' => 'required|exists:students,id',
             'grades.*.grade' => 'nullable|numeric|min:0|max:20',
@@ -205,8 +204,10 @@ class GradeController extends Controller
         try {
             DB::beginTransaction();
 
-            $teacherId = auth()->user()->teacher?->id;
-            if (!$teacherId) {
+            $user = $request->user();
+            $teacherId = $user->teacher?->id;
+
+            if (! $teacherId) {
                 throw new \Exception('Apenas professores podem atribuir notas.');
             }
 
@@ -214,7 +215,7 @@ class GradeController extends Controller
             $updatedCount = 0;
 
             foreach ($request->grades as $gradeData) {
-                if (!empty($gradeData['grade'])) {
+                if (! empty($gradeData['grade'])) {
                     // Verificar se já existe uma nota para este aluno
                     $existingGrade = Grade::where('student_id', $gradeData['student_id'])
                         ->where('subject_id', $request->subject_id)
@@ -253,7 +254,7 @@ class GradeController extends Controller
 
             DB::commit();
 
-            $message = "Notas processadas com sucesso! ";
+            $message = 'Notas processadas com sucesso! ';
             $message .= "{$successCount} novas notas adicionadas, ";
             $message .= "{$updatedCount} notas atualizadas.";
 
@@ -262,7 +263,9 @@ class GradeController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->with('error', 'Erro ao processar notas: ' . $e->getMessage())->withInput();
+            Log::error('Erro ao processar notas em lote: '.$e->getMessage());
+
+            return back()->with('error', 'Erro ao processar notas. Contacte o administrador.')->withInput();
         }
     }
 
@@ -274,7 +277,8 @@ class GradeController extends Controller
         $this->authorize('edit_grades');
 
         // Verificar se o usuário pode editar esta nota
-        if (auth()->user()->hasRole('teacher') && $grade->teacher_id !== optional(auth()->user()->teacher)->id) {
+        $user = request()->user();
+        if ($user->hasRole('teacher') && $grade->teacher_id !== $user->teacher?->id) {
             return redirect()->route('grades.index')
                 ->with('error', 'Você só pode editar as suas próprias notas.');
         }
@@ -293,7 +297,8 @@ class GradeController extends Controller
         $this->authorize('edit_grades');
 
         // Verificar se o usuário pode editar esta nota
-        if (auth()->user()->hasRole('teacher') && $grade->teacher_id !== optional(auth()->user()->teacher)->id) {
+        $user = $request->user();
+        if ($user->hasRole('teacher') && $grade->teacher_id !== $user->teacher?->id) {
             return redirect()->route('grades.index')
                 ->with('error', 'Você só pode editar as suas próprias notas.');
         }
@@ -302,7 +307,7 @@ class GradeController extends Controller
             'student_id' => 'required|exists:students,id',
             'subject_id' => 'required|exists:subjects,id',
             'grade' => 'required|numeric|min:0|max:20',
-            'assessment_type' => 'required|in:test,assignment,exam,project,participation',
+            'assessment_type' => 'required|in:test,assignment,exam,project,participation,ACS1,ACS2,ACS3,ACP,ACF,behavioral',
             'term' => 'required|in:1,2,3',
             'year' => 'required|integer|min:2020|max:2030',
             'class_id' => 'required|exists:classes,id',
@@ -327,7 +332,9 @@ class GradeController extends Controller
                 ->with('success', 'Nota atualizada com sucesso!');
 
         } catch (\Exception $e) {
-            return back()->with('error', 'Erro ao atualizar nota: ' . $e->getMessage())->withInput();
+            Log::error('Erro ao atualizar nota: '.$e->getMessage());
+
+            return back()->with('error', 'Erro ao atualizar nota. Contacte o administrador.')->withInput();
         }
     }
 
@@ -340,7 +347,7 @@ class GradeController extends Controller
 
         $student->load(['grades.subject', 'currentEnrollment.class']);
 
-        $currentYear = date('Y');
+        $currentYear = current_school_year();
         $terms = [1, 2, 3];
 
         $gradesByTerm = [];
@@ -374,13 +381,13 @@ class GradeController extends Controller
 
         $class->load([
             'students.grades' => function ($query) {
-                $query->where('year', date('Y'));
+                $query->where('year', current_school_year());
             },
-            'subjects'
+            'subjects',
         ]);
 
         $terms = [1, 2, 3];
-        $currentYear = date('Y');
+        $currentYear = current_school_year();
 
         return view('grades.class-report', compact('class', 'terms', 'currentYear'));
     }
@@ -394,12 +401,12 @@ class GradeController extends Controller
 
         $subjectId = $request->get('subject_id');
         $term = $request->get('term', 1);
-        $year = $request->get('year', date('Y'));
+        $year = $request->get('year', current_school_year());
 
         $class->load([
             'students' => function ($query) {
                 $query->orderBy('first_name')->orderBy('last_name');
-            }
+            },
         ]);
 
         $subjects = $class->subjects;

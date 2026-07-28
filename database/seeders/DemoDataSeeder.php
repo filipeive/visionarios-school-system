@@ -18,19 +18,19 @@ class DemoDataSeeder extends Seeder
     {
         // Criar professores demo
         $this->createTeachers();
-        
+
         // Criar pais demo
         $this->createParents();
-        
+
         // Criar alunos demo
         $this->createStudents();
-        
+
         // Criar matrículas
         $this->createEnrollments();
-        
+
         // Criar alguns pagamentos
         $this->createPayments();
-        
+
         // Criar eventos
         $this->createEvents();
 
@@ -135,12 +135,12 @@ class DemoDataSeeder extends Seeder
         foreach ($parents as $parent) {
             // Cada pai tem 1-3 filhos
             $numberOfChildren = rand(1, 3);
-            
+
             for ($i = 0; $i < $numberOfChildren; $i++) {
                 $firstName = $firstNames[array_rand($firstNames)];
                 $lastName = $lastNames[array_rand($lastNames)];
                 $age = rand(4, 12);
-                
+
                 $student = Student::create([
                     'student_number' => 'VIS' . str_pad($studentNumber, 4, '0', STR_PAD_LEFT),
                     'first_name' => $firstName,
@@ -165,7 +165,7 @@ class DemoDataSeeder extends Seeder
     private function createEnrollments()
     {
         $students = Student::all();
-        $currentYear = date('Y');
+        $currentYear = current_school_year();
 
         foreach ($students as $student) {
             // Determinar classe baseado na idade
@@ -188,7 +188,7 @@ class DemoDataSeeder extends Seeder
 
             if ($availableClasses->count() > 0) {
                 $selectedClass = $availableClasses->random();
-                
+
                 Enrollment::create([
                     'student_id' => $student->id,
                     'class_id' => $selectedClass->id,
@@ -208,7 +208,7 @@ class DemoDataSeeder extends Seeder
     private function createPayments()
     {
         $enrollments = Enrollment::with('student')->get();
-        $currentYear = date('Y');
+        $currentYear = current_school_year();
         $currentMonth = date('n');
 
         foreach ($enrollments as $enrollment) {

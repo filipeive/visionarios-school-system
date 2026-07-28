@@ -4,7 +4,7 @@
 @section('page-title', 'Pagamento #' . $payment->reference_number)
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('payments.index') }}">Pagamentos</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('payments.index') }}" class="no-underline"><i class="fas fa-wallet me-1"></i>Pagamentos</a></li>
     <li class="breadcrumb-item active">{{ $payment->reference_number }}</li>
 @endsection
 
@@ -97,8 +97,8 @@
                         <p class="text-sm text-slate-700"><strong>Mensalidade Base:</strong> {{ number_format($payment->enrollment?->monthly_fee ?? $payment->student->monthly_fee, 2, ',', '.') }} MT</p>
                     </div>
                     <div class="mt-4 flex gap-2">
-                        <a href="{{ route('students.show', $payment->student) }}" class="rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50">Perfil Completo</a>
-                        <a href="{{ route('students.payments', $payment->student) }}" class="rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-700 hover:bg-slate-50">Historico</a>
+                        <a href="{{ route('students.show', $payment->student) }}" class="inline-flex items-center rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-user me-2"></i>Perfil Completo</a>
+                        <a href="{{ route('students.payments', $payment->student) }}" class="inline-flex items-center rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-clock-rotate-left me-2"></i>Historico</a>
                     </div>
                 </div>
             </article>
@@ -110,12 +110,12 @@
                 <div class="space-y-2 p-5">
                     @if($payment->status == 'pending' || $payment->status == 'overdue')
                         @can('process_payments')
-                            <button type="button" @click="processOpen = true" class="w-full rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Processar Pagamento</button>
+                            <button type="button" @click="processOpen = true" class="inline-flex w-full items-center justify-center rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700"><i class="fas fa-circle-check me-2"></i>Processar Pagamento</button>
                         @endcan
-                        <button type="button" @click="cancelOpen = true" class="w-full rounded-lg border border-rose-300 px-4 py-2 text-sm text-rose-700 hover:bg-rose-50">Cancelar Pagamento</button>
+                        <button type="button" @click="cancelOpen = true" class="inline-flex w-full items-center justify-center rounded-lg border border-rose-300 px-4 py-2 text-sm text-rose-700 hover:bg-rose-50"><i class="fas fa-ban me-2"></i>Cancelar Pagamento</button>
                     @endif
-                    <a href="{{ route('payments.download-reference', $payment) }}" target="_blank" class="block w-full rounded-lg border border-slate-300 px-4 py-2 text-center text-sm text-slate-700 hover:bg-slate-50">Imprimir Referencia</a>
-                    <a href="{{ route('payments.index') }}" class="block w-full rounded-lg border border-slate-300 px-4 py-2 text-center text-sm text-slate-700 hover:bg-slate-50">Voltar</a>
+                    <a href="{{ route('payments.download-reference', $payment) }}" target="_blank" class="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-center text-sm text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-print me-2"></i>Imprimir Referencia</a>
+                    <a href="{{ route('payments.index') }}" class="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 px-4 py-2 text-center text-sm text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-arrow-left me-2"></i>Voltar</a>
                 </div>
             </section>
 

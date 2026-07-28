@@ -1,6 +1,6 @@
 {{-- resources/views/grades/index.blade.php --}}
 
-@extends('layouts.school')
+@extends('layouts.app')
 
 @section('title', 'Gestão de Notas')
 @section('page-title', 'Gestão de Notas')
@@ -14,7 +14,7 @@
 <div class="row">
     <div class="col-12">
         <!-- Estatísticas Rápidas -->
-        <div class="stat-grid">
+        <div class="school-stats mb-4">
             <div class="stat-card">
                 <div class="stat-icon primary">
                     <i class="fas fa-medal"></i>
@@ -69,25 +69,25 @@
         </div>
 
         <!-- Card Principal -->
-        <div class="vision-card">
-            <div class="vision-card-header d-flex align-items-center justify-content-between">
-                <h3 class="vision-card-title">
+        <div class="school-card">
+            <div class="school-card-header d-flex align-items-center justify-content-between">
+                <h3 class="school-card-title">
                     <i class="fas fa-medal"></i>
                     Lista de Notas
                 </h3>
                 <div class="d-flex gap-2">
                     @can('create_grades')
-                    <a href="{{ route('grades.batch-create') }}" class="btn-vision btn-vision-warning">
+                    <a href="{{ route('grades.batch-create') }}" class="btn btn-school btn-warning-school">
                         <i class="fas fa-layer-group"></i> Notas em Lote
                     </a>
-                    <a href="{{ route('grades.create') }}" class="btn-vision btn-vision-primary">
+                                            <a href="{{ route('grades.create') }}" class="btn btn-school btn-primary-school">
                         <i class="fas fa-plus"></i> Nova Nota
                     </a>
                     @endcan
                 </div>
             </div>
 
-            <div class="vision-card-body">
+            <div class="school-card-body">
                 <!-- Filtros -->
                 <form method="GET" class="row g-3 mb-4">
                     <div class="col-md-2">
@@ -109,8 +109,8 @@
                         <select name="class_id" class="form-select">
                             <option value="">Todas Turmas</option>
                             @foreach($classes as $class)
-                                <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
-                                    {{ $class->name }}
+                                <option value="{{ $class?->id }}" {{ request('class_id') == $class?->id ? 'selected' : '' }}>
+                                    {{ $class?->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -125,16 +125,18 @@
                     </div>
                     <div class="col-md-2">
                         <select name="assessment_type" class="form-select">
-                            <option value="">Todos Tipos</option>
+                            <option value="ACS1" {{ request('assessment_type') == 'ACS1' ? 'selected' : '' }}>ACS 1</option>
+                            <option value="ACS2" {{ request('assessment_type') == 'ACS2' ? 'selected' : '' }}>ACS 2</option>
+                            <option value="ACS3" {{ request('assessment_type') == 'ACS3' ? 'selected' : '' }}>ACS 3</option>
+                            <option value="ACP" {{ request('assessment_type') == 'ACP' ? 'selected' : '' }}>ACP</option>
+                            <option value="ACF" {{ request('assessment_type') == 'ACF' ? 'selected' : '' }}>ACF</option>
+                            <option value="behavioral" {{ request('assessment_type') == 'behavioral' ? 'selected' : '' }}>Comportamento</option>
                             <option value="test" {{ request('assessment_type') == 'test' ? 'selected' : '' }}>Teste</option>
-                            <option value="assignment" {{ request('assessment_type') == 'assignment' ? 'selected' : '' }}>Trabalho</option>
                             <option value="exam" {{ request('assessment_type') == 'exam' ? 'selected' : '' }}>Exame</option>
-                            <option value="project" {{ request('assessment_type') == 'project' ? 'selected' : '' }}>Projeto</option>
-                            <option value="participation" {{ request('assessment_type') == 'participation' ? 'selected' : '' }}>Participação</option>
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn-vision btn-vision-primary w-100">
+                        <button type="submit" class="btn btn-school btn-primary-school w-100">
                             <i class="fas fa-filter"></i> Filtrar
                         </button>
                     </div>
@@ -142,7 +144,7 @@
 
                 <!-- Tabela de Notas -->
                 <div class="table-responsive">
-                    <table class="table table-vision table-hover">
+                    <table class="table table-school table-hover">
                         <thead>
                             <tr>
                                 <th>Aluno</th>
@@ -197,23 +199,31 @@
                                         </div>
                                     </td>
                                     <td>
-                                        @switch($grade->assessment_type)
-                                            @case('test')
-                                                <span class="badge-vision bg-info">Teste</span>
-                                                @break
-                                            @case('assignment')
-                                                <span class="badge-vision bg-warning text-dark">Trabalho</span>
-                                                @break
-                                            @case('exam')
-                                                <span class="badge-vision bg-danger">Exame</span>
-                                                @break
-                                            @case('project')
-                                                <span class="badge-vision bg-purple">Projeto</span>
-                                                @break
-                                            @case('participation')
-                                                <span class="badge-vision bg-secondary">Participação</span>
-                                                @break
-                                        @endswitch
+                                        @php
+                                            $typeLabels = [
+                                                'ACS1' => 'ACS 1',
+                                                'ACS2' => 'ACS 2',
+                                                'ACS3' => 'ACS 3',
+                                                'ACP' => 'ACP',
+                                                'ACF' => 'ACF',
+                                                'behavioral' => 'Comportamento',
+                                                'test' => 'Teste',
+                                                'exam' => 'Exame'
+                                            ];
+                                            $typeColors = [
+                                                'ACS1' => 'info',
+                                                'ACS2' => 'info',
+                                                'ACS3' => 'info',
+                                                'ACP' => 'primary',
+                                                'ACF' => 'success',
+                                                'behavioral' => 'warning',
+                                                'test' => 'secondary',
+                                                'exam' => 'danger'
+                                            ];
+                                        @endphp
+                                        <span class="badge bg-{{ $typeColors[$grade->assessment_type] ?? 'secondary' }}">
+                                            {{ $typeLabels[$grade->assessment_type] ?? $grade->assessment_type }}
+                                        </span>
                                     </td>
                                     <td>
                                         <strong>{{ $grade->term }}º Trimestre</strong>
@@ -240,7 +250,7 @@
                                             @can('delete_grades')
                                             <button type="button" class="btn btn-outline-danger" 
                                                     title="Excluir" 
-                                                    onclick="confirmDelete({{ $grade->id }}, 'Nota de {{ $grade->student->first_name }}')">
+                                                    onclick="confirmDelete({{ $grade->id }}, 'Nota de {{ addslashes($grade->student->first_name) }}')">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                             @endcan
@@ -255,7 +265,7 @@
                                             <h5>Nenhuma nota encontrada</h5>
                                             <p class="mb-3">Não foram encontradas notas com os filtros aplicados.</p>
                                             @can('create_grades')
-                                            <a href="{{ route('grades.create') }}" class="btn-vision btn-vision-primary">
+                    <a href="{{ route('grades.create') }}" class="btn btn-school btn-primary-school">
                                                 <i class="fas fa-plus me-2"></i> Cadastrar Primeira Nota
                                             </a>
                                             @endcan
@@ -303,7 +313,7 @@
                 <form id="deleteForm" method="POST">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="btn-vision btn-vision-danger">Excluir Nota</button>
+                        <button type="submit" class="btn btn-danger">Excluir Nota</button>
                 </form>
             </div>
         </div>

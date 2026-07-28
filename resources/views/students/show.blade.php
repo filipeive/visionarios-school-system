@@ -36,25 +36,24 @@
                     <p class="text-muted mb-2">{{ $student->student_number }}</p>
 
                     <div class="mb-3">
-                        <span
-                            class="badge bg-{{ $student->status === 'active' ? 'success' : ($student->status === 'inactive' ? 'danger' : 'warning') }} fs-6">
-                            @switch($student->status)
-                                @case('active')
-                                    Ativo
-                                @break
-
-                                @case('inactive')
-                                    Inativo
-                                @break
-
-                                @case('transferred')
-                                    Transferido
-                                @break
-
-                                @case('graduated')
-                                    Formado
-                                @break
-                            @endswitch
+                        @php
+                            $showStatusColors = [
+                                'active' => 'success',
+                                'inactive' => 'danger',
+                                'transferred' => 'info',
+                                'graduated' => 'success',
+                                'pending_renewal' => 'warning',
+                            ];
+                            $showStatusLabels = [
+                                'active' => 'Ativo',
+                                'inactive' => 'Inativo',
+                                'transferred' => 'Transferido',
+                                'graduated' => 'Formado',
+                                'pending_renewal' => 'Pendente Renovação',
+                            ];
+                        @endphp
+                        <span class="badge bg-{{ $showStatusColors[$student->status] ?? 'secondary' }} fs-6">
+                            {{ $showStatusLabels[$student->status] ?? ucfirst($student->status) }}
                         </span>
                     </div>
 
@@ -71,6 +70,15 @@
                                 <i class="fas fa-edit me-2"></i> Editar Perfil
                             </a>
                         @endcan
+
+                        @if($student->status === 'pending_renewal')
+                            @can('manage_enrollments')
+                                <a href="{{ route('admin.enrollments.renewals', ['search' => $student->student_number]) }}" 
+                                   class="btn btn-warning">
+                                    <i class="fas fa-sync me-2"></i> Renovar Matrícula
+                                </a>
+                            @endcan
+                        @endif
 
                         <div class="btn-group w-100">
                             <a href="{{ route('students.grades', $student) }}" class="btn btn-outline-primary">
@@ -184,7 +192,7 @@
                             <i class="fas fa-clock"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-value">{{ $student->age }}</div>
+                            <div class="stat-value">{{ $student->age ?? 'N/A' }}</div>
                             <div class="stat-label">Idade</div>
                         </div>
                     </div>
@@ -349,10 +357,27 @@
                                                 <td>{{ $enrollment->school_year }}</td>
                                                 <td>{{ $enrollment->class->name }}</td>
                                                 <td>{{ $enrollment->enrollment_date?->format('d/m/Y') ?? 'N/A' }}</td>
-                                                <td>
-                                                    <span
-                                                        class="badge bg-{{ $enrollment->status === 'active' ? 'success' : 'secondary' }}">
-                                                        {{ $enrollment->status === 'active' ? 'Ativa' : 'Inativa' }}
+                                            <td>
+                                                    @php
+                                                        $enrollStatusColors = [
+                                                            'active' => 'success',
+                                                            'pending' => 'warning',
+                                                            'completed' => 'info',
+                                                            'cancelled' => 'danger',
+                                                            'transferred' => 'secondary',
+                                                            'inactive' => 'secondary',
+                                                        ];
+                                                        $enrollStatusLabels = [
+                                                            'active' => 'Ativa',
+                                                            'pending' => 'Pendente',
+                                                            'completed' => 'Concluída',
+                                                            'cancelled' => 'Cancelada',
+                                                            'transferred' => 'Transferida',
+                                                            'inactive' => 'Inativa',
+                                                        ];
+                                                    @endphp
+                                                    <span class="badge bg-{{ $enrollStatusColors[$enrollment->status] ?? 'secondary' }}">
+                                                        {{ $enrollStatusLabels[$enrollment->status] ?? ucfirst($enrollment->status) }}
                                                     </span>
                                                 </td>
                                                 <td>{{ number_format($enrollment->monthly_fee, 2, ',', '.') }} MT</td>

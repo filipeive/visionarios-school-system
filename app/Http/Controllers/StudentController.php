@@ -25,10 +25,10 @@ class StudentController extends Controller
         // Filtros
         if ($request->filled('search')) {
             $search = $request->search;
-            $query->where(function($q) use ($search) {
+            $query->where(function ($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
-                  ->orWhere('last_name', 'like', "%{$search}%")
-                  ->orWhere('student_number', 'like', "%{$search}%");
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('student_number', 'like', "%{$search}%");
             });
         }
 
@@ -37,7 +37,7 @@ class StudentController extends Controller
         }
 
         if ($request->filled('class_id')) {
-            $query->whereHas('currentEnrollment', function($q) use ($request) {
+            $query->whereHas('currentEnrollment', function ($q) use ($request) {
                 $q->where('class_id', $request->class_id);
             });
         }
@@ -84,7 +84,7 @@ class StudentController extends Controller
             'parent_id' => 'required|exists:parents,user_id',
             'emergency_contact' => 'required|string|max:255',
             'emergency_phone' => 'required|string|max:20',
-            'medical_info' => 'nullable|string|max:1000',
+            'medical_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'monthly_fee' => 'required|numeric|min:0',
             'has_special_needs' => 'boolean',
             'special_needs_description' => 'nullable|string|max:1000',
@@ -98,15 +98,20 @@ class StudentController extends Controller
             // Gerar número do estudante
             $studentNumber = $this->generateStudentNumber();
 
-            $studentData = $request->except(['passport_photo', 'medical_info']);
+            $studentData = $request->except(['passport_photo', 'medical_certificate']);
             $studentData['student_number'] = $studentNumber;
             $studentData['registration_date'] = now();
-            $studentData['medical_certificate'] = $request->medical_info; // Ajuste para o campo correto
 
             // Upload da foto do passaporte
             if ($request->hasFile('passport_photo')) {
                 $photoPath = $request->file('passport_photo')->store('students/photos', 'public');
                 $studentData['passport_photo'] = $photoPath;
+            }
+
+            // Upload do atestado médico
+            if ($request->hasFile('medical_certificate')) {
+                $certPath = $request->file('medical_certificate')->store('students/certificates', 'public');
+                $studentData['medical_certificate'] = $certPath;
             }
 
             $student = Student::create($studentData);
@@ -116,7 +121,7 @@ class StudentController extends Controller
                 Enrollment::create([
                     'student_id' => $student->id,
                     'class_id' => $request->class_id,
-                    'school_year' => now()->year,
+                    'school_year' => current_school_year(),
                     'enrollment_date' => now(),
                     'monthly_fee' => $request->monthly_fee,
                     'status' => 'active',
@@ -144,10 +149,10 @@ class StudentController extends Controller
         $student->load([
             'enrollments.class.teacher',
             'parent.user',
-            'payments' => function($query) {
+            'payments' => function ($query) {
                 $query->latest()->take(10);
             },
-            'attendances' => function($query) {
+            'attendances' => function ($query) {
                 $query->latest()->take(20);
             },
             'grades.subject',
@@ -191,7 +196,7 @@ class StudentController extends Controller
             'parent_id' => 'required|exists:parents,user_id',
             'emergency_contact' => 'required|string|max:255',
             'emergency_phone' => 'required|string|max:20',
-            'medical_info' => 'nullable|string|max:1000',
+            'medical_certificate' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
             'monthly_fee' => 'required|numeric|min:0',
             'status' => 'required|in:active,inactive,transferred,graduated',
             'has_special_needs' => 'boolean',
@@ -203,8 +208,7 @@ class StudentController extends Controller
         try {
             DB::beginTransaction();
 
-            $studentData = $request->except(['passport_photo', 'medical_info']);
-            $studentData['medical_certificate'] = $request->medical_info;
+            $studentData = $request->except(['passport_photo', 'medical_certificate']);
 
             // Upload da nova foto
             if ($request->hasFile('passport_photo')) {
@@ -212,9 +216,20 @@ class StudentController extends Controller
                 if ($student->passport_photo) {
                     Storage::disk('public')->delete($student->passport_photo);
                 }
-                
+
                 $photoPath = $request->file('passport_photo')->store('students/photos', 'public');
                 $studentData['passport_photo'] = $photoPath;
+            }
+
+            // Upload do novo atestado médico
+            if ($request->hasFile('medical_certificate')) {
+                // Remover antigo se existir
+                if ($student->medical_certificate) {
+                    Storage::disk('public')->delete($student->medical_certificate);
+                }
+
+                $certPath = $request->file('medical_certificate')->store('students/certificates', 'public');
+                $studentData['medical_certificate'] = $certPath;
             }
 
             $student->update($studentData);
@@ -222,16 +237,16 @@ class StudentController extends Controller
             // Atualizar matrícula atual se a turma foi alterada
             if ($request->filled('class_id')) {
                 $currentEnrollment = $student->currentEnrollment;
-                
+
                 if ($currentEnrollment) {
                     if ($currentEnrollment->class_id != $request->class_id) {
                         // Transferir aluno para nova turma
                         $currentEnrollment->update(['status' => 'transferred']);
-                        
+
                         Enrollment::create([
                             'student_id' => $student->id,
                             'class_id' => $request->class_id,
-                            'school_year' => now()->year,
+                            'school_year' => current_school_year(),
                             'enrollment_date' => now(),
                             'monthly_fee' => $request->monthly_fee,
                             'status' => 'active',
@@ -245,7 +260,7 @@ class StudentController extends Controller
                     Enrollment::create([
                         'student_id' => $student->id,
                         'class_id' => $request->class_id,
-                        'school_year' => now()->year,
+                        'school_year' => current_school_year(),
                         'enrollment_date' => now(),
                         'monthly_fee' => $request->monthly_fee,
                         'status' => 'active',
@@ -352,17 +367,19 @@ class StudentController extends Controller
     /**
      * Show student attendance.
      */
-    
+
     public function attendance(Student $student)
     {
         $this->authorize('view_students');
 
         // Carregar atendances com relacionamentos
-        $student->load(['attendances' => function($query) {
-            $query->with(['class', 'markedBy'])
-                ->latest()
-                ->take(50);
-        }]);
+        $student->load([
+            'attendances' => function ($query) {
+                $query->with(['class', 'markedBy'])
+                    ->latest()
+                    ->take(50);
+            }
+        ]);
 
         $attendanceStats = $this->getAttendanceStats($student);
 
@@ -376,9 +393,11 @@ class StudentController extends Controller
     {
         $this->authorize('view_students');
 
-        $student->load(['payments' => function($query) {
-            $query->latest();
-        }]);
+        $student->load([
+            'payments' => function ($query) {
+                $query->latest();
+            }
+        ]);
 
         $paymentStats = [
             'total_paid' => $student->payments()->where('status', 'paid')->sum('amount'),
@@ -394,7 +413,7 @@ class StudentController extends Controller
      */
     private function generateStudentNumber()
     {
-        $year = date('Y');
+        $year = current_school_year();
         $lastStudent = Student::where('student_number', 'like', "VIS{$year}%")
             ->orderBy('student_number', 'desc')
             ->first();

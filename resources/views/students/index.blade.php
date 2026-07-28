@@ -69,6 +69,7 @@
                         <select name="status" class="form-select">
                             <option value="">Todos</option>
                             <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Ativos</option>
+                            <option value="pending_renewal" {{ request('status') == 'pending_renewal' ? 'selected' : '' }}>Pendente Renovação</option>
                             <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inativos</option>
                             <option value="transferred" {{ request('status') == 'transferred' ? 'selected' : '' }}>Transferidos</option>
                             <option value="graduated" {{ request('status') == 'graduated' ? 'selected' : '' }}>Formados</option>
@@ -116,12 +117,20 @@
                 <h3 class="school-table-title">
                     <i class="fas fa-list"></i>
                     Lista de Alunos
+                    <span class="badge bg-primary ms-2" style="font-size: 0.55em;">{{ $students->total() }}</span>
                 </h3>
-                @can('create_students')
-                <a href="{{ route('students.create') }}" class="btn btn-secondary-school">
-                    <i class="fas fa-plus"></i> Novo Aluno
-                </a>
-                @endcan
+                <div class="d-flex gap-2">
+                    @can('manage_enrollments')
+                    <a href="{{ route('admin.enrollments.renewals') }}" class="btn btn-outline-warning">
+                        <i class="fas fa-sync me-1"></i> Renovações
+                    </a>
+                    @endcan
+                    @can('create_students')
+                    <a href="{{ route('students.create') }}" class="btn btn-secondary-school">
+                        <i class="fas fa-plus"></i> Novo Aluno
+                    </a>
+                    @endcan
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -177,10 +186,12 @@
                                     @endif
                                 </td>
                                 <td>
-                                    {{ $age }} anos
                                     @if($student->birthdate)
+                                        {{ $student->age }} anos
                                         <br>
                                         <small class="text-muted">{{ $student->birthdate->format('d/m/Y') }}</small>
+                                    @else
+                                        <span class="text-muted">N/A</span>
                                     @endif
                                 </td>
                                 <td>
@@ -197,13 +208,24 @@
                                     @endif
                                 </td>
                                 <td>
-                                    <span class="badge bg-{{ $student->status === 'active' ? 'success' : ($student->status === 'inactive' ? 'danger' : 'warning') }}">
-                                        @switch($student->status)
-                                            @case('active') Ativo @break
-                                            @case('inactive') Inativo @break
-                                            @case('transferred') Transferido @break
-                                            @case('graduated') Formado @break
-                                        @endswitch
+                                    @php
+                                        $statusColors = [
+                                            'active' => 'success',
+                                            'inactive' => 'secondary',
+                                            'transferred' => 'info',
+                                            'graduated' => 'success',
+                                            'pending_renewal' => 'warning',
+                                        ];
+                                        $statusLabels = [
+                                            'active' => 'Ativo',
+                                            'inactive' => 'Inativo',
+                                            'transferred' => 'Transferido',
+                                            'graduated' => 'Formado',
+                                            'pending_renewal' => 'Pendente Renovação',
+                                        ];
+                                    @endphp
+                                    <span class="badge bg-{{ $statusColors[$student->status] ?? 'secondary' }}">
+                                        {{ $statusLabels[$student->status] ?? ucfirst($student->status) }}
                                     </span>
                                 </td>
                                 <td>
@@ -218,6 +240,14 @@
                                             <i class="fas fa-edit"></i>
                                         </a>
                                         @endcan
+                                        @if($student->status === 'pending_renewal')
+                                            @can('manage_enrollments')
+                                            <a href="{{ route('admin.enrollments.renewals', ['search' => $student->student_number]) }}" 
+                                               class="btn btn-sm btn-warning" title="Renovar Matrícula">
+                                                <i class="fas fa-sync"></i>
+                                            </a>
+                                            @endcan
+                                        @endif
                                         @can('delete_students')
                                         <form action="{{ route('students.destroy', $student) }}" 
                                               method="POST" class="d-inline">

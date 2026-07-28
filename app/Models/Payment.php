@@ -4,9 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
-use Carbon\Carbon;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 class Payment extends Model
 {
@@ -74,10 +73,10 @@ class Payment extends Model
     public function scopeOverdue($query)
     {
         return $query->where('status', 'overdue')
-                    ->orWhere(function($q) {
-                        $q->where('status', 'pending')
-                          ->where('due_date', '<', now());
-                    });
+            ->orWhere(function ($q) {
+                $q->where('status', 'pending')
+                    ->where('due_date', '<', now());
+            });
     }
 
     public function scopeWithPenalty($query)
@@ -94,18 +93,18 @@ class Payment extends Model
     public function getMonthNameAttribute()
     {
         $months = [
-            1 => 'Janeiro', 
-            2 => 'Fevereiro', 
+            1 => 'Janeiro',
+            2 => 'Fevereiro',
             3 => 'Março',
-            4 => 'Abril', 
-            5 => 'Maio', 
+            4 => 'Abril',
+            5 => 'Maio',
             6 => 'Junho',
-            7 => 'Julho', 
-            8 => 'Agosto', 
+            7 => 'Julho',
+            8 => 'Agosto',
             9 => 'Setembro',
-            10 => 'Outubro', 
-            11 => 'Novembro', 
-            12 => 'Dezembro'
+            10 => 'Outubro',
+            11 => 'Novembro',
+            12 => 'Dezembro',
         ];
 
         return $months[$this->month] ?? '';
@@ -116,7 +115,7 @@ class Payment extends Model
         $amount = (float) $this->amount;
         $penalty = (float) $this->penalty;
         $discount = (float) $this->discount;
-        
+
         return $amount + $penalty - $discount;
     }
 
@@ -130,27 +129,42 @@ class Payment extends Model
         if ($this->status === 'paid') {
             return 0;
         }
-        
-        return max(0, now()->diffInDays($this->due_date));
+
+        $dueDate = \Carbon\Carbon::parse($this->due_date);
+        $now = now();
+
+        if ($now->isSameDay($dueDate) || $now->isBefore($dueDate)) {
+            return 0;
+        }
+
+        return $dueDate->diffInDays($now);
     }
 
     public function getPenaltyStageAttribute()
     {
         $daysLate = $this->days_late;
-        
-        if ($daysLate >= 90) return 4; // 100% após 90 dias
-        if ($daysLate >= 60) return 3; // 50% após 60 dias
-        if ($daysLate >= 30) return 2; // 25% após 30 dias
-        if ($daysLate >= 15) return 1; // 10% após 15 dias
-        
+
+        if ($daysLate >= 90) {
+            return 4;
+        } // 100% após 90 dias
+        if ($daysLate >= 60) {
+            return 3;
+        } // 50% após 60 dias
+        if ($daysLate >= 30) {
+            return 2;
+        } // 25% após 30 dias
+        if ($daysLate >= 15) {
+            return 1;
+        } // 10% após 15 dias
+
         return 0; // Sem multa
     }
 
     public function getSuggestedPenaltyPercentageAttribute()
     {
         $stage = $this->penalty_stage;
-        
-        switch($stage) {
+
+        switch ($stage) {
             case 4: return 100; // 100% após 90 dias
             case 3: return 50;  // 50% após 60 dias
             case 2: return 25;  // 25% após 30 dias
@@ -163,7 +177,7 @@ class Payment extends Model
     {
         $amount = (float) $this->amount;
         $percentage = $this->suggested_penalty_percentage;
-        
+
         return ($amount * $percentage) / 100;
     }
 
@@ -191,11 +205,11 @@ class Payment extends Model
         $color = $statusColors[$this->status] ?? 'secondary';
         $text = $statusTexts[$this->status] ?? $this->status;
 
-        $badge = '<span class="badge bg-' . $color . '">' . $text . '</span>';
+        $badge = '<span class="badge bg-'.$color.'">'.$text.'</span>';
 
         if ($this->penalty > 0) {
             $percentage = $this->penalty_percentage ?? 0;
-            $badge .= ' <span class="badge bg-danger">Multa: ' . $percentage . '%</span>';
+            $badge .= ' <span class="badge bg-danger">Multa: '.$percentage.'%</span>';
         }
 
         if ($this->is_blocked) {
@@ -208,8 +222,8 @@ class Payment extends Model
     // Métodos
     public static function generateReference($studentId, $month, $year)
     {
-        return 'VIS' . str_pad($studentId, 4, '0', STR_PAD_LEFT) . 
-               str_pad($month, 2, '0', STR_PAD_LEFT) . 
+        return 'VIS'.str_pad($studentId, 4, '0', STR_PAD_LEFT).
+               str_pad($month, 2, '0', STR_PAD_LEFT).
                substr($year, -2);
     }
 
@@ -218,8 +232,8 @@ class Payment extends Model
      */
     public function needsPenaltyApplication()
     {
-        return $this->status === 'pending' && 
-               $this->due_date < now() && 
+        return $this->status === 'pending' &&
+               $this->due_date < now() &&
                is_null($this->penalty_applied_at) &&
                $this->days_late >= 15;
     }

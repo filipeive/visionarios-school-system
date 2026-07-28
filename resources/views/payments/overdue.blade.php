@@ -4,7 +4,7 @@
 @section('page-title', 'Pagamentos em Atraso')
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('payments.index') }}">Pagamentos</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('payments.index') }}" class="no-underline"><i class="fas fa-wallet me-1"></i>Pagamentos</a></li>
     <li class="breadcrumb-item active">Em Atraso</li>
 @endsection
 
@@ -21,8 +21,8 @@
                     <p class="text-xs text-slate-500">Gerencie pagamentos pendentes e envie lembretes.</p>
                 </div>
                 <div class="flex gap-2">
-                    <button class="rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-600" @click="sendBulkReminder()">Enviar Lembretes</button>
-                    <a href="{{ route('reports.financial.defaulters') }}" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Gerar Relatorio</a>
+                    <button class="inline-flex items-center rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-white hover:bg-amber-600" @click="sendBulkReminder()"><i class="fas fa-bell me-2"></i>Enviar Lembretes</button>
+                    <a href="{{ route('reports.financial.defaulters') }}" class="inline-flex items-center rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-file-lines me-2"></i>Gerar Relatorio</a>
                 </div>
             </div>
         </section>
@@ -69,12 +69,12 @@
                                 <td class="px-3 py-2 text-center"><span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $badgeClass }}">{{ $diasAtraso }} dias</span></td>
                                 <td class="px-3 py-2 text-center">
                                     <div class="inline-flex gap-1">
-                                        <a href="{{ route('payments.show', $payment) }}" class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Ver</a>
+                                        <a href="{{ route('payments.show', $payment) }}" class="inline-flex items-center rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-eye me-1"></i>Ver</a>
                                         @can('process_payments')
-                                            <button class="rounded-lg bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
-                                                @click="openProcessModal({{ $payment->id }}, '{{ $payment->reference_number }}', {{ $payment->total_amount }})">Processar</button>
+                                            <button class="inline-flex items-center rounded-lg bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
+                                                @click="openProcessModal({{ $payment->id }}, '{{ $payment->reference_number }}', {{ $payment->total_amount }})"><i class="fas fa-circle-check me-1"></i>Processar</button>
                                         @endcan
-                                        <button class="rounded-lg border border-amber-300 px-2 py-1 text-xs text-amber-700 hover:bg-amber-50" @click="sendReminder({{ $payment->student->id }})">Lembrete</button>
+                                        <button class="inline-flex items-center rounded-lg border border-amber-300 px-2 py-1 text-xs text-amber-700 hover:bg-amber-50" @click="sendReminder({{ $payment->student->id }})"><i class="fas fa-paper-plane me-1"></i>Lembrete</button>
                                     </div>
                                 </td>
                             </tr>
@@ -186,6 +186,15 @@ function overduePage() {
 @if($payments->count() > 0)
 document.addEventListener('DOMContentLoaded', function () {
     if (typeof Chart !== 'undefined') {
+        const classCanvas = document.getElementById('chartByClass');
+        const daysCanvas = document.getElementById('chartByDays');
+        if (!classCanvas || !daysCanvas) {
+            return;
+        }
+
+        const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+        const tickColor = isDark ? '#cbd5e1' : '#334155';
+        const gridColor = isDark ? 'rgba(148,163,184,0.25)' : 'rgba(15,23,42,0.12)';
         const byClass = @json($payments->groupBy('enrollment.class.name')->map->count());
         const byDays = {
             'Ate 30 dias': {{ $payments->filter(fn($p) => $p->due_date->diffInDays(now()) <= 30)->count() }},
@@ -193,23 +202,37 @@ document.addEventListener('DOMContentLoaded', function () {
             'Mais de 60 dias': {{ $payments->filter(fn($p) => $p->due_date->diffInDays(now()) > 60)->count() }}
         };
 
-        new Chart(document.getElementById('chartByClass'), {
+        new Chart(classCanvas, {
             type: 'doughnut',
             data: {
                 labels: Object.keys(byClass),
                 datasets: [{ data: Object.values(byClass), backgroundColor: ['#19437C', '#4BA83C', '#F9A825', '#DC3545', '#17a2b8', '#6c757d'] }]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { color: tickColor } } }
+            }
         });
 
-        new Chart(document.getElementById('chartByDays'), {
+        new Chart(daysCanvas, {
             type: 'bar',
             data: {
                 labels: Object.keys(byDays),
                 datasets: [{ label: 'Pagamentos', data: Object.values(byDays), backgroundColor: ['#F9A825', '#fd7e14', '#DC3545'] }]
             },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { ticks: { color: tickColor }, grid: { color: gridColor } },
+                    y: { ticks: { color: tickColor }, grid: { color: gridColor } }
+                }
+            }
         });
+    } else {
+        console.warn('Chart.js indisponivel para payments.overdue');
     }
 });
 @endif

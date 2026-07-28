@@ -13,6 +13,10 @@ class Kernel extends ConsoleKernel
 
     protected function schedule(Schedule $schedule)
     {
+        // Geração automática de propinas no dia 20 de cada mês
+        $schedule->command('payments:generate-monthly-fees')->monthlyOn(20, '06:00');
+
+        // Aplicação de multas em pagamentos vencidos (dia a dia)
         $schedule->command('payments:apply-penalties')->dailyAt('08:00');
     }
 

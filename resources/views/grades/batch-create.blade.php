@@ -1,6 +1,6 @@
 {{-- resources/views/grades/batch-create.blade.php --}}
 
-@extends('layouts.school')
+@extends('layouts.app')
 
 @section('title', 'Notas em Lote')
 @section('page-title', 'Notas em Lote')
@@ -14,23 +14,18 @@
 @section('content')
 <div class="row">
     <div class="col-12">
-        <div class="vision-card">
-            <div class="vision-card-header">
-                <h3 class="vision-card-title">
-                    <i class="fas fa-layer-group"></i>
-                    Atribuir Notas em Lote
+        <div class="school-card">
+            <div class="school-card-header d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <h3 class="school-card-title">
+                    <i class="fas fa-layer-group"></i> Lançamento em Lote
                 </h3>
-            </div>
-
-            <div class="vision-card-body">
-                <!-- Filtros para Seleção -->
-                <form method="GET" class="row g-3 mb-4">
+                <form action="{{ route('grades.batch-create') }}" method="GET" class="d-flex flex-wrap gap-2">
                     <div class="col-md-3">
                         <select name="class_id" class="form-select" required>
                             <option value="">Selecione a Turma</option>
                             @foreach($classes as $class)
-                                <option value="{{ $class->id }}" {{ $classId == $class->id ? 'selected' : '' }}>
-                                    {{ $class->name }} ({{ $class->grade_level }}º Ano)
+                                <option value="{{ optional($class)->id }}" {{ request('class_id') == optional($class)->id ? 'selected' : '' }}>
+                                    {{ optional($class)->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -58,11 +53,14 @@
                     </div>
                     <div class="col-md-2">
                         <select name="assessment_type" class="form-select" required>
+                            <option value="ACS1" {{ $assessmentType == 'ACS1' ? 'selected' : '' }}>ACS 1</option>
+                            <option value="ACS2" {{ $assessmentType == 'ACS2' ? 'selected' : '' }}>ACS 2</option>
+                            <option value="ACS3" {{ $assessmentType == 'ACS3' ? 'selected' : '' }}>ACS 3</option>
+                            <option value="ACP" {{ $assessmentType == 'ACP' ? 'selected' : '' }}>ACP</option>
+                            <option value="ACF" {{ $assessmentType == 'ACF' ? 'selected' : '' }}>ACF</option>
+                            <option value="behavioral" {{ $assessmentType == 'behavioral' ? 'selected' : '' }}>Comportamento</option>
                             <option value="test" {{ $assessmentType == 'test' ? 'selected' : '' }}>Teste</option>
-                            <option value="assignment" {{ $assessmentType == 'assignment' ? 'selected' : '' }}>Trabalho</option>
                             <option value="exam" {{ $assessmentType == 'exam' ? 'selected' : '' }}>Exame</option>
-                            <option value="project" {{ $assessmentType == 'project' ? 'selected' : '' }}>Projeto</option>
-                            <option value="participation" {{ $assessmentType == 'participation' ? 'selected' : '' }}>Participação</option>
                         </select>
                     </div>
                 </form>
@@ -78,7 +76,7 @@
                     <input type="hidden" name="assessment_type" value="{{ $assessmentType }}">
 
                     <div class="table-responsive">
-                        <table class="table table-vision">
+                        <table class="table table-school">
                             <thead>
                                 <tr>
                                     <th width="50">#</th>
@@ -139,7 +137,7 @@
                         <a href="{{ route('grades.index') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-2"></i> Voltar
                         </a>
-                        <button type="submit" class="btn-vision btn-vision-primary">
+                        <button type="submit" class="btn btn-school btn-primary-school">
                             <i class="fas fa-save me-2"></i> Salvar Todas as Notas
                         </button>
                     </div>

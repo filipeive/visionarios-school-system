@@ -7,9 +7,15 @@ use App\Models\EnrollmentDocument;
 use App\Models\FeeType;
 use App\Models\Student;
 use App\Models\ClassRoom;
+use App\Models\User;
+use App\Models\ParentModel;
+use App\Models\Payment;
+use App\Services\AcademicYearService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class EnrollmentApplicationController extends Controller
 {
@@ -19,7 +25,7 @@ class EnrollmentApplicationController extends Controller
     public function create()
     {
         $classes = ClassRoom::all();
-        $academicYear = 2026; // Default for next year
+        $academicYear = next_school_year(); // Default for next year
         $fees = FeeType::where('academic_year', $academicYear)->get();
 
         return view('enrollments.applications.create', compact('classes', 'academicYear', 'fees'));
@@ -36,6 +42,10 @@ class EnrollmentApplicationController extends Controller
             'student.birth_date' => 'required|date',
             'student.gender' => 'required|in:male,female',
             'student.grade_level' => 'required|string',
+            'student.address' => 'required|string|max:500',
+            'student.emergency_contact' => 'required|string|max:255',
+            'student.emergency_phone' => 'required|string|max:20',
+            'student.special_needs_description' => 'nullable|string|max:1000',
             'parent.first_name' => 'required|string|max:255',
             'parent.last_name' => 'required|string|max:255',
             'parent.phone' => 'required|string|max:20',
@@ -46,7 +56,7 @@ class EnrollmentApplicationController extends Controller
         try {
             DB::beginTransaction();
 
-            $academicYear = 2026;
+            $academicYear = next_school_year();
 
             // Calculate total fees
             $gradeLevel = $request->input('student.grade_level');
@@ -104,7 +114,7 @@ class EnrollmentApplicationController extends Controller
             abort(403, 'Acesso não autorizado.');
         }
 
-        $academicYear = 2026;
+        $academicYear = app(AcademicYearService::class)->getNextYear();
         $fees = FeeType::where('academic_year', $academicYear)->get();
 
         // Buscar dívidas pendentes
@@ -138,7 +148,7 @@ class EnrollmentApplicationController extends Controller
         try {
             DB::beginTransaction();
 
-            $academicYear = 2026;
+            $academicYear = app(AcademicYearService::class)->getNextYear();
 
             // Calculate total fees
             $gradeLevel = $student->currentClass->grade_level ?? 'primary'; // Fallback ou buscar da última matrícula
@@ -284,24 +294,88 @@ class EnrollmentApplicationController extends Controller
             DB::beginTransaction();
 
             // 1. Create or update Parent
-            $parent = \App\Models\SchoolParent::updateOrCreate(
-                ['phone' => $application->parent_data['phone']],
-                [
-                    'first_name' => $application->parent_data['first_name'],
-                    'last_name' => $application->parent_data['last_name'],
-                ]
-            );
-
-            // 2. Create Student
+            $parent = null;
             if ($application->type === 'NEW') {
+                // Check if user already exists by email
+                $user = User::where('email', $application->parent_data['email'])->first();
+
+                if (!$user) {
+                    // Create new user for parent
+                    $user = User::create([
+                        'name' => $application->parent_data['first_name'] . ' ' . $application->parent_data['last_name'],
+                        'email' => $application->parent_data['email'],
+                        'password' => Hash::make(Str::random(12)), // Random password, parent should reset it
+                        'phone' => $application->parent_data['phone'],
+                        'status' => 'active',
+                    ]);
+                    $user->assignRole('parent');
+                }
+
+                $parent = ParentModel::updateOrCreate(
+                    ['user_id' => $user->id],
+                    [
+                        'first_name' => $application->parent_data['first_name'],
+                        'last_name' => $application->parent_data['last_name'],
+                        'phone' => $application->parent_data['phone'],
+                        'email' => $application->parent_data['email'],
+                        'relationship' => $application->parent_data['relationship'] ?? 'Other',
+                    ]
+                );
+            } else {
+                $student = Student::find($application->student_id);
+                $parent = $student->parent;
+
+                // Update parent contact info if changed during renewal
+                if ($parent) {
+                    $parent->update([
+                        'phone' => $application->parent_data['phone'] ?? $parent->phone,
+                        'email' => $application->parent_data['email'] ?? $parent->email,
+                    ]);
+
+                    if ($parent->user) {
+                        $parent->user->update([
+                            'phone' => $application->parent_data['phone'] ?? $parent->user->phone,
+                            'email' => $application->parent_data['email'] ?? $parent->user->email,
+                        ]);
+                    }
+                }
+            }
+
+            // 2. Create or Update Student
+            if ($application->type === 'NEW') {
+                // Fetch document paths from EnrollmentDocument
+                $passportPhoto = EnrollmentDocument::where('application_id', $application->id)
+                    ->where('document_type', 'photo')
+                    ->first()?->file_path;
+
+                $medicalCert = EnrollmentDocument::where('application_id', $application->id)
+                    ->where('document_type', 'medical')
+                    ->first()?->file_path;
+
+                // Get dynamic monthly fee based on grade level
+                $gradeLevel = $application->student_data['grade_level'] ?? 'primary';
+                $monthlyFee = FeeType::where('academic_year', $application->academic_year)
+                    ->where('grade_level', $gradeLevel)
+                    ->where('code', 'LIKE', 'TUI_%')
+                    ->first()?->amount ?? 2300.00;
+
                 $student = Student::create([
                     'first_name' => $application->student_data['first_name'],
                     'last_name' => $application->student_data['last_name'],
-                    'birth_date' => $application->student_data['birth_date'],
+                    'birthdate' => $application->student_data['birth_date'] ?? $application->student_data['birthdate'],
                     'gender' => $application->student_data['gender'],
-                    'parent_id' => $parent->id,
+                    'parent_id' => $parent->user_id,
                     'status' => 'active',
-                    'student_number' => 'ST' . date('Y') . str_pad($application->id, 4, '0', STR_PAD_LEFT),
+                    'student_number' => 'VIS' . current_school_year() . str_pad(Student::count() + 1, 4, '0', STR_PAD_LEFT),
+                    'address' => $application->student_data['address'] ?? null,
+                    'emergency_contact' => $application->student_data['emergency_contact'] ?? null,
+                    'emergency_phone' => $application->student_data['emergency_phone'] ?? null,
+                    'has_special_needs' => $application->student_data['has_special_needs'] ?? false,
+                    'special_needs_description' => $application->student_data['special_needs_description'] ?? null,
+                    'medical_certificate' => $medicalCert ?? ($application->student_data['medical_certificate'] ?? null),
+                    'passport_photo' => $passportPhoto ?? ($application->student_data['passport_photo'] ?? null),
+                    'registration_date' => now(),
+                    'monthly_fee' => $monthlyFee,
                 ]);
             } else {
                 $student = Student::find($application->student_id);
@@ -319,13 +393,19 @@ class EnrollmentApplicationController extends Controller
             }
 
             // 3. Create Enrollment
+            $gradeLevel = $student->currentClass->grade_level ?? $application->student_data['grade_level'] ?? 'primary';
+            $monthlyFee = FeeType::where('academic_year', $application->academic_year)
+                ->where('grade_level', $gradeLevel)
+                ->where('code', 'LIKE', 'TUI_%')
+                ->first()?->amount ?? 2300.00;
+
             \App\Models\Enrollment::create([
                 'student_id' => $student->id,
                 'class_id' => $request->class_id,
                 'school_year' => $application->academic_year,
                 'enrollment_date' => now(),
                 'status' => 'active',
-                'monthly_fee' => 2300.00, // Default tuition
+                'monthly_fee' => $monthlyFee,
                 'payment_day' => 10,
             ]);
 

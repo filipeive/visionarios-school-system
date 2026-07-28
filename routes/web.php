@@ -1,32 +1,30 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\StudentController;
-use App\Http\Controllers\TeacherController;
-use App\Http\Controllers\ClassRoomController;
-use App\Http\Controllers\SubjectController;
-use App\Http\Controllers\EnrollmentController;
-use App\Http\Controllers\PaymentController;
-use App\Http\Controllers\AttendanceController;
-use App\Http\Controllers\GradeController;
-use App\Http\Controllers\EventController;
-use App\Http\Controllers\NotificationController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\AuditController;
-use App\Http\Controllers\Admin\AcademicYearController;
+use App\Http\Controllers\Admin\StudentArchiveController;
 use App\Http\Controllers\Admin\StudentPromotionController;
-use App\Http\Controllers\ParentController;
-use App\Http\Controllers\TeacherPortalController;
+use App\Http\Controllers\Admin\UserController;
+use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\ClassRoomController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DemoController;
+use App\Http\Controllers\EnrollmentController;
+use App\Http\Controllers\EventController;
+use App\Http\Controllers\GradeController;
+use App\Http\Controllers\LeaveRequestManagementController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ParentPortalController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\DemoController;
+use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentSupportController;
-use App\Http\Controllers\LeaveRequestManagementController;
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\TeacherPortalController;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
@@ -42,8 +40,8 @@ Route::get('/demo-access', [DemoController::class, 'access'])->name('demo.access
 
 // Informações públicas da escola
 Route::prefix('public')->name('public.')->group(function () {
-    Route::get('/about', fn() => view('public.about'))->name('about');
-    Route::get('/contact', fn() => view('public.contact'))->name('contact');
+    Route::get('/about', fn () => view('public.about'))->name('about');
+    Route::get('/contact', fn () => view('public.contact'))->name('contact');
     Route::get('/material-lists', [App\Http\Controllers\PublicInfoController::class, 'materialLists'])->name('material-lists');
     Route::get('/announcements', [App\Http\Controllers\PublicInfoController::class, 'announcements'])->name('announcements');
 
@@ -55,11 +53,11 @@ Route::prefix('public')->name('public.')->group(function () {
     })->name('pre-enrollment.success');
 
     // Verificação de pagamentos
-    Route::get('/payment-check', fn() => view('public.payment-check'))->name('payment-check');
+    Route::get('/payment-check', fn () => view('public.payment-check'))->name('payment-check');
     Route::post('/payment-check', function (Illuminate\Http\Request $request) {
         $payment = App\Models\Payment::where('reference_number', $request->reference)->first();
 
-        if (!$payment) {
+        if (! $payment) {
             return back()->with('error', 'Referência não encontrada.');
         }
 
@@ -73,7 +71,7 @@ Route::prefix('public')->name('public.')->group(function () {
 |--------------------------------------------------------------------------
 */
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';
 
 /*
 |--------------------------------------------------------------------------
@@ -332,6 +330,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // Rotas de geração de referências
             Route::middleware('permission:generate_payment_references')->group(function () {
                 Route::post('/generate-reference', [App\Http\Controllers\PaymentController::class, 'generateReference'])->name('generate-reference');
+                Route::post('/generate-monthly-fees', [App\Http\Controllers\PaymentController::class, 'generateMonthlyFees'])->name('generate-monthly-fees');
                 Route::get('/reference/{payment}/download', [App\Http\Controllers\PaymentController::class, 'downloadReference'])->name('download-reference');
             });
         });
@@ -359,7 +358,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
              });
          }); */
 
-
     // ========== GESTÃO DE PRESENÇAS ==========
     Route::middleware('permission:view_attendances')->prefix('attendances')->name('attendances.')->group(function () {
         // Relatórios
@@ -374,7 +372,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/class/{class}/mark', [AttendanceController::class, 'markByClass'])->name('mark-by-class');
             Route::post('/class/{class}/mark', [AttendanceController::class, 'storeMarkByClass'])->name('store-mark-by-class');
         });
-
 
         // Listagem
         Route::get('/', [AttendanceController::class, 'index'])->name('index');
@@ -649,7 +646,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             });
         });
 
-
     /*
     |--------------------------------------------------------------------------
     | Administração
@@ -673,14 +669,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
             });
 
             // Configurações do Sistema
-            Route::middleware('permission:manage_settings')
-                ->prefix('settings')
+            Route::prefix('settings')
                 ->name('settings.')
                 ->controller(SettingsController::class)
                 ->group(function () {
-                Route::get('/', 'index')->name('index');
-                Route::patch('/', 'update')->name('update');
-            });
+                    Route::get('/', 'index')->name('index');
+                    Route::patch('/', 'update')->name('update');
+                });
+
+            // Comunicações (Acesso para Admin/Secretaria sem restrição)
+            Route::get('/communications', [NotificationController::class, 'index'])->name('communications.index');
+            Route::get('/communications/create', [NotificationController::class, 'create'])->name('communications.create');
+            Route::post('/communications/send', [NotificationController::class, 'send'])->name('communications.send');
 
             // Backup
             Route::middleware('permission:backup_system')->group(function () {
@@ -701,6 +701,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // Renovação de Matrículas
             Route::get('/enrollments/renewals', [EnrollmentController::class, 'renewalIndex'])->name('enrollments.renewals');
             Route::post('/enrollments/{student}/renew', [EnrollmentController::class, 'renew'])->name('enrollments.renew');
+
+            // Estudantes Arquivados
+            Route::get('/students-archive', [StudentArchiveController::class, 'index'])->name('students-archive.index');
+            Route::get('/students-archive/{student}', [StudentArchiveController::class, 'show'])->name('students-archive.show');
+            Route::post('/students-archive/{student}/reactivate', [StudentArchiveController::class, 'reactivate'])->name('students-archive.reactivate');
 
             // Logs
             Route::middleware('permission:view_logs')->group(function () {
@@ -732,9 +737,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
             $hasNewNotifications = auth()->user()->unreadNotifications()
                 ->where('created_at', '>', now()->subMinutes(5))
                 ->exists();
+
             return response()->json([
                 'hasNewNotifications' => $hasNewNotifications,
-                'count' => auth()->user()->unreadNotifications->count()
+                'count' => auth()->user()->unreadNotifications->count(),
             ]);
         })->name('parent.notifications-check');
 
@@ -746,6 +752,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Log de erros JavaScript
         Route::post('/log-js-error', function (Illuminate\Http\Request $request) {
             Log::error('JavaScript Error', $request->all());
+
             return response()->json(['status' => 'logged']);
         })->name('log-js-error');
     });

@@ -1238,10 +1238,49 @@
             @endcanany
 
             <!-- Administração -->
-            @can('manage_users')
+            @canany(['manage_users', 'manage_enrollments', 'manage_settings'])
             <div class="nav-section">
                 <div class="nav-section-title">Administração</div>
                 <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="{{ route('admin.enrollments.renewals') }}" class="nav-link {{ request()->routeIs('admin.enrollments.renewals') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-sync-alt"></i>
+                            </span>
+                            <span class="nav-text">Renovar Matrículas</span>
+                            @php
+                                $pendingRenewals = \App\Models\Student::where('status', 'pending_renewal')->count();
+                            @endphp
+                            @if($pendingRenewals > 0)
+                                <span class="nav-badge badge-warning">{{ $pendingRenewals }}</span>
+                            @endif
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.students-archive.index') }}" class="nav-link {{ request()->routeIs('admin.students-archive.*') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-archive"></i>
+                            </span>
+                            <span class="nav-text">Estudantes Arquivados</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.promotion.index') }}" class="nav-link {{ request()->routeIs('admin.promotion.*') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-layer-group"></i>
+                            </span>
+                            <span class="nav-text">Passagem de Classe</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.communications.index') }}" class="nav-link {{ request()->routeIs('communications.*') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-bullhorn"></i>
+                            </span>
+                            <span class="nav-text">Comunicações</span>
+                        </a>
+                    </li>
+                    @can('manage_users')
                     <li class="nav-item">
                         <a href="{{ route('admin.users.index') }}" class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
                             <span class="nav-icon">
@@ -1251,9 +1290,20 @@
                             <span class="nav-badge badge-danger">Admin</span>
                         </a>
                     </li>
+                    @endcan
+                    @can('manage_settings')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.settings.index') }}" class="nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-cog"></i>
+                            </span>
+                            <span class="nav-text">Configurações</span>
+                        </a>
+                    </li>
+                    @endcan
                 </ul>
             </div>
-            @endcan
+            @endcanany
 
             <!-- Minha Conta -->
             <div class="nav-section">

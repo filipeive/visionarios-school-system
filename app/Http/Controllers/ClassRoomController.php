@@ -16,9 +16,11 @@ class ClassRoomController extends Controller
     public function index(Request $request)
     {
         $query = ClassRoom::with(['teacher'])
-            ->withCount(['enrollments as active_students_count' => function($query) {
-                $query->where('status', 'active');
-            }]);
+            ->withCount([
+                'enrollments as active_students_count' => function ($query) {
+                    $query->where('status', 'active');
+                }
+            ]);
 
         // Filtros (mantém o mesmo)
         if ($request->has('grade_level') && $request->grade_level != '') {
@@ -39,11 +41,11 @@ class ClassRoomController extends Controller
 
         $classes = $query->orderBy('grade_level')->orderBy('name')->paginate(20);
         $teachers = Teacher::active()->get();
-        $currentYear = date('Y');
+        $currentYear = current_school_year();
 
         $gradeLevels = [
             0 => 'Pré-Infantil',
-            1 => 'Pré-Escolar', 
+            1 => 'Pré-Escolar',
             2 => '1ª Classe',
             3 => '2ª Classe',
             4 => '3ª Classe',
@@ -53,8 +55,8 @@ class ClassRoomController extends Controller
         ];
 
         return view('classes.index', compact(
-            'classes', 
-            'teachers', 
+            'classes',
+            'teachers',
             'currentYear',
             'gradeLevels'
         ));
@@ -64,11 +66,11 @@ class ClassRoomController extends Controller
     {
         $teachers = Teacher::active()->get();
         $subjects = Subject::active()->get();
-        $currentYear = date('Y');
+        $currentYear = current_school_year();
 
         $gradeLevels = [
             0 => 'Pré-Infantil',
-            1 => 'Pré-Escolar', 
+            1 => 'Pré-Escolar',
             2 => '1ª Classe',
             3 => '2ª Classe',
             4 => '3ª Classe',
@@ -78,8 +80,8 @@ class ClassRoomController extends Controller
         ];
 
         return view('classes.create', compact(
-            'teachers', 
-            'subjects', 
+            'teachers',
+            'subjects',
             'currentYear',
             'gradeLevels'
         ));
@@ -139,12 +141,12 @@ class ClassRoomController extends Controller
     public function show(ClassRoom $class)
     {
         $class->load([
-            'teacher', 
-            'enrollments.student', 
+            'teacher',
+            'enrollments.student',
             'classSubjects.subject',
             'classSubjects.teacher'
         ]);
-        
+
         $stats = [
             'total_students' => $class->enrollments()->where('status', 'active')->count(),
             'capacity_percentage' => $class->capacity_percentage,
@@ -170,7 +172,7 @@ class ClassRoomController extends Controller
 
         $gradeLevels = [
             0 => 'Pré-Infantil',
-            1 => 'Pré-Escolar', 
+            1 => 'Pré-Escolar',
             2 => '1ª Classe',
             3 => '2ª Classe',
             4 => '3ª Classe',
@@ -180,8 +182,8 @@ class ClassRoomController extends Controller
         ];
 
         return view('classes.edit', compact(
-            'class', 
-            'teachers', 
+            'class',
+            'teachers',
             'subjects',
             'currentSubjectIds',
             'gradeLevels'
@@ -218,7 +220,7 @@ class ClassRoomController extends Controller
             if ($request->has('subjects')) {
                 // Remover disciplinas antigas
                 ClassSubject::where('class_id', $class->id)->delete();
-                
+
                 // Adicionar novas disciplinas
                 foreach ($request->subjects as $subjectId) {
                     ClassSubject::create([
@@ -266,10 +268,10 @@ class ClassRoomController extends Controller
 
             // Remover disciplinas associadas
             ClassSubject::where('class_id', $class->id)->delete();
-            
+
             // Remover matrículas
             $class->enrollments()->delete();
-            
+
             // Excluir turma
             $class->delete();
 
@@ -285,36 +287,38 @@ class ClassRoomController extends Controller
         }
     }
 
-   public function students(ClassRoom $class)
+    public function students(ClassRoom $class)
     {
         $students = $class->students()
-            ->with(['enrollments' => function($query) use ($class) {
-                $query->where('class_id', $class->id)
-                    ->where('status', 'active');
-            }])
+            ->with([
+                'enrollments' => function ($query) use ($class) {
+                    $query->where('class_id', $class->id)
+                        ->where('status', 'active');
+                }
+            ])
             ->get();
 
         $availableStudents = Student::active()
-            ->whereDoesntHave('enrollments', function($query) use ($class) {
+            ->whereDoesntHave('enrollments', function ($query) use ($class) {
                 $query->where('school_year', $class->school_year)
                     ->whereIn('status', ['active', 'pending']);
             })
             ->get();
 
         // Conta por gênero — normalizado (aceita “male”/“Masculino” etc.)
-        $maleCount = $students->filter(function($s) {
+        $maleCount = $students->filter(function ($s) {
             return in_array(strtolower($s->gender), ['male', 'masculino']);
         })->count();
 
-        $femaleCount = $students->filter(function($s) {
+        $femaleCount = $students->filter(function ($s) {
             return in_array(strtolower($s->gender), ['female', 'feminino']);
         })->count();
 
         return view('classes.students', compact(
-            'class', 
-            'students', 
-            'availableStudents', 
-            'maleCount', 
+            'class',
+            'students',
+            'availableStudents',
+            'maleCount',
             'femaleCount'
         ));
     }
@@ -408,15 +412,15 @@ class ClassRoomController extends Controller
     {
         $attendanceDate = request('date', today()->format('Y-m-d'));
         $students = $class->students;
-        
+
         $existingAttendance = \App\Models\Attendance::where('class_id', $class->id)
             ->whereDate('attendance_date', $attendanceDate)
             ->get()
             ->keyBy('student_id');
 
         return view('classes.attendance', compact(
-            'class', 
-            'students', 
+            'class',
+            'students',
             'attendanceDate',
             'existingAttendance'
         ));
@@ -426,7 +430,8 @@ class ClassRoomController extends Controller
     private function calculateAverageAge($class)
     {
         $students = $class->students()->get();
-        if ($students->isEmpty()) return 0;
+        if ($students->isEmpty())
+            return 0;
 
         $totalAge = 0;
         $count = 0;

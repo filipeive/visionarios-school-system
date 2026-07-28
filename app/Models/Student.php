@@ -1,11 +1,15 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Spatie\Activitylog\Traits\LogsActivity;
 use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
+/**
+ * @property \Carbon\Carbon|null $birthdate
+ */
 class Student extends Model
 {
     use HasFactory, LogsActivity;
@@ -62,11 +66,14 @@ class Student extends Model
 
     public function currentEnrollment()
     {
+        $currentYear = function_exists('current_school_year') ? current_school_year() : now()->year;
+
         return $this->hasOne(Enrollment::class)
-                    ->where('status', 'active')
-                    ->where('school_year', date('Y'));
+            ->whereIn('status', ['active', 'completed'])
+            ->where('school_year', $currentYear);
     }
-    //current class
+
+    // current class
     public function currentClass()
     {
         return optional($this->currentEnrollment)->class;
@@ -100,12 +107,17 @@ class Student extends Model
     // Scopes
     public function scopeActive($query)
     {
-        return $query->where('status', 'active');
+        return $query->whereIn('status', ['active', 'pending_renewal']);
+    }
+
+    public function scopePendingRenewal($query)
+    {
+        return $query->where('status', 'pending_renewal');
     }
 
     public function scopeByGrade($query, $grade)
     {
-        return $query->whereHas('currentEnrollment.class', function($q) use ($grade) {
+        return $query->whereHas('currentEnrollment.class', function ($q) use ($grade) {
             $q->where('grade_level', $grade);
         });
     }
@@ -113,21 +125,21 @@ class Student extends Model
     // Accessors
     public function getFullNameAttribute()
     {
-        return $this->first_name . ' ' . $this->last_name;
+        return $this->first_name.' '.$this->last_name;
     }
 
     public function getAgeAttribute()
     {
-        return $this->birthdate ? $this->birthdate->diffInYears(now()) : null;
+        return $this->birthdate ? intval(\Carbon\Carbon::parse($this->birthdate)->diffInYears(now())) : null;
     }
 
     public function getPhotoUrlAttribute()
     {
         if ($this->passport_photo) {
-            return asset('storage/' . $this->passport_photo);
+            return asset('storage/'.$this->passport_photo);
         }
-        
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->full_name) . '&background=2E7D32&color=fff';
+
+        return 'https://ui-avatars.com/api/?name='.urlencode($this->full_name).'&background=2E7D32&color=fff';
     }
 
     public function getCurrentClassAttribute()

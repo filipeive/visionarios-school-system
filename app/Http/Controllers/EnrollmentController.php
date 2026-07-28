@@ -2,50 +2,74 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Enrollment;
-use App\Models\Student;
 use App\Models\ClassRoom as SchoolClass;
+use App\Models\Enrollment;
 use App\Models\Payment;
+use App\Models\Student;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class EnrollmentController extends Controller
 {
     public function index(Request $request)
     {
+        $currentYear = current_school_year();
+        $selectedYear = $request->input('year', $currentYear);
+
         $query = Enrollment::with(['student', 'class']);
 
-        // Filtros
-        if ($request->has('status') && $request->status != '') {
+        // Filtro por ano lectivo (padrão: ano atual)
+        $query->where('school_year', $selectedYear);
+
+        // Filtros adicionais
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        if ($request->has('class_id') && $request->class_id != '') {
+        if ($request->filled('class_id')) {
             $query->where('class_id', $request->class_id);
         }
 
-        if ($request->has('year') && $request->year != '') {
-            $query->where('school_year', $request->year);
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('student', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('student_number', 'like', "%{$search}%");
+            });
         }
 
-        $enrollments = $query->latest()->paginate(20);
-        $classes = SchoolClass::all();
-        $currentYear = date('Y');
+        $enrollments = $query->latest()->paginate(20)->appends($request->query());
 
-        return view('enrollments.index', compact('enrollments', 'classes', 'currentYear'));
+        // Anos lectivos disponíveis (com matrículas registadas)
+        $availableYears = Enrollment::select('school_year')
+            ->distinct()
+            ->orderByDesc('school_year')
+            ->pluck('school_year');
+
+        // Garantir que o ano atual sempre aparece na lista
+        if (!$availableYears->contains($currentYear)) {
+            $availableYears->prepend($currentYear);
+            $availableYears = $availableYears->sortDesc()->values();
+        }
+
+        // Turmas filtradas pelo ano selecionado
+        $classes = SchoolClass::where('school_year', $selectedYear)->get();
+
+        return view('enrollments.index', compact('enrollments', 'classes', 'currentYear', 'selectedYear', 'availableYears'));
     }
 
     public function create()
     {
         // Busca alunos que não têm matrícula ativa no ano corrente
-        $students = Student::whereDoesntHave('enrollments', function($query) {
-            $query->where('school_year', date('Y'))
-                  ->whereIn('status', ['active', 'pending']);
+        $students = Student::whereDoesntHave('enrollments', function ($query) {
+            $query->where('school_year', current_school_year())
+                ->whereIn('status', ['active', 'pending']);
         })->active()->get();
 
         $classes = SchoolClass::all();
-        $currentYear = date('Y');
+        $currentYear = current_school_year();
 
         return view('enrollments.create', compact('students', 'classes', 'currentYear'));
     }
@@ -78,7 +102,7 @@ class EnrollmentController extends Controller
             }
 
             // Determina o status baseado no valor da taxa de matrícula
-           $status = $request->enrollment_fee > 0 ? Enrollment::STATUS_PENDING: Enrollment::STATUS_ACTIVE;
+            $status = $request->enrollment_fee > 0 ? Enrollment::STATUS_PENDING : Enrollment::STATUS_ACTIVE;
             // Cria a matrícula
             $enrollment = Enrollment::create([
                 'student_id' => $request->student_id,
@@ -103,7 +127,7 @@ class EnrollmentController extends Controller
                     'year' => $request->school_year,
                     'due_date' => $request->enrollment_date,
                     'status' => 'pending',
-                    'notes' => 'Taxa de matrícula - ' . ($request->observations ?: 'Matrícula ano letivo ' . $request->school_year),
+                    'notes' => 'Taxa de matrícula - '.($request->observations ?: 'Matrícula ano letivo '.$request->school_year),
                 ]);
 
                 // Se o pagamento for feito à vista, atualiza status
@@ -121,7 +145,7 @@ class EnrollmentController extends Controller
 
             DB::commit();
 
-            $message = $status == 'active' 
+            $message = $status == 'active'
                 ? 'Matrícula realizada e ativada com sucesso!'
                 : 'Matrícula realizada com sucesso! Aguardando pagamento da taxa de matrícula.';
 
@@ -130,8 +154,9 @@ class EnrollmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
-                ->with('error', 'Erro ao realizar matrícula: ' . $e->getMessage())
+                ->with('error', 'Erro ao realizar matrícula: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -139,7 +164,7 @@ class EnrollmentController extends Controller
     public function show(Enrollment $enrollment)
     {
         $enrollment->load(['student', 'class', 'payments']);
-        
+
         // Busca o pagamento da matrícula específico
         $enrollmentPayment = $enrollment->payments()
             ->where('type', 'matricula')
@@ -151,7 +176,7 @@ class EnrollmentController extends Controller
     public function edit(Enrollment $enrollment)
     {
         $classes = SchoolClass::all();
-        
+
         // Busca o pagamento da matrícula
         $enrollmentPayment = $enrollment->payments()
             ->where('type', 'matricula')
@@ -181,7 +206,7 @@ class EnrollmentController extends Controller
             ];
 
             // Se a matrícula foi cancelada ou transferida, define a data de cancelamento
-            if (in_array($request->status, ['cancelled', 'transferred']) && !$enrollment->cancellation_date) {
+            if (in_array($request->status, ['cancelled', 'transferred']) && ! $enrollment->cancellation_date) {
                 $updateData['cancellation_date'] = now();
             }
 
@@ -199,8 +224,9 @@ class EnrollmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
-                ->with('error', 'Erro ao atualizar matrícula: ' . $e->getMessage())
+                ->with('error', 'Erro ao atualizar matrícula: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -230,7 +256,7 @@ class EnrollmentController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Erro ao ativar matrícula: ' . $e->getMessage());
+                ->with('error', 'Erro ao ativar matrícula: '.$e->getMessage());
         }
     }
 
@@ -246,7 +272,7 @@ class EnrollmentController extends Controller
                 ->where('status', 'pending')
                 ->first();
 
-            if (!$enrollmentPayment) {
+            if (! $enrollmentPayment) {
                 return redirect()->back()
                     ->with('error', 'Não há taxa de matrícula pendente para confirmar.');
             }
@@ -267,8 +293,9 @@ class EnrollmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
-                ->with('error', 'Erro ao confirmar pagamento: ' . $e->getMessage());
+                ->with('error', 'Erro ao confirmar pagamento: '.$e->getMessage());
         }
     }
 
@@ -285,7 +312,7 @@ class EnrollmentController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Erro ao cancelar matrícula: ' . $e->getMessage());
+                ->with('error', 'Erro ao cancelar matrícula: '.$e->getMessage());
         }
     }
 
@@ -310,8 +337,8 @@ class EnrollmentController extends Controller
             $enrollment->update([
                 'status' => 'transferred',
                 'cancellation_date' => $request->transfer_date,
-                'observations' => ($enrollment->observations ? $enrollment->observations . "\n" : '') . 
-                                'Transferido para nova turma em ' . now()->format('d/m/Y')
+                'observations' => ($enrollment->observations ? $enrollment->observations."\n" : '').
+                    'Transferido para nova turma em '.now()->format('d/m/Y'),
             ]);
 
             // Cria nova matrícula
@@ -323,13 +350,13 @@ class EnrollmentController extends Controller
                 'monthly_fee' => $enrollment->monthly_fee,
                 'payment_day' => $enrollment->payment_day,
                 'status' => 'active', // Nova matrícula começa ativa
-                'observations' => 'Transferido da turma ' . $enrollment->class->name . ' em ' . now()->format('d/m/Y')
+                'observations' => 'Transferido da turma '.$enrollment->class->name.' em '.now()->format('d/m/Y'),
             ]);
 
             // Cria pagamento da taxa de transferência se aplicável
             if ($request->transfer_fee > 0) {
                 Payment::create([
-                    'reference_number' => Payment::generateReference($enrollment->student_id, 0, $enrollment->school_year) . 'T',
+                    'reference_number' => Payment::generateReference($enrollment->student_id, 0, $enrollment->school_year).'T',
                     'student_id' => $enrollment->student_id,
                     'enrollment_id' => $newEnrollment->id,
                     'type' => 'outro',
@@ -345,27 +372,28 @@ class EnrollmentController extends Controller
             DB::commit();
 
             return redirect()->route('enrollments.show', $newEnrollment->id)
-                ->with('success', 'Aluno transferido com sucesso!' . 
-                      ($request->transfer_fee > 0 ? ' Taxa de transferência registrada.' : ''));
+                ->with('success', 'Aluno transferido com sucesso!'.
+                    ($request->transfer_fee > 0 ? ' Taxa de transferência registrada.' : ''));
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
-                ->with('error', 'Erro ao transferir aluno: ' . $e->getMessage());
+                ->with('error', 'Erro ao transferir aluno: '.$e->getMessage());
         }
     }
 
     public function print(Enrollment $enrollment)
     {
         $enrollment->load(['student', 'class', 'payments']);
-        
+
         // Busca o pagamento da matrícula
         $enrollmentPayment = $enrollment->payments()
             ->where('type', 'matricula')
             ->first();
 
         $pdf = PDF::loadView('enrollments.print', compact('enrollment', 'enrollmentPayment'));
-        
+
         return $pdf->download("matricula-{$enrollment->student->first_name}-{$enrollment->student->last_name}-{$enrollment->school_year}.pdf");
     }
 
@@ -373,8 +401,8 @@ class EnrollmentController extends Controller
     public static function createAutomaticEnrollment($studentId, $classId, $monthlyFee = null, $enrollmentFee = null)
     {
         try {
-            $currentYear = date('Y');
-            $student = Student::find($studentId);
+            $currentYear = current_school_year();
+            $student = \App\Models\Student::find($studentId);
             $defaultFee = $monthlyFee ?? $student->monthly_fee ?? 2500.00;
             $defaultEnrollmentFee = $enrollmentFee ?? 500.00;
 
@@ -410,8 +438,102 @@ class EnrollmentController extends Controller
             return $enrollment;
 
         } catch (\Exception $e) {
-            \Log::error('Erro ao criar matrícula automática: ' . $e->getMessage());
+            \Log::error('Erro ao criar matrícula automática: '.$e->getMessage());
+
             return null;
+        }
+    }
+
+    /**
+     * Display a listing of students pending renewal.
+     */
+    public function renewalIndex(Request $request)
+    {
+        $query = Student::where('status', 'pending_renewal');
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                    ->orWhere('last_name', 'like', "%{$search}%")
+                    ->orWhere('student_number', 'like', "%{$search}%");
+            });
+        }
+
+        $students = $query->latest()->paginate(20);
+        $classes = SchoolClass::active()->get();
+
+        return view('enrollments.renewals.index', compact('students', 'classes'));
+    }
+
+    /**
+     * Process student renewal for the current academic year.
+     */
+    public function renew(Request $request, Student $student)
+    {
+        $request->validate([
+            'class_id' => 'required|exists:classes,id',
+            'monthly_fee' => 'required|numeric|min:0',
+            'payment_day' => 'required|integer|min:1|max:28',
+            'enrollment_fee' => 'nullable|numeric|min:0',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $currentYear = current_school_year();
+
+            // Verificar se já existe matrícula ativa para este ano
+            $existingEnrollment = Enrollment::where('student_id', $student->id)
+                ->where('school_year', $currentYear)
+                ->whereIn('status', ['active', 'pending'])
+                ->first();
+
+            if ($existingEnrollment) {
+                return redirect()->back()
+                    ->with('error', 'Este aluno já tem matrícula ativa para o ano letivo de '.$currentYear.'.');
+            }
+
+            // Create new enrollment
+            $enrollment = Enrollment::create([
+                'student_id' => $student->id,
+                'class_id' => $request->class_id,
+                'school_year' => $currentYear,
+                'enrollment_date' => now(),
+                'monthly_fee' => $request->monthly_fee,
+                'payment_day' => $request->payment_day,
+                'status' => ($request->enrollment_fee > 0) ? 'pending' : 'active',
+                'observations' => 'Renovação de matrícula para o ano letivo '.$currentYear,
+            ]);
+
+            // Create renewal fee payment if applicable
+            if ($request->enrollment_fee > 0) {
+                Payment::create([
+                    'reference_number' => Payment::generateReference($student->id, 0, $currentYear),
+                    'student_id' => $student->id,
+                    'enrollment_id' => $enrollment->id,
+                    'type' => 'matricula',
+                    'amount' => $request->enrollment_fee,
+                    'month' => null,
+                    'year' => $currentYear,
+                    'due_date' => now(),
+                    'status' => 'pending',
+                    'notes' => 'Taxa de renovação de matrícula - ano '.$currentYear,
+                ]);
+            }
+
+            // Update student status back to active
+            $student->update(['status' => 'active']);
+
+            DB::commit();
+
+            return redirect()->route('admin.enrollments.renewals')
+                ->with('success', "Matrícula de {$student->full_name} renovada com sucesso para o ano letivo {$currentYear}!");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()->with('error', 'Erro ao processar renovação: '.$e->getMessage());
         }
     }
 }

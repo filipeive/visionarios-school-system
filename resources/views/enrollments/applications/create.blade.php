@@ -9,7 +9,8 @@
                 <div class="school-card shadow-lg border-0">
                     <div class="school-card-header bg-primary-school text-white p-4">
                         <h2 class="mb-0"><i class="fas fa-user-plus me-2"></i> Pré-Inscrição Online - Ano Letivo
-                            {{ $academicYear }}</h2>
+                            {{ $academicYear }}
+                        </h2>
                         <p class="mb-0 mt-2 opacity-75">Preencha os dados abaixo para iniciar o processo de matrícula do seu
                             filho.</p>
                     </div>
@@ -53,8 +54,14 @@
                                         </select>
                                     </div>
                                     <div class="col-md-12">
+                                        <label class="form-label">Endereço Residencial <span
+                                                class="text-danger">*</span></label>
+                                        <textarea name="student[address]" class="form-control" rows="2" required
+                                            placeholder="Rua, Bairro, Cidade..."></textarea>
+                                    </div>
+                                    <div class="col-md-12">
                                         <label class="form-label">Necessidades Especiais?</label>
-                                        <textarea name="student[special_needs]" class="form-control" rows="2"
+                                        <textarea name="student[special_needs_description]" class="form-control" rows="2"
                                             placeholder="Se sim, descreva aqui..."></textarea>
                                     </div>
                                 </div>
@@ -91,6 +98,18 @@
                                             <option value="outro">Outro</option>
                                         </select>
                                     </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Contacto de Emergência <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" name="student[emergency_contact]" class="form-control" required
+                                            placeholder="Nome do contacto">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Telefone de Emergência <span
+                                                class="text-danger">*</span></label>
+                                        <input type="text" name="student[emergency_phone]" class="form-control" required
+                                            placeholder="Telefone do contacto">
+                                    </div>
                                 </div>
                             </div>
 
@@ -113,6 +132,10 @@
                                     <div class="col-md-6">
                                         <label class="form-label">Boletim Anterior (se aplicável)</label>
                                         <input type="file" name="documents[report_card]" class="form-control">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Atestado Médico</label>
+                                        <input type="file" name="documents[medical]" class="form-control">
                                     </div>
                                 </div>
                             </div>

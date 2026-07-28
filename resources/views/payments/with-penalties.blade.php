@@ -4,7 +4,7 @@
 @section('page-title', 'Pagamentos com Multa Aplicada')
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item"><a href="{{ route('payments.index') }}">Pagamentos</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('payments.index') }}" class="no-underline"><i class="fas fa-wallet me-1"></i>Pagamentos</a></li>
     <li class="breadcrumb-item active">Com Multa</li>
 @endsection
 
@@ -53,9 +53,9 @@
                                 </td>
                                 <td class="px-3 py-2 font-semibold text-rose-700">{{ $payment->due_date->format('d/m/Y') }}</td>
                                 <td class="px-3 py-2 text-center">
-                                    <a href="{{ route('payments.show', $payment) }}" class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Ver</a>
+                                    <a href="{{ route('payments.show', $payment) }}" class="inline-flex items-center rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 no-underline hover:bg-slate-50"><i class="fas fa-eye me-1"></i>Ver</a>
                                     @if($payment->penalty_amount > 0)
-                                        <button type="button" class="ml-1 rounded-lg border border-amber-300 px-2 py-1 text-xs text-amber-700 hover:bg-amber-50" @click="openRemovePenalty({{ $payment->id }}, '{{ $payment->reference_number }}', '{{ $payment->student->full_name }}', '{{ $payment->penalty_percentage }}', '{{ number_format($payment->penalty_amount, 2, ',', '.') }}')">Remover</button>
+                                        <button type="button" class="ml-1 inline-flex items-center rounded-lg border border-amber-300 px-2 py-1 text-xs text-amber-700 hover:bg-amber-50" @click="openRemovePenalty({{ $payment->id }}, '{{ $payment->reference_number }}', '{{ $payment->student->full_name }}', '{{ $payment->penalty_percentage }}', '{{ number_format($payment->penalty_amount, 2, ',', '.') }}')"><i class="fas fa-eraser me-1"></i>Remover</button>
                                     @endif
                                 </td>
                             </tr>

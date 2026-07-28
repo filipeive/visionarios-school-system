@@ -136,8 +136,8 @@
                     <div class="col-md-3">
                         <label class="form-label">Ano</label>
                         <select name="year" class="form-select" onchange="this.form.submit()">
-                            @for($i = date('Y') - 2; $i <= date('Y') + 1; $i++)
-                                <option value="{{ $i }}" {{ request('year', date('Y')) == $i ? 'selected' : '' }}>
+                            @for($i = current_school_year() - 2; $i <= current_school_year() + 1; $i++)
+                                <option value="{{ $i }}" {{ request('year', current_school_year()) == $i ? 'selected' : '' }}>
                                     {{ $i }}
                                 </option>
                             @endfor
@@ -426,7 +426,7 @@
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label">Ano</label>
-                                <input type="number" class="form-control" name="year" value="{{ date('Y') }}">
+                                <input type="number" class="form-control" name="year" value="{{ current_school_year() }}">
                             </div>
                         </div>
                     </div>

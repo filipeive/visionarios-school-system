@@ -5,13 +5,124 @@ namespace App\Services;
 use App\Models\Payment;
 use App\Models\Student;
 use App\Models\Enrollment;
+use App\Notifications\MonthlyFeeGeneratedNotification;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Notification;
 use Carbon\Carbon;
 
 class PaymentService
 {
+    /**
+     * Gera propinas do mês para matrículas ativas do ano letivo.
+     * Regra: vencimento sempre no dia 05 do mês seguinte ao mês de referência.
+     */
+    public function generateMonthlyTuitionsForActiveEnrollments(
+        ?int $month = null,
+        ?int $schoolYear = null,
+        ?int $calendarYear = null,
+        bool $notifyParents = true
+    ): array {
+        $month = $month ?? (int) now()->month;
+        $schoolYear = $schoolYear ?? current_school_year();
+        $calendarYear = $calendarYear ?? (int) now()->year;
+
+        $dueDate = Carbon::create($calendarYear, $month, 5)->addMonthNoOverflow()->startOfDay();
+
+        $enrollments = Enrollment::with(['student.parent.user'])
+            ->where('status', Enrollment::STATUS_ACTIVE)
+            ->where('school_year', $schoolYear)
+            ->get();
+
+        $created = 0;
+        $skipped = 0;
+        $notified = 0;
+        $errors = [];
+
+        DB::transaction(function () use (
+            $enrollments,
+            $month,
+            $schoolYear,
+            $dueDate,
+            $notifyParents,
+            &$created,
+            &$skipped,
+            &$notified,
+            &$errors
+        ) {
+            foreach ($enrollments as $enrollment) {
+                $exists = Payment::where('student_id', $enrollment->student_id)
+                    ->where('type', 'mensalidade')
+                    ->where('month', $month)
+                    ->where('year', $schoolYear)
+                    ->exists();
+
+                if ($exists) {
+                    $skipped++;
+                    continue;
+                }
+
+                $monthlyFee = (float) ($enrollment->monthly_fee ?? $enrollment->student?->monthly_fee ?? 0);
+                if ($monthlyFee <= 0) {
+                    $monthlyFee = 500;
+                }
+
+                $payment = Payment::create([
+                    'reference_number' => $this->generateReference($enrollment->student_id, $schoolYear),
+                    'student_id' => $enrollment->student_id,
+                    'enrollment_id' => $enrollment->id,
+                    'type' => 'mensalidade',
+                    'amount' => $monthlyFee,
+                    'month' => $month,
+                    'year' => $schoolYear,
+                    'due_date' => $dueDate->copy(),
+                    'status' => 'pending',
+                    'notes' => "Propina gerada automaticamente ({$month}/{$schoolYear})",
+                ]);
+
+                $created++;
+
+                if ($notifyParents) {
+                    try {
+                        $parentUser = $enrollment->student?->parent?->user;
+                        if ($parentUser) {
+                            Notification::send($parentUser, new MonthlyFeeGeneratedNotification($payment));
+                            $notified++;
+                        }
+                    } catch (\Throwable $e) {
+                        $errors[] = "Falha ao notificar encarregado do aluno #{$enrollment->student_id}: {$e->getMessage()}";
+                        Log::warning('Falha ao notificar encarregado sobre nova propina', [
+                            'student_id' => $enrollment->student_id,
+                            'payment_id' => $payment->id,
+                            'error' => $e->getMessage(),
+                        ]);
+                    }
+                }
+            }
+        });
+
+        Log::info('Geração mensal de propinas executada', [
+            'month' => $month,
+            'school_year' => $schoolYear,
+            'due_date' => $dueDate->toDateString(),
+            'created' => $created,
+            'skipped' => $skipped,
+            'notified' => $notified,
+            'errors' => count($errors),
+        ]);
+
+        return [
+            'month' => $month,
+            'school_year' => $schoolYear,
+            'due_date' => $dueDate->toDateString(),
+            'created' => $created,
+            'skipped' => $skipped,
+            'notified' => $notified,
+            'errors' => $errors,
+        ];
+    }
+
     /**
      * Iniciar pagamento via gateway móvel (Simulação)
      */
@@ -214,7 +325,7 @@ class PaymentService
      */
     public function getStatistics(int $year = null): array
     {
-        $year = $year ?? date('Y');
+        $year = $year ?? current_school_year();
 
         return [
             'total_year' => Payment::where('status', 'paid')

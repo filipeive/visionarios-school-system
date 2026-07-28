@@ -9,7 +9,7 @@ class PublicInfoController extends Controller
 {
     public function materialLists()
     {
-        $materialLists = MaterialList::where('academic_year', 2026)->get();
+        $materialLists = MaterialList::where('academic_year', next_school_year())->get();
         return view('public.material-lists', compact('materialLists'));
     }
 
