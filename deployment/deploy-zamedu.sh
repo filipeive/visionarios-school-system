@@ -98,7 +98,7 @@ php artisan db:seed --force
 # Otimizar caches Laravel
 echo "⚡ Otimizando caches..."
 php artisan config:cache
-php artisan route:cache
+php artisan route:clear
 php artisan view:cache
 php artisan event:cache
 
