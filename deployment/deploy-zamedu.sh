@@ -102,46 +102,8 @@ php artisan route:cache
 php artisan view:cache
 php artisan event:cache
 
-# Backup da config do nginx se existir
-if [ -f "/etc/nginx/sites-available/zamedu" ]; then
-    sudo cp /etc/nginx/sites-available/zamedu /etc/nginx/sites-available/zamedu.bak.$(date +%F_%H%M%S)
-fi
-
-# Configurar Nginx para o ZamEdu
-echo "🌐 Configurando Nginx para zamedu..."
-sudo bash -c 'cat > /etc/nginx/sites-available/zamedu << "NGINXCONF"
-server {
-    listen 80;
-    server_name 146.235.224.99;
-
-    root /var/www/zamedu/public;
-    index index.php index.html;
-
-    charset utf-8;
-
-    location / {
-        try_files $uri $uri/ /index.php?$query_string;
-    }
-
-    location = /favicon.ico { access_log off; log_not_found off; }
-    location = /robots.txt  { access_log off; log_not_found off; }
-
-    error_page 404 /index.php;
-
-    location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.3-fpm.sock;
-        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
-        include fastcgi_params;
-    }
-
-    location ~ /\.(?!well-known).* {
-        deny all;
-    }
-}
-NGINXCONF'
-
-# Ativar o site no Nginx se não estiver ativado
-sudo ln -sf /etc/nginx/sites-available/zamedu /etc/nginx/sites-enabled/zamedu
+# Recarregar Nginx com segurança se necessário
+echo "🌐 Recarregando Nginx..."
 sudo nginx -t
 sudo systemctl reload nginx
 
