@@ -67,7 +67,7 @@ APP_NAME="ZamEdu - SIGE"
 APP_ENV=production
 APP_KEY=base64:3WAeZowb2U8CefDgtdfbzeD0TIvaUrphK94tbxIblhc=
 APP_DEBUG=false
-APP_URL=http://146.235.224.99
+APP_URL=http://146.235.224.99/zamedu
 
 LOG_CHANNEL=stack
 LOG_DEPRECATIONS_CHANNEL=null
