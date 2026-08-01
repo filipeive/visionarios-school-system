@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Visionários School') }} - @yield('title', 'Gestão Escolar Inteligente')</title>
+    <title>{{ setting('school_name', config('app.name', 'ZamEdu')) }} - @yield('title', 'Gestão Escolar Inteligente')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- Bootstrap CSS -->
@@ -18,9 +18,9 @@
 
     <style>
         :root {
-            /* Cores da Escola dos Visionários */
-            --primary-navy: #0A2463;      /* Azul Marinho */
-            --primary-ocean: #0077B6;     /* Azul Oceano */
+            /* Cores Dinâmicas da Escola */
+            --primary-navy: {{ setting('primary_color', '#0A2463') }};      /* Azul Marinho */
+            --primary-ocean: {{ setting('secondary_color', '#0077B6') }};     /* Azul Oceano */
             --accent-sun: #FFB800;        /* Amarelo Sol */
             --accent-green: #00A878;      /* Verde */
             --accent-teal: #00B4D8;       /* Azul Claro */
@@ -1096,7 +1096,7 @@
                     <i class="fas fa-graduation-cap"></i>
                 </div>
                 <div class="brand-text">
-                    <div class="brand-name">VISIONÁRIOS</div>
+                    <div class="brand-name">{{ strtoupper(setting('school_short_name', 'ZamEdu')) }}</div>
                     <div class="brand-subtitle">Sistema Escolar</div>
                 </div>
             </a>
@@ -1238,7 +1238,7 @@
             @endcanany
 
             <!-- Administração -->
-            @canany(['manage_users', 'manage_enrollments', 'manage_settings'])
+            @canany(['manage_users', 'manage_enrollments', 'manage_settings', 'backup_system', 'view_audit_logs', 'view_logs'])
             <div class="nav-section">
                 <div class="nav-section-title">Administração</div>
                 <ul class="nav-list">
@@ -1290,6 +1290,22 @@
                             <span class="nav-badge badge-danger">Admin</span>
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.license') }}" class="nav-link {{ request()->routeIs('admin.license') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-key"></i>
+                            </span>
+                            <span class="nav-text">Licença do Sistema</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('admin.academic-years.index') }}" class="nav-link {{ request()->routeIs('admin.academic-years.*') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                            <span class="nav-text">Ano Lectivo & Transição</span>
+                        </a>
+                    </li>
                     @endcan
                     @can('manage_settings')
                     <li class="nav-item">
@@ -1298,6 +1314,36 @@
                                 <i class="fas fa-cog"></i>
                             </span>
                             <span class="nav-text">Configurações</span>
+                        </a>
+                    </li>
+                    @endcan
+                    @can('backup_system')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.backup') }}" class="nav-link {{ request()->routeIs('admin.backup') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-database"></i>
+                            </span>
+                            <span class="nav-text">Backup do Sistema</span>
+                        </a>
+                    </li>
+                    @endcan
+                    @can('view_audit_logs')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.audit.index') }}" class="nav-link {{ request()->routeIs('admin.audit.index') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </span>
+                            <span class="nav-text">Registo de Auditoria</span>
+                        </a>
+                    </li>
+                    @endcan
+                    @can('view_logs')
+                    <li class="nav-item">
+                        <a href="{{ route('admin.logs') }}" class="nav-link {{ request()->routeIs('admin.logs') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </span>
+                            <span class="nav-text">Logs do Sistema</span>
                         </a>
                     </li>
                     @endcan
@@ -1315,6 +1361,20 @@
                                 <i class="fas fa-user-cog"></i>
                             </span>
                             <span class="nav-text">Meu Perfil</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('notifications.index') }}" class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-bell"></i>
+                            </span>
+                            <span class="nav-text">Notificações</span>
+                            @php
+                                $unreadNotifs = auth()->user()->unreadNotifications->count();
+                            @endphp
+                            @if ($unreadNotifs > 0)
+                                <span class="nav-badge badge-danger">{{ $unreadNotifs }}</span>
+                            @endif
                         </a>
                     </li>
                 </ul>
@@ -1423,27 +1483,7 @@
                 </ol>
             </nav>
 
-            <!-- Alertas -->
-            @if(session('success'))
-                <div class="alert-vision alert-vision-success alert-dismissible fade show">
-                    <i class="fas fa-check-circle"></i>
-                    <div class="flex-grow-1">
-                        <strong>Sucesso!</strong> {{ session('success') }}
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if(session('error'))
-                <div class="alert-vision alert-vision-danger alert-dismissible fade show">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <div class="flex-grow-1">
-                        <strong>Erro!</strong> {{ session('error') }}
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
+            <!-- Erros de Validação (mantidos inline) -->
             @if($errors->any())
                 <div class="alert-vision alert-vision-danger alert-dismissible fade show">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -1452,6 +1492,26 @@
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                 </div>
+            @endif
+
+            <!-- Toasts automáticos para mensagens de sessão -->
+            @if (session('success') || session('error') || session('warning') || session('info'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        @if (session('success'))
+                            showToast(@json(session('success')), 'success');
+                        @endif
+                        @if (session('error'))
+                            showToast(@json(session('error')), 'error');
+                        @endif
+                        @if (session('warning'))
+                            showToast(@json(session('warning')), 'warning');
+                        @endif
+                        @if (session('info'))
+                            showToast(@json(session('info')), 'info');
+                        @endif
+                    });
+                </script>
             @endif
 
             <!-- Conteúdo da Página -->
@@ -1538,16 +1598,28 @@
                 });
             }, 5000);
             
-            console.log('🎓 Visionários School System inicializado');
+            console.log('🎓 ZamEdu School System inicializado');
         });
 
         // ===== FUNÇÕES GLOBAIS =====
         function showToast(message, type = 'success') {
+            const colorMap = {
+                success: 'text-bg-success',
+                error: 'text-bg-danger',
+                warning: 'text-bg-warning',
+                info: 'text-bg-primary'
+            };
+            const iconMap = {
+                success: 'check-circle',
+                error: 'exclamation-circle',
+                warning: 'exclamation-triangle',
+                info: 'info-circle'
+            };
             const toastHtml = `
-                <div class="toast align-items-center text-bg-${type} border-0" role="alert">
+                <div class="toast align-items-center ${colorMap[type] || 'text-bg-success'} border-0" role="alert">
                     <div class="d-flex">
                         <div class="toast-body">
-                            <i class="fas fa-${type === 'success' ? 'check' : 'exclamation'}-circle me-2"></i>
+                            <i class="fas fa-${iconMap[type] || 'check-circle'} me-2"></i>
                             ${message}
                         </div>
                         <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
@@ -1567,12 +1639,20 @@
             });
         }
 
-        // API Global
-        window.Visionarios = {
+        // ===== MODAL DE CONFIRMAÇÃO =====
+        let _confirmCallback = null;
+        function confirmAction(message, callback, options = {}) {
+            if (confirm(message)) callback();
+        }
+
+        // API Global (ZamEdu)
+        window.ZamEdu = {
             showToast,
+            confirmAction,
             toggleSidebar,
             toggleTheme
         };
+        window.Visionarios = window.ZamEdu;
     </script>
 
     @stack('scripts')

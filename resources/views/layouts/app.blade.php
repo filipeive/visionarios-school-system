@@ -6,7 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Sistema Visionários') }} - @yield('title', 'Gestão Escolar')</title>
+    <title>{{ setting('school_name', config('app.name', 'ZamEdu')) }} - @yield('title', 'Gestão Escolar')</title>
+    
+    <!-- PWA & Mobile Optimization -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#4F46E5">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="ZamEdu">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- Bootstrap CSS -->
@@ -19,71 +28,125 @@
         rel="stylesheet">
 
     <style>
-        :root {
-            /* Cores baseadas no logo da "Escola dos Visionários" */
+        {!! \App\Helpers\ThemeHelper::getCssVariables() !!}
 
-            /* 1. Azul do Livro */
-            --primary: #19437C;
-            /* Azul Escuro (Livro) - Profissional e Confiável */
-            --primary-dark: #103058;
-            /* Azul mais escuro para hover/bordas */
-            --primary-light: #3669A7;
-            /* Azul mais claro para toques sutis */
-
-            /* 2. Verde do Globo */
-            --secondary: #4BA83C;
-            /* Verde Vibrante (Globo) - Crescimento e Renovação */
-            --secondary-dark: #377E2A;
-            /* Verde mais escuro */
-
-            /* 3. Laranja/Amarelo do Sol */
-            --accent: #F9A825;
-            /* Amarelo/Laranja Dourado (Raio de Sol) - Energia e Otimismo */
-
-            /* Cores de Status - Harmonizadas */
-            --success: #4BA83C;
-            /* Verde (igual ao --secondary) */
-            --warning: #F9A825;
-            /* Amarelo/Laranja (igual ao --accent) */
-            --danger: #DC3545;
-            /* Vermelho padrão, profissional e claro */
-            --info: #3669A7;
-            /* Azul informação (igual ao --primary-light) */
-
-            /* Fundo da Barra Lateral (Sidebar) */
-            --sidebar-bg: linear-gradient(180deg, #19437C 0%, #103058 100%);
-            --sidebar-text: #FFFFFF;
-            --sidebar-text-muted: rgba(255, 255, 255, 0.75);
-            --sidebar-active: rgba(255, 255, 255, 0.1);
-            --sidebar-hover: rgba(255, 255, 255, 0.06);
-
-            /* Cores de Conteúdo e Texto */
-            --content-bg: #f7fafc;
-            --card-bg: #FFFFFF;
-            --border-color: #e2e8f0;
-            --text-primary: #1a202c;
-            --text-secondary: #4a5568;
-            --text-muted: #718096;
-
-            /* Tamanhos (Mantidos) */
-            --sidebar-width: 260px;
-            --sidebar-collapsed-width: 65px;
-            --header-height: 65px;
-            --border-radius: 10px;
-            --shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-            --shadow-lg: 0 4px 20px rgba(0, 0, 0, 0.1);
+        /* ===== DARK MODE COMPLETE HARMONIZATION ===== */
+        [data-bs-theme="dark"] body,
+        [data-bs-theme="dark"] .main-content,
+        [data-bs-theme="dark"] .admin-dashboard,
+        [data-bs-theme="dark"] .bg-\[\#F4F6FA\] {
+            background-color: var(--content-bg) !important;
+            color: var(--text-primary) !important;
         }
 
-        [data-bs-theme="dark"] {
-            /* Ajustes para o Modo Escuro */
-            --content-bg: #0F1A2B;
-            /* Fundo escuro baseado no primary-dark */
-            --card-bg: #1A2E4B;
-            /* Cartões em tom de azul escuro */
-            --border-color: #334155;
-            --text-primary: #f1f5f9;
-            --text-secondary: #cbd5e1;
-            --text-muted: #64748b;
+        [data-bs-theme="dark"] .bg-white,
+        [data-bs-theme="dark"] .school-card {
+            background-color: var(--card-bg) !important;
+            border-color: var(--border-color) !important;
+            color: var(--text-primary) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        [data-bs-theme="dark"] .bg-slate-50,
+        [data-bs-theme="dark"] .bg-slate-50\/50,
+        [data-bs-theme="dark"] .bg-slate-50\/70,
+        [data-bs-theme="dark"] .bg-slate-50\/80,
+        [data-bs-theme="dark"] .bg-slate-100 {
+            background-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        [data-bs-theme="dark"] .text-slate-900,
+        [data-bs-theme="dark"] .text-slate-800,
+        [data-bs-theme="dark"] .text-slate-700 {
+            color: var(--text-primary) !important;
+        }
+
+        [data-bs-theme="dark"] .text-slate-600,
+        [data-bs-theme="dark"] .text-slate-500,
+        [data-bs-theme="dark"] .text-slate-400 {
+            color: var(--text-muted) !important;
+        }
+
+        [data-bs-theme="dark"] .border-slate-100,
+        [data-bs-theme="dark"] .border-slate-200,
+        [data-bs-theme="dark"] .border-slate-200\/80,
+        [data-bs-theme="dark"] .border-slate-300,
+        [data-bs-theme="dark"] .divide-slate-200 > :not([hidden]) ~ :not([hidden]) {
+            border-color: var(--border-color) !important;
+        }
+
+        [data-bs-theme="dark"] .hover\:bg-slate-200\/60:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        [data-bs-theme="dark"] .bg-slate-800 {
+            background-color: var(--primary) !important;
+            color: #ffffff !important;
+        }
+
+        [data-bs-theme="dark"] .bg-slate-800:hover {
+            background-color: var(--primary-dark) !important;
+        }
+
+        /* Success and Error Alerts in Settings (Dark Mode Harmonization) */
+        [data-bs-theme="dark"] .bg-emerald-50 {
+            background-color: rgba(16, 185, 129, 0.15) !important;
+        }
+        [data-bs-theme="dark"] .text-emerald-900 {
+            color: #A7F3D0 !important;
+        }
+        [data-bs-theme="dark"] .bg-rose-50 {
+            background-color: rgba(244, 63, 94, 0.15) !important;
+        }
+        [data-bs-theme="dark"] .text-rose-900 {
+            color: #FECDD3 !important;
+        }
+
+        /* Badges settings Page in Dark Mode */
+        [data-bs-theme="dark"] .bg-emerald-50 { background-color: rgba(16, 185, 129, 0.15) !important; }
+        [data-bs-theme="dark"] .text-emerald-700 { color: #34D399 !important; }
+        
+        [data-bs-theme="dark"] .bg-blue-50 { background-color: rgba(59, 130, 246, 0.15) !important; }
+        [data-bs-theme="dark"] .text-blue-700 { color: #60A5FA !important; }
+        
+        [data-bs-theme="dark"] .bg-purple-50 { background-color: rgba(139, 92, 246, 0.15) !important; }
+        [data-bs-theme="dark"] .text-purple-700 { color: #A78BFA !important; }
+        
+        [data-bs-theme="dark"] .bg-amber-50 { background-color: rgba(245, 158, 11, 0.15) !important; }
+        [data-bs-theme="dark"] .text-amber-700 { color: #FBBF24 !important; }
+        
+        [data-bs-theme="dark"] .bg-teal-50 { background-color: rgba(20, 184, 166, 0.15) !important; }
+        [data-bs-theme="dark"] .text-teal-700 { color: #2DD4BF !important; }
+        
+        [data-bs-theme="dark"] .bg-indigo-50 { background-color: rgba(99, 102, 241, 0.15) !important; }
+        [data-bs-theme="dark"] .text-indigo-700 { color: #818CF8 !important; }
+
+        [data-bs-theme="dark"] input,
+        [data-bs-theme="dark"] select,
+        [data-bs-theme="dark"] textarea {
+            background-color: var(--input-bg) !important;
+            color: var(--text-primary) !important;
+            border-color: var(--input-border) !important;
+        }
+
+        [data-bs-theme="dark"] .school-sidebar,
+        [data-bs-theme="dark"] .school-header,
+        [data-bs-theme="dark"] .main-header {
+            background-color: var(--sidebar-bg) !important;
+            border-color: var(--border-color) !important;
+        }
+
+        [data-bs-theme="dark"] .table {
+            color: var(--text-primary) !important;
+        }
+
+        [data-bs-theme="dark"] .table thead {
+            background-color: rgba(255, 255, 255, 0.04) !important;
+        }
+
+        [data-bs-theme="dark"] .table td,
+        [data-bs-theme="dark"] .table th {
+            border-color: var(--border-color) !important;
         }
 
         * {
@@ -102,7 +165,7 @@
             overflow-x: hidden;
         }
 
-        /* ===== SIDEBAR ESCOLAR ===== */
+        /* ===== SIDEBAR ESCOLAR - MOPHY HARMONIZED UI ===== */
         .school-sidebar {
             position: fixed;
             top: 0;
@@ -110,9 +173,10 @@
             width: var(--sidebar-width);
             height: 100vh;
             background: var(--sidebar-bg);
+            border-right: 1px solid var(--border-color);
             z-index: 1040;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.02);
             display: flex;
             flex-direction: column;
         }
@@ -121,38 +185,32 @@
             width: var(--sidebar-collapsed-width);
         }
 
-        /* Header da Escola - Reduzido */
+        /* Header da Escola - MOPHY Harmonized */
         .school-header {
             height: var(--header-height);
             padding: 15px 18px;
-            /* Reduzido */
             display: flex;
             align-items: center;
-            background: rgba(0, 0, 0, 0.15);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border-color);
         }
 
         .school-logo {
             width: 42px;
-            /* Reduzido */
             height: 42px;
-            /* Reduzido */
-            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
-            border-radius: 12px;
-            /* Reduzido */
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 12px;
-            /* Reduzido */
             flex-shrink: 0;
-            box-shadow: 0 3px 12px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
         }
 
         .school-logo i {
             color: white;
             font-size: 20px;
-            /* Reduzido */
         }
 
         .school-brand {
@@ -168,64 +226,56 @@
         }
 
         .school-name {
-            font-size: 16px;
-            /* Reduzido */
-            font-weight: 700;
-            color: var(--sidebar-text);
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--text-primary);
             margin: 0;
             font-family: 'Poppins', sans-serif;
         }
 
         .school-subtitle {
             font-size: 11px;
-            /* Reduzido */
             color: var(--sidebar-text-muted);
-            font-weight: 500;
+            font-weight: 600;
             margin-top: 1px;
         }
 
         .sidebar-toggle {
             width: 32px;
-            /* Reduzido */
             height: 32px;
-            /* Reduzido */
-            border: none;
-            background: rgba(255, 255, 255, 0.12);
-            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--sidebar-hover);
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--sidebar-text);
+            color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.3s ease;
             margin-left: 8px;
-            /* Reduzido */
         }
 
         .sidebar-toggle:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: var(--border-color);
+            color: var(--text-primary);
             transform: scale(1.05);
         }
 
-        /* Navegação Escolar - Reduzida */
+        /* Navegação Escolar MOPHY */
         .school-nav {
             flex: 1;
             overflow-y: auto;
             padding: 15px 0;
-            /* Reduzido */
         }
 
         .nav-section {
             margin-bottom: 20px;
-            /* Reduzido */
         }
 
         .nav-section-title {
-            padding: 0 18px 10px;
-            /* Reduzido */
+            padding: 0 22px 10px;
             font-size: 10px;
-            /* Reduzido */
-            font-weight: 600;
+            font-weight: 700;
             color: var(--sidebar-text-muted);
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -246,46 +296,44 @@
         }
 
         .nav-item {
-            margin-bottom: 3px;
-            /* Reduzido */
+            margin-bottom: 4px;
         }
 
         .nav-link {
             display: flex;
             align-items: center;
-            padding: 12px 18px;
-            /* Reduzido */
+            padding: 10px 16px;
+            margin: 0 12px;
+            border-radius: 14px;
             color: var(--sidebar-text);
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
             position: relative;
-            min-height: 44px;
-            /* Reduzido */
-            font-weight: 500;
+            min-height: 42px;
+            font-weight: 600;
         }
 
         .school-sidebar.collapsed .nav-link {
             justify-content: center;
-            padding: 12px;
+            padding: 10px;
+            margin: 0 6px;
         }
 
         .nav-link:hover {
             background: var(--sidebar-hover);
-            color: var(--sidebar-text);
-            padding-left: 22px;
-            /* Reduzido */
+            color: var(--text-primary);
+            padding-left: 16px;
         }
 
         .school-sidebar.collapsed .nav-link:hover {
-            padding: 12px;
+            padding: 10px;
         }
 
         .nav-link.active {
-            background: var(--sidebar-active);
-            color: var(--sidebar-text);
-            border-right: 3px solid var(--secondary);
-            /* Reduzido */
-            font-weight: 600;
+            background: var(--sidebar-active-bg);
+            color: var(--sidebar-active-text);
+            font-weight: 800;
+            border-right: none;
         }
 
         .nav-icon {
@@ -360,45 +408,38 @@
             color: white;
         }
 
-        /* Área do Usuário - Reduzida */
+        /* Área do Usuário - MOPHY Light UI */
         .user-area {
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-top: 1px solid #5ee8e0ff;
             padding: 15px 18px;
-            /* Reduzido */
-            background: rgba(0, 0, 0, 0.15);
+            background: #ffffffff;
         }
 
         .user-profile {
             display: flex;
             align-items: center;
             margin-bottom: 12px;
-            /* Reduzido */
         }
 
         .school-sidebar.collapsed .user-profile {
             justify-content: center;
             margin-bottom: 8px;
-            /* Reduzido */
         }
 
         .user-avatar {
             width: 40px;
-            /* Reduzido */
             height: 40px;
-            /* Reduzido */
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            background: linear-gradient(135deg, #10B981, #047857);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 10px;
-            /* Reduzido */
-            font-size: 16px;
-            /* Reduzido */
-            font-weight: 700;
+            font-size: 15px;
+            font-weight: 800;
             flex-shrink: 0;
-            box-shadow: 0 3px 12px rgba(212, 175, 55, 0.3);
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.25);
         }
 
         .school-sidebar.collapsed .user-avatar {
@@ -418,50 +459,44 @@
 
         .user-name {
             font-size: 13px;
-            /* Reduzido */
-            font-weight: 600;
-            color: var(--sidebar-text);
+            font-weight: 700;
+            color: #0f172a;
             margin-bottom: 1px;
         }
 
         .user-role {
             font-size: 11px;
-            /* Reduzido */
-            color: var(--sidebar-text-muted);
-            font-weight: 500;
+            color: #64748b;
+            font-weight: 600;
         }
 
         .logout-btn {
             width: 100%;
-            padding: 10px 12px;
-            /* Reduzido */
+            padding: 9px 12px;
             border: none;
-            background: rgba(229, 62, 62, 0.9);
-            color: white;
-            border-radius: var(--border-radius);
+            background: #fef2f2;
+            color: #ef4444;
+            border-radius: 12px;
             font-size: 12px;
-            /* Reduzido */
-            font-weight: 500;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.25s ease;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
         .school-sidebar.collapsed .logout-btn {
-            padding: 10px;
+            padding: 9px;
         }
 
         .logout-btn:hover {
-            background: var(--danger);
-            transform: translateY(-1px);
-            box-shadow: 0 3px 12px rgba(229, 62, 62, 0.3);
+            background: #fee2e2;
+            color: #dc2626;
         }
 
         .logout-text {
             margin-left: 6px;
-            /* Reduzido */
             transition: all 0.3s ease;
         }
 
@@ -487,20 +522,19 @@
             margin-left: 0;
         }
 
-        /* Header Principal - Reduzido */
+        /* Header Principal - MOPHY Light UI */
         .main-header {
             height: var(--header-height);
-            background: var(--card-bg);
-            border-bottom: 1px solid var(--border-color);
-            padding: 0 25px;
-            /* Reduzido */
+            background: #ffffff;
+            border-bottom: 1px solid #f1f5f9;
+            padding: 0 28px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
             z-index: 1030;
-            box-shadow: var(--shadow);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
         }
 
         .header-left {
@@ -510,32 +544,28 @@
 
         .mobile-menu-btn {
             width: 40px;
-            /* Reduzido */
             height: 40px;
-            /* Reduzido */
-            border: 1px solid var(--border-color);
-            background: var(--card-bg);
-            border-radius: var(--border-radius);
+            border: 1px solid #f1f5f9;
+            background: #ffffff;
+            border-radius: 12px;
             display: none;
             align-items: center;
             justify-content: center;
             margin-right: 12px;
-            /* Reduzido */
-            color: var(--text-secondary);
+            color: #475569;
             cursor: pointer;
             transition: all 0.3s ease;
         }
 
         .mobile-menu-btn:hover {
-            background: var(--content-bg);
-            color: var(--primary);
+            background: #f8fafc;
+            color: #047857;
             transform: translateY(-1px);
         }
 
         .page-title {
-            font-size: 20px;
-            /* Reduzido */
-            font-weight: 700;
+            font-size: 18px;
+            font-weight: 800;
             color: var(--text-primary);
             margin: 0;
             display: flex;
@@ -545,10 +575,9 @@
 
         .page-title i {
             margin-right: 10px;
-            /* Reduzido */
             color: var(--primary);
             font-size: 18px;
-            /* Reduzido */
+            transition: var(--transition-base);
         }
 
         .header-right {
@@ -848,43 +877,40 @@
             color: var(--text-secondary);
         }
 
-        /* Cards Escolares - Reduzidos */
+        /* Cards Escolares - MOPHY UI Style */
         .school-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            transition: all 0.3s ease;
+            background: #ffffff;
+            border: none;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
         }
 
         .school-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-lg);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
         }
 
         .school-card-header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            padding: 18px 22px;
-            /* Reduzido */
-            font-weight: 600;
-            font-size: 16px;
-            /* Reduzido */
+            background: #ffffff;
+            color: #0f172a;
+            padding: 20px 24px;
+            font-weight: 700;
+            font-size: 15px;
             display: flex;
             align-items: center;
+            border-bottom: 1px solid #f1f5f9;
         }
 
         .school-card-header i {
-            margin-right: 8px;
-            /* Reduzido */
-            font-size: 18px;
-            /* Reduzido */
+            margin-right: 10px;
+            font-size: 16px;
+            color: #10B981;
         }
 
         .school-card-body {
-            padding: 22px;
-            /* Reduzido */
+            padding: 24px;
         }
 
         /* Botões Escolares - Reduzidos */
@@ -1353,17 +1379,21 @@
     <nav class="school-sidebar" id="sidebar">
         <div class="school-header">
             <div class="school-logo" style="margin: -10px;">
-                <i class="fas fa-graduation-cap"></i>
+                @if(setting('school_logo'))
+                    <img src="{{ setting('school_logo') }}" alt="Logo" style="max-height: 36px; max-width: 36px; object-fit: contain;">
+                @else
+                    <i class="fas fa-graduation-cap"></i>
+                @endif
             </div>
             <div class="school-brand" style="margin: 10% ">
-                <div class="school-name">VISIONÁRIOS</div>
-                <div class="school-subtitle">Sistema Escolar</div>
+                <div class="school-name">{{ strtoupper(setting('school_short_name', 'ZamEdu')) }}</div>
+                <div class="school-subtitle">Sistema de Gestão Escolar</div>
             </div>
         </div>
 
         <div class="school-nav">
             @auth
-                <!-- Dashboard Principal -->
+                <!-- 1. DASHBOARD -->
                 <div class="nav-section">
                     <ul class="nav-list">
                         <li class="nav-item">
@@ -1411,78 +1441,49 @@
             @endauth
 
             @auth
-            <!-- ========== PORTAL DO PROFESSOR (apenas para professores) ========== -->
+            <!-- PORTAL DO PROFESSOR (Visão dedicada para docente) -->
             @if (auth()->user()->role === 'teacher')
                 <div class="nav-section">
-                    <div class="nav-section-title">Meu Portal</div>
+                    <div class="nav-section-title">Meu Portal Docente</div>
                     <ul class="nav-list">
-                        <!-- Dashboard -->
                         <li class="nav-item">
                             <a href="{{ route('teacher.dashboard') }}"
                                 class="nav-link {{ request()->routeIs('teacher.dashboard') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-home"></i>
-                                </span>
+                                <span class="nav-icon"><i class="fas fa-home"></i></span>
                                 <span class="nav-text">Início</span>
                             </a>
                         </li>
-
-                        <!-- Minhas Turmas -->
                         <li class="nav-item">
                             <a href="{{ route('teacher.classes.index') }}"
                                 class="nav-link {{ request()->routeIs('teacher.classes.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-chalkboard"></i>
-                                </span>
+                                <span class="nav-icon"><i class="fas fa-chalkboard"></i></span>
                                 <span class="nav-text">Minhas Turmas</span>
                                 @php
-                                    $classCount =
-                                        auth()->user()->teacher?->classes()->active()->currentYear()->count() ?? 0;
+                                    $classCount = auth()->user()->teacher?->classes()->active()->currentYear()->count() ?? 0;
                                 @endphp
                                 @if ($classCount > 0)
                                     <span class="nav-badge badge-success">{{ $classCount }}</span>
                                 @endif
                             </a>
                         </li>
-
-                        <!-- Presenças -->
                         @php
                             $teacher = auth()->user()->teacher ?? null;
                             $classes = $teacher?->classes()->active()->currentYear()->get();
                             $firstClass = $classes?->first();
                         @endphp
-
                         <li class="nav-item">
                             @if ($firstClass)
                                 <a href="{{ route('teacher.attendance.class', $firstClass->id) }}"
                                     class="nav-link {{ request()->routeIs('teacher.attendance.*') ? 'active' : '' }}">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-calendar-check"></i>
-                                    </span>
+                                    <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
                                     <span class="nav-text">Presenças</span>
-                                    @if ($classes->count() > 1)
-                                        <span class="nav-badge badge-info">{{ $classes->count() }}</span>
-                                    @else
-                                        <span class="nav-badge badge-primary">Hoje</span>
-                                    @endif
-                                </a>
-                            @else
-                                <a href="#" class="nav-link disabled">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-calendar-check"></i>
-                                    </span>
-                                    <span class="nav-text">Presenças</span>
-                                    <span class="nav-badge badge-secondary">N/A</span>
                                 </a>
                             @endif
                         </li>
-                        <!-- Avaliações Pendentes -->
                         <li class="nav-item">
                             <a href="{{ route('teacher.grades.pending') }}"
                                 class="nav-link {{ request()->routeIs('teacher.grades.pending') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-clock"></i>
-                                </span>
+                                <span class="nav-icon"><i class="fas fa-clock"></i></span>
                                 <span class="nav-text">Avaliações Pendentes</span>
                                 @php
                                     $pendingCount = auth()->user()->teacher?->getPendingAssessmentsCount() ?? 0;
@@ -1492,95 +1493,60 @@
                                 @endif
                             </a>
                         </li>
-
-                        <!-- Caderno de Notas -->
-                        <li class="nav-item">
+        <li class="nav-item">
                             @if ($firstClass)
                                 <a href="{{ route('teacher.gradebook', $firstClass->id) }}"
                                     class="nav-link {{ request()->routeIs('teacher.gradebook') ? 'active' : '' }}">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-medal"></i>
-                                    </span>
+                                    <span class="nav-icon"><i class="fas fa-medal"></i></span>
                                     <span class="nav-text">Caderno de Notas</span>
-                                </a>
-                            @else
-                                <a href="#" class="nav-link" style="opacity: 0.5; cursor: not-allowed;">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-medal"></i>
-                                    </span>
-                                    <span class="nav-text">Caderno de Notas</span>
-                                    <span class="nav-badge badge-danger" style="font-size: 9px;">Sem turma</span>
                                 </a>
                             @endif
                         </li>
-
-                        <!-- Comunicados -->
                         <li class="nav-item">
                             <a href="{{ route('teacher.communications.index') }}"
                                 class="nav-link {{ request()->routeIs('teacher.communications.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-bullhorn"></i>
-                                </span>
+                                <span class="nav-icon"><i class="fas fa-bullhorn"></i></span>
                                 <span class="nav-text">Comunicados</span>
-                                @php
-                                    $newCommsCount = \App\Models\Communication::forTeachers()
-                                        ->published()
-                                        ->recent(7)
-                                        ->count();
-                                @endphp
-                                @if ($newCommsCount > 0)
-                                    <span class="nav-badge badge-warning">{{ $newCommsCount }}</span>
-                                @endif
                             </a>
                         </li>
-
-                        <!-- Licenças -->
                         <li class="nav-item">
                             <a href="{{ route('teacher.leave-requests.index') }}"
                                 class="nav-link {{ request()->routeIs('teacher.leave-requests.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-calendar-times"></i>
-                                </span>
+                                <span class="nav-icon"><i class="fas fa-calendar-times"></i></span>
                                 <span class="nav-text">Minhas Licenças</span>
+                                @php
+                                    $teacherPendingLeaves = auth()->user()->teacher?->leaveRequests()->where('status', 'pending')->count() ?? 0;
+                                @endphp
+                                @if ($teacherPendingLeaves > 0)
+                                    <span class="nav-badge badge-warning">{{ $teacherPendingLeaves }}</span>
+                                @endif
                             </a>
                         </li>
                     </ul>
                 </div>
             @endif
 
-            <!-- ========== MENUS DE GESTÃO (com permissões) ========== -->
+            <!-- 2. ESTUDANTES -->
             @canany(['manage_students', 'view_students'])
                 @if (auth()->user()->role !== 'teacher')
                     <div class="nav-section">
-                        <div class="nav-section-title">Gestão de Alunos</div>
+                        <div class="nav-section-title">Estudantes</div>
                         <ul class="nav-list">
                             <li class="nav-item">
                                 <a href="{{ route('students.index') }}"
-                                    class="nav-link {{ request()->routeIs('students.*') ? 'active' : '' }}">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-user-graduate"></i>
-                                    </span>
-                                    <span class="nav-text">Alunos</span>
-                                    @can('create_students')
-                                        <span class="nav-badge badge-primary">Gerir</span>
-                                    @else
-                                        <span class="nav-badge badge-warning">Ver</span>
-                                    @endcan
+                                    class="nav-link {{ request()->routeIs('students.*') && !request()->routeIs('admin.students-archive.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-user-graduate"></i></span>
+                                    <span class="nav-text">Todos os Alunos</span>
                                 </a>
                             </li>
                             @can('manage_enrollments')
                                 <li class="nav-item">
                                     <a href="{{ route('enrollments.index') }}"
-                                        class="nav-link {{ request()->routeIs('enrollments.*') ? 'active' : '' }}">
-                                        <span class="nav-icon">
-                                            <i class="fas fa-clipboard-list"></i>
-                                        </span>
+                                        class="nav-link {{ request()->routeIs('enrollments.*') && !request()->routeIs('admin.enrollments.renewals') ? 'active' : '' }}">
+                                        <span class="nav-icon"><i class="fas fa-clipboard-list"></i></span>
                                         <span class="nav-text">Matrículas</span>
                                         @php
-                                            $pendingEnrollments = \App\Models\Enrollment::where(
-                                                'status',
-                                                'pending',
-                                            )->count();
+                                            $pendingEnrollments = \App\Models\Enrollment::where('status', 'pending')->count();
                                         @endphp
                                         @if ($pendingEnrollments > 0)
                                             <span class="nav-badge badge-danger">{{ $pendingEnrollments }}</span>
@@ -1590,34 +1556,22 @@
                                 <li class="nav-item">
                                     <a href="{{ route('admin.enrollments.renewals') }}"
                                         class="nav-link {{ request()->routeIs('admin.enrollments.renewals') ? 'active' : '' }}">
-                                        <span class="nav-icon">
-                                            <i class="fas fa-sync-alt"></i>
-                                        </span>
-                                        <span class="nav-text">Renovar Matrículas</span>
-                                        @php
-                                            $pendingRenewals = \App\Models\Student::where('status', 'pending_renewal')->count();
-                                        @endphp
-                                        @if ($pendingRenewals > 0)
-                                            <span class="nav-badge badge-warning">{{ $pendingRenewals }}</span>
-                                        @endif
-                                    </a>
-                                </li>
-                                <li class="nav-item">
-                                    <a href="{{ route('admin.students-archive.index') }}"
-                                        class="nav-link {{ request()->routeIs('admin.students-archive.*') ? 'active' : '' }}">
-                                        <span class="nav-icon">
-                                            <i class="fas fa-archive"></i>
-                                        </span>
-                                        <span class="nav-text">Arquivados</span>
+                                        <span class="nav-icon"><i class="fas fa-sync-alt"></i></span>
+                                        <span class="nav-text">Renovação de Matrículas</span>
                                     </a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="{{ route('admin.promotion.index') }}"
                                         class="nav-link {{ request()->routeIs('admin.promotion.*') ? 'active' : '' }}">
-                                        <span class="nav-icon">
-                                            <i class="fas fa-layer-group"></i>
-                                        </span>
+                                        <span class="nav-icon"><i class="fas fa-layer-group"></i></span>
                                         <span class="nav-text">Passagem de Classe</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="{{ route('admin.students-archive.index') }}"
+                                        class="nav-link {{ request()->routeIs('admin.students-archive.*') ? 'active' : '' }}">
+                                        <span class="nav-icon"><i class="fas fa-archive"></i></span>
+                                        <span class="nav-text">Alunos Arquivados</span>
                                     </a>
                                 </li>
                             @endcan
@@ -1626,112 +1580,26 @@
                 @endif
             @endcanany
 
-            @canany(['manage_classes', 'view_classes', 'manage_subjects'])
-                <div class="nav-section">
-                    <div class="nav-section-title">Gestão Acadêmica</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('classes.index') }}"
-                                class="nav-link {{ request()->routeIs('classes.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-chalkboard"></i>
-                                </span>
-                                <span class="nav-text">Turmas</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('subjects.index') }}"
-                                class="nav-link {{ request()->routeIs('subjects.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-book"></i>
-                                </span>
-                                <span class="nav-text">Disciplinas</span>
-                            </a>
-                        </li>
-                        @can('manage_attendances')
-                            <li class="nav-item">
-                                <a href="{{ route('attendances.index') }}"
-                                    class="nav-link {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-calendar-check"></i>
-                                    </span>
-                                    <span class="nav-text">Presenças</span>
-                                </a>
-                            </li>
-                        @endcan
-                        @can('manage_grades')
-                            <li class="nav-item">
-                                <a href="{{ route('grades.index') }}"
-                                    class="nav-link {{ request()->routeIs('grades.*') ? 'active' : '' }}">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-medal"></i>
-                                    </span>
-                                    <span class="nav-text">Avaliações</span>
-                                </a>
-                            </li>
-                        @endcan
-                    </ul>
-                </div>
-            @endcanany
-
-            @canany(['manage_payments', 'view_payments'])
-                <div class="nav-section">
-                    <div class="nav-section-title">Gestão Financeira</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('payments.index') }}"
-                                class="nav-link {{ request()->routeIs('payments.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                </span>
-                                <span class="nav-text">Mensalidades</span>
-                                @php
-                                    $overduePayments = \App\Models\Payment::where('status', 'overdue')->count();
-                                @endphp
-                                @if ($overduePayments > 0)
-                                    <span class="nav-badge badge-danger">{{ $overduePayments }}</span>
-                                @endif
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('payments.references') }}"
-                                class="nav-link {{ request()->routeIs('payment-references.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-receipt"></i>
-                                </span>
-                                <span class="nav-text">Referências</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            @endcanany
-
+            <!-- 3. PROFESSORES -->
             @canany(['manage_teachers', 'view_teachers'])
                 <div class="nav-section">
-                    <div class="nav-section-title">Gestão de Pessoal</div>
+                    <div class="nav-section-title">Professores</div>
                     <ul class="nav-list">
                         <li class="nav-item">
                             <a href="{{ route('teachers.index') }}"
                                 class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-chalkboard-teacher"></i>
-                                </span>
-                                <span class="nav-text">Professores</span>
+                                <span class="nav-icon"><i class="fas fa-chalkboard-teacher"></i></span>
+                                <span class="nav-text">Corpo Docente</span>
                             </a>
                         </li>
                         @can('manage_leave_requests')
                             <li class="nav-item">
                                 <a href="{{ route('staff-leave-requests.index') }}"
                                     class="nav-link {{ request()->routeIs('staff-leave-requests.*') ? 'active' : '' }}">
-                                    <span class="nav-icon">
-                                        <i class="fas fa-calendar-times"></i>
-                                    </span>
-                                    <span class="nav-text">Licenças</span>
+                                    <span class="nav-icon"><i class="fas fa-calendar-times"></i></span>
+                                    <span class="nav-text">Licenças & Ausências</span>
                                     @php
-                                        $pendingRequests = \App\Models\StaffLeaveRequest::where(
-                                            'status',
-                                            'pending',
-                                        )->count();
+                                        $pendingRequests = \App\Models\StaffLeaveRequest::where('status', 'pending')->count();
                                     @endphp
                                     @if ($pendingRequests > 0)
                                         <span class="nav-badge badge-warning">{{ $pendingRequests }}</span>
@@ -1743,144 +1611,255 @@
                 </div>
             @endcanany
 
-            @canany(['manage_events', 'send_notifications'])
+            <!-- 4. TURMAS & CLASSES -->
+            @canany(['manage_classes', 'view_classes'])
                 <div class="nav-section">
-                    <div class="nav-section-title">Comunicação</div>
+                    <div class="nav-section-title">Turmas & Classes</div>
                     <ul class="nav-list">
-                        @can('manage_events')
                         <li class="nav-item">
-                            <a href="{{ route('events.index') }}"
-                                class="nav-link {{ request()->routeIs('events.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-calendar-alt"></i>
-                                </span>
-                                <span class="nav-text">Eventos</span>
-                            </a>
-                        </li>
-                        @endcan
-                        <li class="nav-item">
-                            <a href="{{ route('admin.communications.index') }}"
-                                class="nav-link {{ request()->routeIs('communications.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-bullhorn"></i>
-                                </span>
-                                <span class="nav-text">Comunicados</span>
+                            <a href="{{ route('classes.index') }}"
+                                class="nav-link {{ request()->routeIs('classes.*') ? 'active' : '' }}">
+                                <span class="nav-icon"><i class="fas fa-school"></i></span>
+                                <span class="nav-text">Turmas Escolares</span>
                             </a>
                         </li>
                     </ul>
                 </div>
             @endcanany
 
-            @canany(['view_reports', 'export_reports'])
+            <!-- 5. DISCIPLINAS -->
+            @can('manage_subjects')
                 <div class="nav-section">
-                    <div class="nav-section-title">Relatórios</div>
+                    <div class="nav-section-title">Disciplinas</div>
                     <ul class="nav-list">
                         <li class="nav-item">
-                            <a href="{{ route('reports.index') }}"
-                                class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-chart-bar"></i>
-                                </span>
-                                <span class="nav-text">Relatórios</span>
-                                @can('export_reports')
-                                    <span class="nav-badge badge-success">Export</span>
-                                @endcan
+                            <a href="{{ route('subjects.index') }}"
+                                class="nav-link {{ request()->routeIs('subjects.*') ? 'active' : '' }}">
+                                <span class="nav-icon"><i class="fas fa-book-open"></i></span>
+                                <span class="nav-text">Matriz Curricular</span>
                             </a>
                         </li>
                     </ul>
                 </div>
-            @endcanany
+            @endcan
 
-            @canany(['manage_users', 'manage_settings'])
+            <!-- 6. AVALIAÇÕES & PAUTAS -->
+            @can('manage_grades')
                 <div class="nav-section">
-                    <div class="nav-section-title">Administração</div>
+                    <div class="nav-section-title">Avaliações & Pautas</div>
                     <ul class="nav-list">
-                        @can('manage_users')
                         <li class="nav-item">
-                            <a href="{{ route('admin.users.index') }}"
-                                class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-users-cog"></i>
-                                </span>
-                                <span class="nav-text">Usuários</span>
-                                <span class="nav-badge badge-danger">Admin</span>
+                            <a href="{{ route('grades.index') }}"
+                                class="nav-link {{ request()->routeIs('grades.*') ? 'active' : '' }}">
+                                <span class="nav-icon"><i class="fas fa-medal"></i></span>
+                                <span class="nav-text">Lançamento de Notas</span>
                             </a>
                         </li>
-                        @endcan
-                        @can('manage_settings')
-                        <li class="nav-item">
-                            <a href="{{ route('admin.settings.index') }}"
-                                class="nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-cog"></i>
-                                </span>
-                                <span class="nav-text">Configurações</span>
-                            </a>
-                        </li>
-                        @endcan
                     </ul>
                 </div>
-            @endcanany
+            @endcan
 
-            <!-- ========== PORTAL DOS PAIS (apenas para pais) ========== -->
+            <!-- 7. ASSIDUIDADE -->
+            @can('manage_attendances')
+                <div class="nav-section">
+                    <div class="nav-section-title">Assiduidade</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="{{ route('attendances.index') }}"
+                                class="nav-link {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
+                                <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
+                                <span class="nav-text">Frequência Diária</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            @endcan
+
+            <!-- 8. ENCARREGADOS DE EDUCAÇÃO -->
             @if (auth()->user()->role === 'parent')
                 <div class="nav-section">
-                    <div class="nav-section-title">Portal dos Pais</div>
+                    <div class="nav-section-title">Encarregados de Educação</div>
                     <ul class="nav-list">
                         <li class="nav-item">
                             <a href="{{ route('parent.dashboard') }}"
                                 class="nav-link {{ request()->routeIs('parent.dashboard') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-home"></i>
-                                </span>
-                                <span class="nav-text">Início</span>
+                                <span class="nav-icon"><i class="fas fa-home"></i></span>
+                                <span class="nav-text">Painel do Responsável</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('parent.children') }}"
                                 class="nav-link {{ request()->routeIs('parent.children') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-child"></i>
-                                </span>
-                                <span class="nav-text">Meus Filhos</span>
+                                <span class="nav-icon"><i class="fas fa-child"></i></span>
+                                <span class="nav-text">Meus Educandos</span>
                             </a>
                         </li>
                         <li class="nav-item">
                             <a href="{{ route('parent.payments') }}"
                                 class="nav-link {{ request()->routeIs('parent.payments') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-money-bill-wave"></i>
-                                </span>
-                                <span class="nav-text">Pagamentos</span>
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('parent.communications') }}"
-                                class="nav-link {{ request()->routeIs('parent.communications') ? 'active' : '' }}">
-                                <span class="nav-icon">
-                                    <i class="fas fa-envelope"></i>
-                                </span>
-                                <span class="nav-text">Comunicados</span>
+                                <span class="nav-icon"><i class="fas fa-money-bill-wave"></i></span>
+                                <span class="nav-text">Propinas & Recibos</span>
                             </a>
                         </li>
                     </ul>
                 </div>
             @endif
 
-            <!-- Minha Conta (sempre visível) -->
+            <!-- 9. FINANCEIRO -->
+            @canany(['manage_payments', 'view_payments'])
+                <div class="nav-section">
+                    <div class="nav-section-title">Financeiro</div>
+                    <ul class="nav-list">
+                        <li class="nav-item">
+                            <a href="{{ route('payments.index') }}"
+                                class="nav-link {{ request()->routeIs('payments.*') && !request()->routeIs('payment-references.*') ? 'active' : '' }}">
+                                <span class="nav-icon"><i class="fas fa-money-bill-wave"></i></span>
+                                <span class="nav-text">Gestão Financeira</span>
+                                @php
+                                    $overduePayments = \App\Models\Payment::where('status', 'overdue')->count();
+                                @endphp
+                                @if ($overduePayments > 0)
+                                    <span class="nav-badge badge-danger">{{ $overduePayments }}</span>
+                                @endif
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a href="{{ route('payments.references') }}"
+                                class="nav-link {{ request()->routeIs('payment-references.*') ? 'active' : '' }}">
+                                <span class="nav-icon"><i class="fas fa-receipt"></i></span>
+                                <span class="nav-text">Referências de Pagamento</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            @endcanany
+
+            <!-- 10 & 11. COMUNICAÇÃO & RELATÓRIOS -->
+            @canany(['manage_events', 'send_notifications', 'view_reports', 'export_reports'])
+                <div class="nav-section">
+                    <div class="nav-section-title">Comunicação & Relatórios</div>
+                    <ul class="nav-list">
+                        @can('manage_events')
+                            <li class="nav-item">
+                                <a href="{{ route('events.index') }}"
+                                    class="nav-link {{ request()->routeIs('events.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
+                                    <span class="nav-text">Calendário de Eventos</span>
+                                </a>
+                            </li>
+                        @endcan
+                        <li class="nav-item">
+                            <a href="{{ route('admin.communications.index') }}"
+                                class="nav-link {{ request()->routeIs('communications.*') ? 'active' : '' }}">
+                                <span class="nav-icon"><i class="fas fa-bullhorn"></i></span>
+                                <span class="nav-text">Comunicados Escolares</span>
+                            </a>
+                        </li>
+                        @canany(['view_reports', 'export_reports'])
+                            <li class="nav-item">
+                                <a href="{{ route('reports.index') }}"
+                                    class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-chart-bar"></i></span>
+                                    <span class="nav-text">Relatórios & Estatísticas</span>
+                                </a>
+                            </li>
+                        @endcanany
+                    </ul>
+                </div>
+            @endcanany
+
+            <!-- 12. CONFIGURAÇÕES & ADMINISTRAÇÃO -->
+            @canany(['manage_users', 'manage_settings', 'backup_system', 'view_audit_logs', 'view_logs'])
+                <div class="nav-section">
+                    <div class="nav-section-title">Configurações & Sistema</div>
+                    <ul class="nav-list">
+                        @can('manage_users')
+                            <li class="nav-item">
+                                <a href="{{ route('admin.users.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.users.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-users-cog"></i></span>
+                                    <span class="nav-text">Gestão de Usuários</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.license') }}"
+                                    class="nav-link {{ request()->routeIs('admin.license') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-key"></i></span>
+                                    <span class="nav-text">Licença do Sistema</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.academic-years.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.academic-years.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
+                                    <span class="nav-text">Ano Lectivo & Transição</span>
+                                </a>
+                            </li>
+                        @endcan
+                        @can('manage_settings')
+                            <li class="nav-item">
+                                <a href="{{ route('admin.settings.index') }}"
+                                    class="nav-link {{ request()->routeIs('settings.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-cog"></i></span>
+                                    <span class="nav-text">Configurações Gerais</span>
+                                </a>
+                            </li>
+                        @endcan
+                        @can('backup_system')
+                            <li class="nav-item">
+                                <a href="{{ route('admin.backup') }}"
+                                    class="nav-link {{ request()->routeIs('admin.backup') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-database"></i></span>
+                                    <span class="nav-text">Backup do Sistema</span>
+                                </a>
+                            </li>
+                        @endcan
+                        @can('view_audit_logs')
+                            <li class="nav-item">
+                                <a href="{{ route('admin.audit.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.audit.index') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-shield-alt"></i></span>
+                                    <span class="nav-text">Registo de Auditoria</span>
+                                </a>
+                            </li>
+                        @endcan
+                        @can('view_logs')
+                            <li class="nav-item">
+                                <a href="{{ route('admin.logs') }}"
+                                    class="nav-link {{ request()->routeIs('admin.logs') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-file-alt"></i></span>
+                                    <span class="nav-text">Logs do Sistema</span>
+                                </a>
+                            </li>
+                        @endcan
+                    </ul>
+                </div>
+            @endcanany
+
+            <!-- Minha Conta -->
             <div class="nav-section">
                 <div class="nav-section-title">Minha Conta</div>
                 <ul class="nav-list">
                     <li class="nav-item">
                         <a href="{{ route('profile.edit') }}"
                             class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}">
-                            <span class="nav-icon">
-                                <i class="fas fa-user-circle"></i>
-                            </span>
+                            <span class="nav-icon"><i class="fas fa-user-circle"></i></span>
                             <span class="nav-text">Meu Perfil</span>
                         </a>
                     </li>
-
+                    <li class="nav-item">
+                        <a href="{{ route('notifications.index') }}"
+                            class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}">
+                            <span class="nav-icon"><i class="fas fa-bell"></i></span>
+                            <span class="nav-text">Notificações</span>
+                            @php
+                                $unreadNotifs = auth()->user()->unreadNotifications->count();
+                            @endphp
+                            @if ($unreadNotifs > 0)
+                                <span class="nav-badge badge-danger">{{ $unreadNotifs }}</span>
+                            @endif
+                        </a>
+                    </li>
                 </ul>
             </div>
             @endauth
@@ -1896,28 +1875,12 @@
                     <div class="user-name">{{ explode(' ', auth()->user()->name)[0] }}</div>
                     <div class="user-role">
                         @switch(auth()->user()->role)
-                            @case('admin')
-                                Administrador
-                            @break
-
-                            @case('secretary')
-                                Secretaria
-                            @break
-
-                            @case('pedagogy')
-                                Seção Pedagógica
-                            @break
-
-                            @case('teacher')
-                                Professor(a)
-                            @break
-
-                            @case('parent')
-                                Encarregado
-                            @break
-
-                            @default
-                                Usuário
+                            @case('admin') Administrador @break
+                            @case('secretary') Secretaria @break
+                            @case('pedagogy') Seção Pedagógica @break
+                            @case('teacher') Professor(a) @break
+                            @case('parent') Encarregado @break
+                            @default Usuário
                         @endswitch
                     </div>
                 </div>
@@ -1954,7 +1917,7 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <h1 class="page-title">
-                    <i class="{{ $titleIcon ?? 'fas fa-tachometer-alt' }}"></i>
+                    <i class="@yield('page-title-icon', $titleIcon ?? 'fas fa-tachometer-alt')"></i>
                     @yield('page-title', 'Dashboard')
                 </h1>
             </div>
@@ -2143,48 +2106,8 @@
                 </ol>
             </nav>
 
-            <!-- Alertas do Sistema -->
-            @if (session('success'))
-                <div class="alert-school alert-success-school alert-dismissible fade show" role="alert">
-                    <i class="fas fa-check-circle"></i>
-                    <div>
-                        <strong>Sucesso!</strong> {{ session('success') }}
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if (session('error'))
-                <div class="alert-school alert-danger-school alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <div>
-                        <strong>Erro!</strong> {{ session('error') }}
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if (session('warning'))
-                <div class="alert-school alert-warning-school alert-dismissible fade show" role="alert">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <div>
-                        <strong>Atenção!</strong> {{ session('warning') }}
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if (session('info'))
-                <div class="alert-school alert-info-school alert-dismissible fade show" role="alert">
-                    <i class="fas fa-info-circle"></i>
-                    <div>
-                        <strong>Informação!</strong> {{ session('info') }}
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            @endif
-
-            @if ($errors->any())
+            <!-- Erros de Validação (mantidos inline - listas não são adequadas para toast) -->
+            @if (isset($errors) && $errors->any())
                 <div class="alert-school alert-danger-school alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-circle"></i>
                     <div>
@@ -2199,6 +2122,54 @@
                 </div>
             @endif
 
+            <!-- Toasts automáticos para mensagens de sessão -->
+            @if (session('success') || session('error') || session('warning') || session('info'))
+                <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        @if (session('success'))
+                            showToast(@json(session('success')), 'success');
+                        @endif
+                        @if (session('error'))
+                            showToast(@json(session('error')), 'error');
+                        @endif
+                        @if (session('warning'))
+                            showToast(@json(session('warning')), 'warning');
+                        @endif
+                        @if (session('info'))
+                            showToast(@json(session('info')), 'info');
+                        @endif
+                    });
+                </script>
+            @endif
+
+            <!-- Modal de Confirmação Reutilizável -->
+            <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content" style="border: none; border-radius: var(--border-radius); overflow: hidden; box-shadow: var(--shadow-lg);">
+                        <div class="modal-header" style="background: var(--card-bg); border-bottom: 1px solid var(--border-color); padding: 18px 24px;">
+                            <h5 class="modal-title d-flex align-items-center gap-2" style="font-size: 15px; font-weight: 700; color: var(--text-primary);">
+                                <i class="fas fa-shield-alt" style="color: var(--warning);" id="confirmModalIcon"></i>
+                                <span id="confirmModalTitle">Confirmar Ação</span>
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                        </div>
+                        <div class="modal-body" style="padding: 24px; background: var(--card-bg);">
+                            <p id="confirmModalMessage" style="color: var(--text-secondary); font-size: 14px; margin: 0;"></p>
+                        </div>
+                        <div class="modal-footer" style="background: var(--surface-bg); border-top: 1px solid var(--border-color); padding: 14px 24px; gap: 8px;">
+                            <button type="button" class="btn btn-sm" data-bs-dismiss="modal"
+                                style="background: var(--surface-bg); color: var(--text-secondary); border: 1px solid var(--border-color); border-radius: 10px; padding: 8px 20px; font-weight: 600; font-size: 13px;">
+                                Cancelar
+                            </button>
+                            <button type="button" class="btn btn-sm" id="confirmModalBtn"
+                                style="background: var(--danger); color: white; border: none; border-radius: 10px; padding: 8px 20px; font-weight: 600; font-size: 13px;">
+                                <i class="fas fa-check me-1"></i> Confirmar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Conteúdo da Página -->
             @yield('content')
         </div>
@@ -2208,12 +2179,12 @@
             <div class="content-area">
                 <div class="footer-shell py-2">
                     <div class="footer-brand">
-                        <div class="brand-main"><i class="fas fa-school me-2"></i>Escola dos Visionários</div>
-                        <div class="brand-sub">© {{ current_school_year() }} Sistema de Gestão Escolar • Quelimane, Zambézia</div>
+                        <div class="brand-main"><i class="fas fa-school me-2"></i>{{ setting('school_name', 'ZamEdu') }}</div>
+                        <div class="brand-sub">© {{ current_school_year() }} Sistema de Gestão Escolar • {{ setting('address', 'Moçambique') }}</div>
                     </div>
                     <div class="footer-meta">
                         <span class="footer-pill"><i class="fas fa-code-branch"></i>v1.0.0</span>
-                        <a href="mailto:suporte@visionarios.co.mz" class="footer-link">
+                        <a href="mailto:{{ setting('email', 'suporte@zamedu.co.mz') }}" class="footer-link">
                             <i class="fas fa-headset"></i>Suporte Técnico
                         </a>
                         <a href="#" class="footer-link" onclick="showHelpModal(); return false;">
@@ -2227,7 +2198,7 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.3.0/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
     <script>
         // ===== VARIÁVEIS GLOBAIS =====
@@ -2408,7 +2379,7 @@
                             <div class="modal-header" style="background: var(--primary); color: white;">
                                 <h5 class="modal-title">
                                     <i class="fas fa-question-circle me-2"></i>
-                                    Manual do Sistema Visionários
+                                    Manual do Sistema {{ setting('school_short_name', 'ZamEdu') }}
                                 </h5>
                                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                             </div>
@@ -2507,20 +2478,71 @@
                 }
             });
 
-            // Auto-hide alerts
+            // Auto-hide validation alerts after 12 seconds
             setTimeout(() => {
                 document.querySelectorAll('.alert-school').forEach(alert => {
                     const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
                     bsAlert?.close();
                 });
-            }, 8000);
+            }, 12000);
 
-            console.log('✅ Sistema Escolar Visionários iniciado com sucesso!');
+            // ===== DELEGATED CONFIRM SYSTEM =====
+            // Intercepts forms with data-confirm attribute and shows styled modal
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                const msg = form.getAttribute('data-confirm');
+                if (!msg) return;
+                if (form._confirmed) { form._confirmed = false; return; }
+                e.preventDefault();
+                confirmAction(msg, function() {
+                    form._confirmed = true;
+                    form.submit();
+                });
+            });
+            // Intercepts buttons/links with data-confirm attribute
+            document.addEventListener('click', function(e) {
+                const el = e.target.closest('[data-confirm]');
+                if (!el || el.tagName === 'FORM') return;
+                if (el.closest('form[data-confirm]')) return; // form-level confirm handles it
+                if (el._confirmed) { el._confirmed = false; return; }
+                e.preventDefault();
+                confirmAction(el.getAttribute('data-confirm'), function() {
+                    el._confirmed = true;
+                    el.click();
+                });
+            });
+
+            console.log('✅ ZamEdu Sistema Escolar iniciado com sucesso!');
+        });
+
+        // ===== MODAL DE CONFIRMAÇÃO =====
+        let _confirmCallback = null;
+        function confirmAction(message, callback, options = {}) {
+            const modal = document.getElementById('confirmModal');
+            if (!modal) { if (confirm(message)) callback(); return; }
+            document.getElementById('confirmModalMessage').textContent = message;
+            document.getElementById('confirmModalTitle').textContent = options.title || 'Confirmar Ação';
+            const btn = document.getElementById('confirmModalBtn');
+            btn.innerHTML = '<i class="fas fa-check me-1"></i> ' + (options.confirmText || 'Confirmar');
+            if (options.danger === false) {
+                btn.style.background = 'var(--primary)';
+            } else {
+                btn.style.background = 'var(--danger)';
+            }
+            _confirmCallback = callback;
+            const bsModal = new bootstrap.Modal(modal);
+            bsModal.show();
+        }
+        document.getElementById('confirmModalBtn')?.addEventListener('click', function() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('confirmModal'));
+            modal?.hide();
+            if (_confirmCallback) { _confirmCallback(); _confirmCallback = null; }
         });
 
         // ===== API GLOBAL =====
-        window.VisionariosSchool = {
+        window.ZamEdu = {
             showToast,
+            confirmAction,
             toggleSidebar,
             toggleTheme,
             markAsRead,
