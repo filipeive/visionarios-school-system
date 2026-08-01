@@ -33,6 +33,9 @@ echo "📦 Executando rotina de deploy no servidor remoto..."
 ssh -i "$SSH_KEY" "$SERVER_USER@$SERVER_IP" << 'ENDSSH'
 set -e
 
+# Criar base de dados no MySQL
+mysql -ufdsms -pfdsadmin -e "CREATE DATABASE IF NOT EXISTS zamedu_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;" || true
+
 # Criar diretório se não existir
 sudo mkdir -p /var/www/zamedu
 sudo chown -R ubuntu:www-data /var/www/zamedu
@@ -57,16 +60,40 @@ sudo chmod -R 775 /var/www/zamedu/storage /var/www/zamedu/bootstrap/cache
 echo "🎼 Instalando dependências Composer..."
 composer install --no-dev --optimize-autoloader --no-interaction
 
-# Criar ficheiro .env se não existir
-if [ ! -f ".env" ]; then
-    echo "⚙️ Configurando .env..."
-    cp .env.example .env
-    php artisan key:generate
-fi
+# Criar ou atualizar ficheiro .env para produção
+echo "⚙️ Configurando .env para produção..."
+cat > .env << 'ENVEOF'
+APP_NAME="ZamEdu - SIGE"
+APP_ENV=production
+APP_KEY=base64:3WAeZowb2U8CefDgtdfbzeD0TIvaUrphK94tbxIblhc=
+APP_DEBUG=false
+APP_URL=http://146.235.224.99
 
-# Executar migrations
-echo "🗄️ Executando migrações da base de dados..."
+LOG_CHANNEL=stack
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=error
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=zamedu_db
+DB_USERNAME=fdsms
+DB_PASSWORD=fdsadmin
+
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=sync
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+ENVEOF
+
+php artisan key:generate --force
+
+# Executar migrations e seeders de dados iniciais
+echo "🗄️ Executando migrações e dados iniciais da base de dados..."
 php artisan migrate --force
+php artisan db:seed --force
 
 # Otimizar caches Laravel
 echo "⚡ Otimizando caches..."
@@ -85,7 +112,7 @@ echo "🌐 Configurando Nginx para zamedu..."
 sudo bash -c 'cat > /etc/nginx/sites-available/zamedu << "NGINXCONF"
 server {
     listen 80;
-    server_name 146.235.224.99 zamedu.local;
+    server_name 146.235.224.99;
 
     root /var/www/zamedu/public;
     index index.php index.html;
