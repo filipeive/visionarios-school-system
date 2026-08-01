@@ -115,9 +115,9 @@
     <div class="container">
         {{-- Cabeçalho --}}
         <div class="header">
-            <div class="school-name">ESCOLA VISIONÁRIOS</div>
+            <div class="school-name">{{ strtoupper(setting('school_name', 'ZamEdu')) }}</div>
             <div class="document-title">REFERÊNCIA DE PAGAMENTO</div>
-            <div>Av. Principal, Cidade - Tel: +258 84 123 4567</div>
+            <div>{{ setting('address', 'Moçambique') }} - Tel: {{ setting('phone', '+258 84 000 0000') }}</div>
         </div>
 
         {{-- Número da Referência --}}
@@ -129,7 +129,7 @@
         <div class="info-grid">
             <div class="info-section">
                 <div class="info-label">BENEFICIÁRIO</div>
-                <div class="info-value">ESCOLA VISIONÁRIOS</div>
+                <div class="info-value">{{ strtoupper(setting('school_name', 'ZamEdu')) }}</div>
 
                 <div class="info-label">NIF</div>
                 <div class="info-value">123456789</div>

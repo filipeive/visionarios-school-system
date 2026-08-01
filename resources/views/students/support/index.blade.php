@@ -127,7 +127,7 @@
                             @can('manage_observations')
                                 <form method="POST"
                                     action="{{ route('students.support.observations.destroy', [$student, $observation]) }}"
-                                    onsubmit="return confirm('Remover esta observação?')">
+                                    data-confirm="Remover esta observação?">
                                     @csrf
                                     @method('DELETE')
                                     <button class="inline-flex items-center rounded-md border border-rose-300 px-2.5 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-50">
@@ -161,7 +161,7 @@
                             <p class="mb-2 text-sm text-slate-700">{{ $record->record_details }}</p>
                             @can('manage_student_records')
                                 <form method="POST" action="{{ route('students.support.records.destroy', [$student, $record]) }}"
-                                    onsubmit="return confirm('Remover este registo?')">
+                                    data-confirm="Remover este registo?">
                                     @csrf
                                     @method('DELETE')
                                     <button class="inline-flex items-center rounded-md border border-rose-300 px-2.5 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-50">

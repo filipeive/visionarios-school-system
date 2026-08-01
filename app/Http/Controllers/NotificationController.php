@@ -62,7 +62,9 @@ class NotificationController extends Controller
      */
     public function index()
     {
-        $this->authorize('view_communications');
+        if (!Auth::user()->hasRole(['admin', 'super_admin', 'secretary']) && !Auth::user()->can('view_communications')) {
+            abort(403, 'Acesso não autorizado às comunicações.');
+        }
         $communications = Communication::with('creator')->latest()->paginate(15);
         return view('communications.index', compact('communications'));
     }
@@ -72,7 +74,9 @@ class NotificationController extends Controller
      */
     public function create()
     {
-        $this->authorize('send_notifications');
+        if (!Auth::user()->hasRole(['admin', 'super_admin', 'secretary']) && !Auth::user()->can('send_notifications')) {
+            abort(403, 'Acesso não autorizado.');
+        }
         return view('communications.create');
     }
 
@@ -81,7 +85,9 @@ class NotificationController extends Controller
      */
     public function send(Request $request)
     {
-        $this->authorize('send_notifications');
+        if (!Auth::user()->hasRole(['admin', 'super_admin', 'secretary']) && !Auth::user()->can('send_notifications')) {
+            abort(403, 'Acesso não autorizado.');
+        }
 
         $request->validate([
             'title' => 'required|string|max:255',

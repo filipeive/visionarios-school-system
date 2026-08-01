@@ -45,7 +45,7 @@
                     </div>
 
                     <form action="{{ route('admin.academic-years.transition') }}" method="POST"
-                        onsubmit="return confirm('Tem certeza que deseja iniciar a transição para o novo ano lectivo? Esta acção afectará todas as matrículas activas.')">
+                        data-confirm="Tem certeza que deseja iniciar a transição para o novo ano lectivo? Esta acção afectará todas as matrículas activas.">
                         @csrf
                         <div class="d-grid">
                             <button type="submit" class="btn btn-primary-school btn-lg py-3">

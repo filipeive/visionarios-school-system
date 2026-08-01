@@ -17,7 +17,7 @@
                                 </button>
                             </form>
                             <form action="{{ route('notifications.clear-all') }}" method="POST"
-                                onsubmit="return confirm('Tem certeza que deseja remover todas as notificações?')">
+                                data-confirm="Tem certeza que deseja remover todas as notificações?">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill">

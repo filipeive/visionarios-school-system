@@ -26,7 +26,7 @@
                         </div>
                         <div class="col-md-4 text-end">
                             <div class="user-avatar mx-auto"
-                                style="width: 80px; height: 80px; font-size: 24px; background: linear-gradient(135deg, var(--accent), #0097A7);">
+                                style="width: 80px; height: 80px; font-size: 24px; background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white;">
                                 {{ substr($teacher->first_name, 0, 1) }}{{ substr($teacher->last_name, 0, 1) }}
                             </div>
                         </div>

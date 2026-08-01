@@ -24,7 +24,7 @@ class ParentPortalController extends Controller
 
     private function getParent()
     {
-        return ParentModel::where('user_id', Auth::id())->firstOrFail();
+        return ParentModel::where('user_id', Auth::id())->first();
     }
 
     /**
@@ -33,6 +33,15 @@ class ParentPortalController extends Controller
     public function dashboard()
     {
         $parent = $this->getParent();
+
+        if (!$parent) {
+            return view('parent-portal.dashboard', [
+                'children' => collect([]),
+                'communications' => collect([]),
+                'pendingPayments' => collect([]),
+                'noParentProfile' => true
+            ]);
+        }
         $children = $parent->students()->with([
             'enrollments',
             'attendances' => function ($q) {

@@ -1,10 +1,11 @@
 {
-    "name": "laravel/laravel",
+    "name": "fdssoftware/zamedu",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "ZamEdu - Sistema de Gestão Escolar Multitenant por FDS Software",
     "keywords": [
-        "laravel",
-        "framework"
+        "zamedu",
+        "school-management",
+        "laravel"
     ],
     "license": "MIT",
     "require": {
@@ -38,7 +39,8 @@
         },
         "files": [
             "app/Helpers/PermissionHelper.php",
-            "app/Helpers/academic_year.php"
+            "app/Helpers/academic_year.php",
+            "app/Helpers/settings.php"
         ]
     },
     "autoload-dev": {

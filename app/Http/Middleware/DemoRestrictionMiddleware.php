@@ -12,7 +12,9 @@ class DemoRestrictionMiddleware
     {
         $user = $request->user();
 
-        if ($user && $user->email === 'demo@visionarios.co.mz') {
+        $demoEmail = setting('demo_email', 'demo@visionarios.co.mz');
+
+        if ($user && $user->email === $demoEmail) {
             // Lista de métodos que alteram dados
             $restrictedMethods = ['POST', 'PUT', 'PATCH', 'DELETE'];
 

@@ -163,7 +163,7 @@
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-danger" 
                                                     title="Remover Associação" 
-                                                    onclick="return confirm('Tem certeza que deseja remover esta disciplina da turma?')">
+                                                    data-confirm="Tem certeza que deseja remover esta disciplina da turma?">
                                                 <i class="fas fa-unlink"></i>
                                             </button>
                                         </form>

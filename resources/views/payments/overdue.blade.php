@@ -166,19 +166,19 @@ function overduePage() {
             return parseFloat(value || 0).toLocaleString('pt-MZ', { minimumFractionDigits: 2 });
         },
         sendReminder(studentId) {
-            if (confirm('Enviar lembrete de pagamento para o encarregado deste aluno?')) {
-                window.VisionariosSchool?.showToast?.('Lembrete enviado com sucesso!', 'success');
-            }
+            confirmAction('Enviar lembrete de pagamento para o encarregado deste aluno?', function() {
+                showToast('Lembrete enviado com sucesso!', 'success');
+            }, {title: 'Enviar Lembrete', confirmText: 'Enviar', danger: false});
         },
         sendBulkReminder() {
             const selected = document.querySelectorAll('.payment-checkbox:checked');
             if (selected.length === 0) {
-                window.VisionariosSchool?.showToast?.('Selecione pelo menos um pagamento', 'warning');
+                showToast('Selecione pelo menos um pagamento', 'warning');
                 return;
             }
-            if (confirm(`Enviar lembretes para ${selected.length} pagamentos selecionados?`)) {
-                window.VisionariosSchool?.showToast?.(`Lembretes enviados para ${selected.length} encarregados!`, 'success');
-            }
+            confirmAction(`Enviar lembretes para ${selected.length} pagamentos selecionados?`, function() {
+                showToast(`Lembretes enviados para ${selected.length} encarregados!`, 'success');
+            }, {title: 'Enviar Lembretes em Lote', confirmText: 'Enviar', danger: false});
         }
     };
 }

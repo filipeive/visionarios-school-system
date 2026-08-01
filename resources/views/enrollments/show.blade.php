@@ -187,7 +187,7 @@
                                     class="d-grid">
                                     @csrf
                                     <button type="submit" class="btn btn-danger"
-                                        onclick="return confirm('Tem certeza que deseja cancelar esta matrícula?')">
+                                        data-confirm="Tem certeza que deseja cancelar esta matrícula?">
                                         <i class="fas fa-times"></i> Cancelar Matrícula
                                     </button>
                                 </form>
@@ -198,7 +198,7 @@
                                     class="d-grid">
                                     @csrf
                                     <button type="submit" class="btn btn-success"
-                                        onclick="return confirm('Tem certeza que deseja reativar esta matrícula?')">
+                                        data-confirm="Tem certeza que deseja reativar esta matrícula?">
                                         <i class="fas fa-check"></i> Reativar Matrícula
                                     </button>
                                 </form>
@@ -211,7 +211,7 @@
                                 class="d-grid">
                                 @csrf
                                 <button type="submit" class="btn btn-success"
-                                    onclick="return confirm('Confirmar pagamento da taxa de matrícula e ativar matrícula?')">
+                                    data-confirm="Confirmar pagamento da taxa de matrícula e ativar matrícula?">
                                     <i class="fas fa-check-circle"></i> Confirmar Pagamento
                                 </button>
                             </form>
@@ -222,7 +222,7 @@
                                 class="d-grid">
                                 @csrf
                                 <button type="submit" class="btn btn-success"
-                                    onclick="return confirm('Ativar matrícula?')">
+                                    data-confirm="Ativar matrícula?">
                                     <i class="fas fa-check"></i> Ativar Matrícula
                                 </button>
                             </form>

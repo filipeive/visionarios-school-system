@@ -512,16 +512,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Função para marcar pagamento como pago
     window.markAsPaid = function(paymentId) {
-        if (confirm('Deseja marcar este pagamento como pago?')) {
-            // Implementar AJAX para marcar como pago
-            alert('Funcionalidade de marcar como pago será implementada em breve.');
-        }
+        confirmAction('Deseja marcar este pagamento como pago?', function() {
+            showToast('Funcionalidade de marcar como pago será implementada em breve.', 'info');
+        }, {title: 'Confirmar Pagamento', confirmText: 'Marcar como Pago', danger: false});
     };
 
     // Função para submeter novo pagamento
     window.submitPayment = function() {
         // Implementar AJAX para criar novo pagamento
-        alert('Funcionalidade de registrar pagamento será implementada em breve.');
+        showToast('Funcionalidade de registrar pagamento será implementada em breve.', 'info');
     };
 });
 </script>

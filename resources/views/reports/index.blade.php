@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Painel de Relatórios')
-@section('page-title', 'Relatórios')
+@section('title', 'Central de Relatórios & Analytics')
+@section('page-title', 'Central de Relatórios')
 @section('page-title-icon', 'fas fa-chart-pie')
 
 @section('breadcrumbs')
@@ -9,206 +9,156 @@
 @endsection
 
 @section('content')
-    <div class="row">
-        <!-- Estatísticas Rápidas -->
-        <div class="col-md-3 mb-4">
-            <div class="school-card text-center p-4">
-                <div class="stat-icon mb-2 text-primary">
-                    <i class="fas fa-user-graduate fa-2x"></i>
-                </div>
-                <div class="stat-value h4 fw-bold">{{ $stats['total_students'] }}</div>
-                <div class="stat-label text-muted">Alunos Ativos</div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-4">
-            <div class="school-card text-center p-4">
-                <div class="stat-icon mb-2 text-success">
-                    <i class="fas fa-chalkboard-teacher fa-2x"></i>
-                </div>
-                <div class="stat-value h4 fw-bold">{{ $stats['total_teachers'] }}</div>
-                <div class="stat-label text-muted">Professores</div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-4">
-            <div class="school-card text-center p-4">
-                <div class="stat-icon mb-2 text-info">
-                    <i class="fas fa-school fa-2x"></i>
-                </div>
-                <div class="stat-value h4 fw-bold">{{ $stats['total_classes'] }}</div>
-                <div class="stat-label text-muted">Turmas Ativas</div>
-            </div>
-        </div>
-        <div class="col-md-3 mb-4">
-            <div class="school-card text-center p-4">
-                <div class="stat-icon mb-2 text-warning">
-                    <i class="fas fa-money-bill-wave fa-2x"></i>
-                </div>
-                <div class="stat-value h4 fw-bold">{{ number_format($stats['monthly_revenue'], 2, ',', '.') }} MT</div>
-                <div class="stat-label text-muted">Receita Mensal</div>
-            </div>
-        </div>
-    </div>
+    <div class="space-y-6 bg-[#F4F6FA] -m-4 p-6 rounded-3xl min-h-screen">
 
-    <div class="row">
-        <!-- Seções de Relatórios -->
-        <div class="col-md-6 mb-4">
-            <div class="school-card h-100">
-                <div class="school-card-header">
-                    <h3 class="school-card-title">
-                        <i class="fas fa-academic-cap"></i> Relatórios Acadêmicos
-                    </h3>
+        <!-- Top Header Banner MOPHY Style -->
+        <div class="rounded-3xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 p-6 text-white shadow-lg relative overflow-hidden flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+                <span class="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3 py-1 text-xs font-bold text-amber-300 border border-white/20">
+                    <i class="fas fa-file-invoice"></i> Central MOPHY Analytics
+                </span>
+                <h2 class="mt-2 text-2xl font-black font-heading text-white">Hub de Relatórios Estratégicos</h2>
+                <p class="text-xs text-emerald-100 max-w-lg mt-0.5">
+                    Aceda a balanços financeiros, pautas académicas, relatórios de assiduidade e ferramentas de exportação em tempo real.
+                </p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('reports.export.students') }}" class="inline-flex items-center gap-2 rounded-full bg-white/20 hover:bg-white/30 backdrop-blur-md px-4 py-2 text-xs font-bold text-white border border-white/30 transition">
+                    <i class="fas fa-download"></i> Alunos (CSV)
+                </a>
+                <a href="{{ route('reports.export.payments') }}" class="inline-flex items-center gap-2 rounded-full bg-white text-emerald-800 hover:bg-emerald-50 px-4 py-2 text-xs font-black shadow-md transition">
+                    <i class="fas fa-file-excel text-emerald-600"></i> Pagamentos (CSV)
+                </a>
+            </div>
+        </div>
+
+        <!-- MOPHY Stat Summary Cards Grid -->
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex items-center gap-4 hover:shadow-md transition">
+                <div class="rounded-2xl bg-emerald-50 p-3.5 text-emerald-600 text-xl shrink-0">
+                    <i class="fas fa-user-graduate"></i>
                 </div>
-                <div class="school-card-body">
-                    <p class="text-muted">Acompanhe o desempenho dos alunos, frequência e dados das turmas.</p>
-                    <div class="list-group list-group-flush">
-                        <a href="{{ route('reports.academic') }}"
-                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-list-ul me-2 text-primary"></i> Visão Geral Acadêmica
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Alunos Ativos</span>
+                    <p class="text-2xl font-black text-slate-800 mt-0.5">{{ number_format($stats['total_students']) }}</p>
+                </div>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex items-center gap-4 hover:shadow-md transition">
+                <div class="rounded-2xl bg-blue-50 p-3.5 text-blue-600 text-xl shrink-0">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                </div>
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Professores</span>
+                    <p class="text-2xl font-black text-slate-800 mt-0.5">{{ number_format($stats['total_teachers']) }}</p>
+                </div>
+            </div>
+
+            <div class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex items-center gap-4 hover:shadow-md transition">
+                <div class="rounded-2xl bg-purple-50 p-3.5 text-purple-600 text-xl shrink-0">
+                    <i class="fas fa-school"></i>
+                </div>
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Turmas Ativas</span>
+                    <p class="text-2xl font-black text-slate-800 mt-0.5">{{ number_format($stats['total_classes']) }}</p>
+                </div>
+            </div>
+
+            <div class="rounded-2xl bg-gradient-to-br from-emerald-800 to-teal-900 p-5 text-white shadow-lg flex items-center justify-between">
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-200">Receita Mensal</span>
+                    <p class="text-xl font-black text-white mt-0.5">{{ number_format($stats['monthly_revenue'], 0, ',', '.') }} MT</p>
+                </div>
+                <span class="rounded-full bg-white/20 p-3 text-white text-base"><i class="fas fa-wallet"></i></span>
+            </div>
+        </div>
+
+        <!-- MOPHY Report Category Grid -->
+        <div class="grid gap-6 md:grid-cols-2">
+            
+            <!-- Category 1: Académico -->
+            <div class="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100">
+                        <div class="rounded-2xl bg-emerald-100/70 p-3 text-emerald-600 text-lg">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-extrabold text-slate-800 font-heading">Relatórios Académicos</h3>
+                            <p class="text-xs text-slate-400">Acompanhamento do rendimento escolar e assiduidade</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <a href="{{ route('reports.academic') }}" class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 hover:text-emerald-900 transition group">
+                            <div class="flex items-center gap-3">
+                                <span class="rounded-xl bg-white p-2 text-emerald-600 shadow-sm"><i class="fas fa-list-ul text-xs"></i></span>
+                                <span class="text-sm font-bold text-slate-800 group-hover:text-emerald-800">Visão Geral Académica</span>
                             </div>
-                            <i class="fas fa-chevron-right small text-muted"></i>
+                            <i class="fas fa-chevron-right text-xs text-slate-400 group-hover:text-emerald-600"></i>
                         </a>
-                        <a href="{{ route('reports.academic.performance') }}"
-                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-chart-line me-2 text-primary"></i> Desempenho de Alunos
+
+                        <a href="{{ route('reports.academic.performance') }}" class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 hover:text-emerald-900 transition group">
+                            <div class="flex items-center gap-3">
+                                <span class="rounded-xl bg-white p-2 text-emerald-600 shadow-sm"><i class="fas fa-chart-line text-xs"></i></span>
+                                <span class="text-sm font-bold text-slate-800 group-hover:text-emerald-800">Desempenho por Disciplina & Alunos</span>
                             </div>
-                            <i class="fas fa-chevron-right small text-muted"></i>
+                            <i class="fas fa-chevron-right text-xs text-slate-400 group-hover:text-emerald-600"></i>
                         </a>
-                        <a href="{{ route('reports.academic.attendance') }}"
-                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-calendar-check me-2 text-primary"></i> Relatório de Frequência
+
+                        <a href="{{ route('reports.academic.attendance') }}" class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 hover:text-emerald-900 transition group">
+                            <div class="flex items-center gap-3">
+                                <span class="rounded-xl bg-white p-2 text-teal-600 shadow-sm"><i class="fas fa-calendar-check text-xs"></i></span>
+                                <span class="text-sm font-bold text-slate-800 group-hover:text-emerald-800">Relatório de Assiduidade</span>
                             </div>
-                            <i class="fas fa-chevron-right small text-muted"></i>
+                            <i class="fas fa-chevron-right text-xs text-slate-400 group-hover:text-emerald-600"></i>
                         </a>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-6 mb-4">
-            <div class="school-card h-100">
-                <div class="school-card-header">
-                    <h3 class="school-card-title">
-                        <i class="fas fa-wallet"></i> Relatórios Financeiros
-                    </h3>
-                </div>
-                <div class="school-card-body">
-                    <p class="text-muted">Monitore a saúde financeira, pagamentos e inadimplência.</p>
-                    <div class="list-group list-group-flush">
-                        <a href="{{ route('reports.financial') }}"
-                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-file-invoice-dollar me-2 text-success"></i> Visão Geral Financeira
+            <!-- Category 2: Financeiro -->
+            <div class="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0 flex flex-col justify-between">
+                <div>
+                    <div class="flex items-center gap-3 mb-4 pb-4 border-b border-slate-100">
+                        <div class="rounded-2xl bg-emerald-100/70 p-3 text-emerald-600 text-lg">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-extrabold text-slate-800 font-heading">Relatórios Financeiros</h3>
+                            <p class="text-xs text-slate-400">Balanço de mensalidades, cobranças e inadimplência</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <a href="{{ route('reports.financial') }}" class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 hover:text-emerald-900 transition group">
+                            <div class="flex items-center gap-3">
+                                <span class="rounded-xl bg-white p-2 text-emerald-600 shadow-sm"><i class="fas fa-receipt text-xs"></i></span>
+                                <span class="text-sm font-bold text-slate-800 group-hover:text-emerald-800">Visão Geral Financeira</span>
                             </div>
-                            <i class="fas fa-chevron-right small text-muted"></i>
+                            <i class="fas fa-chevron-right text-xs text-slate-400 group-hover:text-emerald-600"></i>
                         </a>
-                        <a href="{{ route('reports.financial.revenue') }}"
-                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-hand-holding-usd me-2 text-success"></i> Relatório de Receitas
+
+                        <a href="{{ route('reports.financial.revenue') }}" class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/80 hover:bg-emerald-50/70 hover:text-emerald-900 transition group">
+                            <div class="flex items-center gap-3">
+                                <span class="rounded-xl bg-white p-2 text-emerald-600 shadow-sm"><i class="fas fa-chart-pie text-xs"></i></span>
+                                <span class="text-sm font-bold text-slate-800 group-hover:text-emerald-800">Evolução Mensal de Arrecadação</span>
                             </div>
-                            <i class="fas fa-chevron-right small text-muted"></i>
+                            <i class="fas fa-chevron-right text-xs text-slate-400 group-hover:text-emerald-600"></i>
                         </a>
-                        <a href="{{ route('reports.financial.defaulters') }}"
-                            class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-user-times me-2 text-success"></i> Relatório de Inadimplentes
+
+                        <a href="{{ route('reports.financial.defaulters') }}" class="flex items-center justify-between p-3.5 rounded-2xl bg-amber-50/80 hover:bg-amber-100/90 hover:text-amber-900 transition group">
+                            <div class="flex items-center gap-3">
+                                <span class="rounded-xl bg-white p-2 text-amber-600 shadow-sm"><i class="fas fa-exclamation-triangle text-xs"></i></span>
+                                <span class="text-sm font-bold text-amber-900">Lista de Alunos Inadimplentes</span>
                             </div>
-                            <i class="fas fa-chevron-right small text-muted"></i>
+                            <i class="fas fa-chevron-right text-xs text-amber-500 group-hover:text-amber-700"></i>
                         </a>
                     </div>
                 </div>
             </div>
+
         </div>
+
     </div>
-
-    <div class="row">
-        <!-- Gráficos Rápidos -->
-        <div class="col-md-8 mb-4">
-            <div class="school-card">
-                <div class="school-card-header">
-                    <h3 class="school-card-title">
-                        <i class="fas fa-chart-area"></i> Tendência de Receita (Últimos 6 meses)
-                    </h3>
-                </div>
-                <div class="school-card-body">
-                    <canvas id="revenueChart" height="250"></canvas>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="school-card">
-                <div class="school-card-header">
-                    <h3 class="school-card-title">
-                        <i class="fas fa-chart-pie"></i> Alunos por Nível
-                    </h3>
-                </div>
-                <div class="school-card-body">
-                    <canvas id="studentsByGradeChart" height="250"></canvas>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    @push('scripts')
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            document.addEventListener('DOMContentLoaded', function () {
-                // Gráfico de Receita
-                fetch('{{ route('api.charts.revenue-monthly') }}')
-                    .then(response => response.json())
-                    .then(data => {
-                        const ctx = document.getElementById('revenueChart').getContext('2d');
-                        new Chart(ctx, {
-                            type: 'line',
-                            data: {
-                                labels: data.map(item => item.month_name),
-                                datasets: [{
-                                    label: 'Receita (MT)',
-                                    data: data.map(item => item.total),
-                                    borderColor: '#28a745',
-                                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                                    fill: true,
-                                    tension: 0.4
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false
-                            }
-                        });
-                    });
-
-                // Gráfico de Alunos por Nível
-                fetch('{{ route('api.charts.students-by-grade') }}')
-                    .then(response => response.json())
-                    .then(data => {
-                        const ctx = document.getElementById('studentsByGradeChart').getContext('2d');
-                        new Chart(ctx, {
-                            type: 'doughnut',
-                            data: {
-                                labels: data.map(item => item.label),
-                                datasets: [{
-                                    data: data.map(item => item.value),
-                                    backgroundColor: [
-                                        '#007bff', '#6610f2', '#6f42c1', '#e83e8c', '#dc3545', '#fd7e14', '#ffc107', '#28a745'
-                                    ]
-                                }]
-                            },
-                            options: {
-                                responsive: true,
-                                maintainAspectRatio: false,
-                                plugins: {
-                                    legend: {
-                                        position: 'bottom'
-                                    }
-                                }
-                            }
-                        });
-                    });
-            });
-        </script>
-    @endpush
 @endsection

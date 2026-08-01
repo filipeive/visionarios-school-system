@@ -18,35 +18,56 @@
 @endsection
 
 @section('content')
-    <div class="space-y-6" x-data="{ openQuickActions: true }">
+    <div class="space-y-6 bg-[#F4F6FA] -m-4 p-6 rounded-3xl min-h-screen" x-data="{ openQuickActions: true }">
         <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Total de Alunos</p>
-                <p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($stats['total_students']) }}</p>
-                <p class="mt-2 text-sm text-emerald-700">
-                    <i class="fas fa-arrow-trend-up"></i> {{ $stats['new_enrollments_month'] }} este mes
-                </p>
+            <article class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex flex-col justify-between hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total de Alunos</span>
+                    <span class="rounded-xl bg-emerald-50 p-2.5 text-emerald-600 text-sm"><i class="fas fa-user-graduate"></i></span>
+                </div>
+                <div class="mt-3">
+                    <p class="text-2xl font-black text-slate-800">{{ number_format($stats['total_students']) }}</p>
+                    <p class="mt-1 text-xs text-emerald-700 font-semibold">
+                        <i class="fas fa-arrow-trend-up"></i> {{ $stats['new_enrollments_month'] }} este mês
+                    </p>
+                </div>
             </article>
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Matriculas Pendentes</p>
-                <p class="mt-2 text-3xl font-bold text-amber-700">{{ number_format($stats['pending_enrollments']) }}</p>
-                <p class="mt-2 text-sm text-amber-700">
-                    <i class="fas fa-clock"></i> Aguardando revisao
-                </p>
+
+            <article class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex flex-col justify-between hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Matrículas Pendentes</span>
+                    <span class="rounded-xl bg-amber-50 p-2.5 text-amber-600 text-sm"><i class="fas fa-clock"></i></span>
+                </div>
+                <div class="mt-3">
+                    <p class="text-2xl font-black text-amber-700">{{ number_format($stats['pending_enrollments']) }}</p>
+                    <p class="mt-1 text-xs text-amber-700 font-semibold">Aguardando revisão</p>
+                </div>
             </article>
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Receita Mensal</p>
-                <p class="mt-2 text-3xl font-bold text-emerald-700">{{ number_format($stats['monthly_revenue'], 0, ',', '.') }} MT</p>
-                <p class="mt-2 text-sm text-slate-600">
-                    <i class="fas fa-calendar-day"></i> {{ $stats['todays_payments'] }} pagamentos hoje
-                </p>
+
+            <article class="rounded-2xl bg-gradient-to-br from-emerald-800 to-teal-900 p-5 text-white shadow-lg flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-200">Receita Mensal</span>
+                    <span class="rounded-full bg-white/20 p-2.5 text-white text-sm"><i class="fas fa-wallet"></i></span>
+                </div>
+                <div class="mt-3">
+                    <p class="text-2xl font-black text-white">{{ number_format($stats['monthly_revenue'], 0, ',', '.') }} MT</p>
+                    <p class="mt-1 text-xs text-emerald-200 font-semibold">
+                        {{ $stats['todays_payments'] }} pagamentos hoje
+                    </p>
+                </div>
             </article>
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Pagamentos em Atraso</p>
-                <p class="mt-2 text-3xl font-bold text-rose-700">{{ number_format($stats['overdue_payments']) }}</p>
-                <p class="mt-2 text-sm text-rose-700">
-                    <i class="fas fa-triangle-exclamation"></i> {{ number_format($stats['overdue_amount'], 0, ',', '.') }} MT
-                </p>
+
+            <article class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex flex-col justify-between hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Propinas em Atraso</span>
+                    <span class="rounded-xl bg-rose-50 p-2.5 text-rose-600 text-sm"><i class="fas fa-exclamation-triangle"></i></span>
+                </div>
+                <div class="mt-3">
+                    <p class="text-2xl font-black text-rose-600">{{ number_format($stats['overdue_payments']) }}</p>
+                    <p class="mt-1 text-xs text-rose-600 font-bold truncate">
+                        {{ number_format($stats['overdue_amount'], 0, ',', '.') }} MT
+                    </p>
+                </div>
             </article>
         </section>
 

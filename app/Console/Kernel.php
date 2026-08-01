@@ -18,6 +18,9 @@ class Kernel extends ConsoleKernel
 
         // Aplicação de multas em pagamentos vencidos (dia a dia)
         $schedule->command('payments:apply-penalties')->dailyAt('08:00');
+
+        // Verificação diária da licença ZamEdu
+        $schedule->command('license:check')->daily();
     }
 
     /**

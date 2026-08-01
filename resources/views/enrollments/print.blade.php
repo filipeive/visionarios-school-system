@@ -80,7 +80,7 @@
 
 <body>
     <div class="header">
-        <div class="school-name">ESCOLA DOS VISIONÁRIOS</div>
+        <div class="school-name">{{ strtoupper(setting('school_name', 'ZamEdu')) }}</div>
         <div class="school-motto">AQUI SE PREPARA A NOVA GERAÇÃO</div>
         <h2>COMPROVANTE DE MATRÍCULA</h2>
     </div>
@@ -170,7 +170,7 @@
 
         <div class="footer">
             Emitido em: {{ now()->format('d/m/Y H:i') }}<br>
-            Escola dos Visionários - Sistema de Gestão Escolar
+            {{ setting('school_name', 'ZamEdu') }} - Sistema de Gestão Escolar
         </div>
 </body>
 

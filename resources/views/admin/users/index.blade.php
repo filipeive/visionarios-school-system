@@ -247,7 +247,7 @@ function confirmDelete(userId, userName) {
 
 // Toggle status via AJAX
 function toggleStatus(userId) {
-    if (confirm('Deseja alterar o status deste usuário?')) {
+    confirmAction('Deseja alterar o status deste usuário?', function() {
         fetch(`/admin/users/${userId}/toggle-status`, {
             method: 'POST',
             headers: {
@@ -267,7 +267,7 @@ function toggleStatus(userId) {
         .catch(error => {
             showToast('Erro ao alterar status', 'error');
         });
-    }
+    }, {title: 'Alterar Status', confirmText: 'Alterar', danger: false});
 }
 </script>
 @endpush

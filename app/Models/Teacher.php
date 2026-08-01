@@ -85,7 +85,7 @@ class Teacher extends Model
 
     public function getYearsExperienceAttribute()
     {
-        return $this->hire_date ? now()->diffInYears($this->hire_date) : 0;
+        return $this->hire_date ? (int) abs(now()->diffInYears($this->hire_date)) : 0;
     }
 
     public function todaysSchedules()

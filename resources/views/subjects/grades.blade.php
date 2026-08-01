@@ -371,7 +371,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Função para carregar mais notas
     window.loadMoreGrades = function() {
         // Implementar carregamento AJAX para mais registros
-        alert('Funcionalidade de carregar mais registros será implementada em breve.');
+        showToast('Funcionalidade de carregar mais registros será implementada em breve.', 'info');
     };
 });
 </script>

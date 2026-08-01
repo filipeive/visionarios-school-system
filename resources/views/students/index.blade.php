@@ -54,19 +54,19 @@
             </div>
         </div>
 
-        <!-- Filtros -->
+        <!-- Filtros Harmonizados -->
         <div class="school-card mb-4">
             <div class="school-card-body">
-                <form action="{{ route('students.index') }}" method="GET" class="row g-3">
+                <form action="{{ route('students.index') }}" method="GET" class="row g-3 align-items-end">
                     <div class="col-md-3">
-                        <label class="form-label">Pesquisar</label>
-                        <input type="text" name="search" class="form-control" 
+                        <label class="form-label text-xs font-bold text-slate-700 uppercase tracking-wider">Pesquisar</label>
+                        <input type="text" name="search" class="form-control rounded-xl border-slate-200" 
                                placeholder="Nome, número..." 
                                value="{{ request('search') }}">
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">Status</label>
-                        <select name="status" class="form-select">
+                        <label class="form-label text-xs font-bold text-slate-700 uppercase tracking-wider">Status</label>
+                        <select name="status" class="form-select rounded-xl border-slate-200">
                             <option value="">Todos</option>
                             <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Ativos</option>
                             <option value="pending_renewal" {{ request('status') == 'pending_renewal' ? 'selected' : '' }}>Pendente Renovação</option>
@@ -76,8 +76,8 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">Turma</label>
-                        <select name="class_id" class="form-select">
+                        <label class="form-label text-xs font-bold text-slate-700 uppercase tracking-wider">Turma</label>
+                        <select name="class_id" class="form-select rounded-xl border-slate-200">
                             <option value="">Todas</option>
                             @foreach($classes as $class)
                                 <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
@@ -87,25 +87,22 @@
                         </select>
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">Gênero</label>
-                        <select name="gender" class="form-select">
+                        <label class="form-label text-xs font-bold text-slate-700 uppercase tracking-wider">Gênero</label>
+                        <select name="gender" class="form-select rounded-xl border-slate-200">
                             <option value="">Todos</option>
                             <option value="male" {{ request('gender') == 'male' ? 'selected' : '' }}>Masculino</option>
                             <option value="female" {{ request('gender') == 'female' ? 'selected' : '' }}>Feminino</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">&nbsp;</label>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-primary-school">
-                                <i class="fas fa-filter"></i> Filtrar
-                            </button>
-                            @if(request()->anyFilled(['search', 'status', 'class_id', 'gender']))
-                            <a href="{{ route('students.index') }}" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Limpar
-                            </a>
-                            @endif
-                        </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary-school flex-grow rounded-xl">
+                            <i class="fas fa-filter me-1"></i> Filtrar
+                        </button>
+                        @if(request()->anyFilled(['search', 'status', 'class_id', 'gender']))
+                        <a href="{{ route('students.index') }}" class="btn btn-outline-secondary rounded-xl" title="Limpar Filtros">
+                            <i class="fas fa-times"></i>
+                        </a>
+                        @endif
                     </div>
                 </form>
             </div>
@@ -161,7 +158,7 @@
                                                  class="rounded-circle me-3" 
                                                  style="width: 40px; height: 40px; object-fit: cover;">
                                         @else
-                                            <div class="user-avatar-sm me-3">
+                                            <div class="user-avatar-sm me-3" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
                                                 {{ substr($student->first_name, 0, 1) }}{{ substr($student->last_name, 0, 1) }}
                                             </div>
                                         @endif
@@ -255,7 +252,7 @@
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-danger" 
                                                     title="Excluir" 
-                                                    onclick="return confirm('Tem certeza que deseja excluir este aluno?')">
+                                                    data-confirm="Tem certeza que deseja excluir este aluno?">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>

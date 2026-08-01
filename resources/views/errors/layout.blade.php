@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'Visionários School') }} - @yield('title')</title>
+    <title>{{ setting('school_name', config('app.name', 'ZamEdu')) }} - @yield('title')</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <!-- Bootstrap CSS -->
@@ -127,7 +127,7 @@
             </div>
             <div class="mt-2 fw-bold text-uppercase tracking-wider"
                 style="color: var(--primary-navy); letter-spacing: 2px; font-size: 12px;">
-                Visionários School
+                {{ setting('school_short_name', 'ZamEdu') }}
             </div>
         </div>
 

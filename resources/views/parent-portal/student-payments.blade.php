@@ -23,12 +23,8 @@
                 <h3 class="text-sm font-semibold text-slate-900">Historico de Pagamentos</h3>
             </header>
             <div class="p-5">
-                @if (session('success'))
-                    <div class="mb-4 rounded-lg bg-emerald-100 px-4 py-3 text-sm text-emerald-700">{{ session('success') }}</div>
-                @endif
-                @if (session('error'))
-                    <div class="mb-4 rounded-lg bg-rose-100 px-4 py-3 text-sm text-rose-700">{{ session('error') }}</div>
-                @endif
+
+
 
                 <div class="overflow-x-auto">
                     <table class="min-w-full text-sm">

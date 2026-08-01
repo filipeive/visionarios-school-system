@@ -222,7 +222,7 @@
                                                     @csrf
                                                     @method('DELETE')
                                                     <button type="submit" class="btn btn-sm btn-danger" title="Excluir"
-                                                        onclick="return confirm('Tem certeza que deseja excluir esta turma? Esta ação não pode ser desfeita.')">
+                                                        data-confirm="Tem certeza que deseja excluir esta turma? Esta ação não pode ser desfeita.">
                                                         <i class="fas fa-trash"></i>
                                                     </button>
                                                 </form>

@@ -172,7 +172,7 @@
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger"
-                                    onclick="return confirm('Tem certeza que deseja excluir este professor?')">
+                                    data-confirm="Tem certeza que deseja excluir este professor?">
                                     <i class="fas fa-trash"></i> Excluir Professor
                                 </button>
                             </form>

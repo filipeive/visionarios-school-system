@@ -314,7 +314,7 @@
                                         <strong>{{ number_format($payment->amount, 2, ',', '.') }} MT</strong>
                                     </td>
                                     <td>
-                                        {{ $payment->payment_date->format('d/m/Y') }}
+                                        {{ $payment->payment_date ? \Carbon\Carbon::parse($payment->payment_date)->format('d/m/Y') : '-' }}
                                     </td>
                                     <td>
                                         <span class="badge bg-{{ $payment->status === 'paid' ? 'success' : 

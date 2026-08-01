@@ -1,399 +1,476 @@
 @extends('layouts.app')
 
-@section('title', 'Dashboard Administrativo')
-@section('page-title', 'Dashboard Administrativo')
-@section('title-icon', 'fas fa-tachometer-alt')
+@section('title', 'Dashboard Executivo & Analytics')
+@section('page-title', 'Dashboard Executivo & Analytics')
+@section('title-icon', 'fas fa-chart-pie')
 
 @section('breadcrumbs')
-    <li class="breadcrumb-item active">Dashboard</li>
+    <li class="breadcrumb-item active">Dashboard ZamEdu</li>
 @endsection
 
 @section('page-actions')
-    <div class="relative" x-data="{ open: false }">
-        <div class="flex items-center gap-2">
-            <button id="refresh-dashboard-btn" type="button"
-                class="inline-flex items-center gap-2 rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-800"
-                onclick="refreshDashboard()">
-                <i class="fas fa-sync-alt"></i>
-                Atualizar
-            </button>
-            <button type="button" @click="open = !open" @click.outside="open = false"
-                class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                <i class="fas fa-ellipsis-vertical"></i>
-            </button>
-        </div>
-        <div x-show="open" x-transition
-            class="absolute right-0 z-20 mt-2 w-52 rounded-lg border border-slate-200 bg-white p-1 shadow-lg">
-            <button type="button" onclick="window.print()"
-                class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-slate-700 hover:bg-slate-100">
-                <i class="fas fa-print text-slate-500"></i>
-                Imprimir
-            </button>
-            <a href="{{ route('reports.index') }}"
-                class="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-slate-700 hover:bg-slate-100">
-                <i class="fas fa-file-export text-slate-500"></i>
-                Ir para Relatorios
-            </a>
-        </div>
+    <div class="flex items-center gap-3">
+        <button id="refresh-dashboard-btn" type="button"
+            class="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-2.5 text-xs font-bold text-white shadow-md transition hover:bg-emerald-800"
+            onclick="location.reload()">
+            <i class="fas fa-sync-alt"></i>
+            Atualizar
+        </button>
+        <button type="button" onclick="window.print()"
+            class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-xs font-bold text-slate-700 shadow-sm transition hover:bg-slate-50">
+            <i class="fas fa-print"></i>
+            Imprimir
+        </button>
     </div>
 @endsection
 
 @section('content')
-    <div class="admin-dashboard space-y-6">
-        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Total de Alunos</p>
-                <p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($stats['total_students']) }}</p>
-                <p class="mt-2 text-sm text-emerald-700">
-                    <i class="fas fa-arrow-up"></i> +{{ $stats['new_students_this_month'] }} este mes
-                </p>
+    <div class="admin-dashboard space-y-6 bg-[#F4F6FA] -m-4 p-6 rounded-3xl min-h-screen">
+
+        <!-- Banner de Boas-Vindas Institucional MOPHY Style -->
+        <div class="rounded-3xl bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 p-7 text-white shadow-xl relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/5 rounded-full blur-2xl pointer-events-none"></div>
+            <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <span class="inline-flex items-center gap-2 rounded-full bg-white/15 backdrop-blur-md px-3.5 py-1 text-xs font-bold text-amber-300 border border-white/20">
+                        <i class="fas fa-star"></i> Painel
+                    </span>
+                    <h2 class="mt-3 text-3xl font-extrabold font-heading text-white tracking-tight">
+                        {{ setting('school_name', 'ZamEdu') }} — Sistema de Gestão Escolar
+                    </h2>
+                    <p class="mt-1 text-sm text-emerald-100/90 max-w-xl">
+                        Acompanhamento em tempo real da assiduidade, arrecadações, pautas académicas e indicadores de desempenho.
+                    </p>
+                </div>
+                <div class="flex items-center gap-3 bg-white/15 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/20 text-xs font-semibold shadow-inner">
+                    <div>
+                        <span class="block text-emerald-200 uppercase text-[10px] tracking-wider">Ano Lectivo</span>
+                        <span class="text-base font-extrabold text-white">{{ current_school_year() }}</span>
+                    </div>
+                    <div class="h-8 w-px bg-white/20"></div>
+                    <div>
+                        <span class="block text-emerald-200 uppercase text-[10px] tracking-wider">Data Atual</span>
+                        <span class="text-base font-extrabold text-white">{{ date('d/m/Y') }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Smart Executive Insights (Alertas Inteligentes MOPHY Style) -->
+        @if (!empty($smartInsights))
+            <section class="grid gap-4 md:grid-cols-3">
+                @foreach ($smartInsights as $insight)
+                    <div class="rounded-2xl p-4 shadow-[0_8px_20px_rgba(0,0,0,0.03)] border-0 flex items-start gap-3.5 transition hover:translate-y-[-2px]
+                        {{ $insight['type'] === 'success' ? 'bg-emerald-50/90 text-emerald-950' : '' }}
+                        {{ $insight['type'] === 'info' ? 'bg-sky-50/90 text-sky-950' : '' }}
+                        {{ $insight['type'] === 'warning' ? 'bg-amber-50/90 text-amber-950' : '' }}">
+                        <div class="rounded-xl p-2.5 text-lg shrink-0
+                            {{ $insight['type'] === 'success' ? 'bg-emerald-500 text-white shadow-sm' : '' }}
+                            {{ $insight['type'] === 'info' ? 'bg-sky-500 text-white shadow-sm' : '' }}
+                            {{ $insight['type'] === 'warning' ? 'bg-amber-500 text-white shadow-sm' : '' }}">
+                            <i class="fas {{ $insight['icon'] }}"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-extrabold">{{ $insight['title'] }}</h4>
+                            <p class="mt-0.5 text-xs opacity-90 leading-relaxed font-medium">{{ $insight['message'] }}</p>
+                        </div>
+                    </div>
+                @endforeach
+            </section>
+        @endif
+
+        <!-- MOPHY Style Stat Cards Grid (Compactos, Arredondados, Elegantes) -->
+        <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+            
+            <!-- Card 1: Receita Mensal (Destaque Principal Gradient MOPHY) -->
+            <article class="rounded-2xl bg-gradient-to-br from-emerald-800 to-teal-900 p-5 text-white shadow-lg relative overflow-hidden flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-200">Receita Mensal</span>
+                    <span class="rounded-full bg-white/20 p-2 text-white text-xs"><i class="fas fa-wallet"></i></span>
+                </div>
+                <div class="mt-3">
+                    <p class="text-2xl font-black tracking-tight text-white">{{ number_format($stats['monthly_revenue'], 0, ',', '.') }} <span class="text-xs font-normal text-emerald-200">MT</span></p>
+                    <div class="mt-2 inline-flex items-center gap-1 rounded-full bg-emerald-400/20 px-2.5 py-0.5 text-[11px] font-bold text-emerald-200 border border-emerald-400/30">
+                        <i class="fas fa-{{ $stats['revenue_change'] >= 0 ? 'arrow-up' : 'arrow-down' }}"></i>
+                        {{ abs($stats['revenue_change']) }}% este mês
+                    </div>
+                </div>
             </article>
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Professores Ativos</p>
-                <p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($stats['total_teachers']) }}</p>
-                <p class="mt-2 text-sm text-slate-600">
-                    <i class="fas fa-users"></i> {{ $stats['total_classes'] }} turmas
-                </p>
+
+            <!-- Card 2: Alunos Ativos -->
+            <article class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex flex-col justify-between hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Alunos Ativos</span>
+                    <span class="rounded-xl bg-emerald-50 p-2.5 text-emerald-600 text-sm"><i class="fas fa-user-graduate"></i></span>
+                </div>
+                <div class="mt-3">
+                    <p class="text-2xl font-black text-slate-800">{{ number_format($stats['total_students']) }}</p>
+                    <p class="mt-1 text-xs text-slate-500 font-medium">
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></span> {{ $stats['total_classes'] }} Turmas ativas
+                    </p>
+                </div>
             </article>
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Receita Mensal</p>
-                <p class="mt-2 text-3xl font-bold text-emerald-700">{{ number_format($stats['monthly_revenue'], 0, ',', '.') }} MT</p>
-                <p class="mt-2 text-sm {{ $stats['revenue_change'] >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
-                    <i class="fas fa-{{ $stats['revenue_change'] >= 0 ? 'arrow-up' : 'arrow-down' }}"></i>
-                    {{ abs($stats['revenue_change']) }}% vs mes anterior
-                </p>
+
+            <!-- Card 3: Assiduidade Donut SVG (MOPHY Ring Indicator) -->
+            <article class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex items-center justify-between hover:shadow-md transition">
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Assiduidade</span>
+                    <p class="mt-2 text-2xl font-black text-slate-800">{{ $stats['overall_attendance_rate'] }}%</p>
+                    <p class="mt-1 text-[11px] text-teal-600 font-semibold">Presença Global</p>
+                </div>
+                <!-- Mini Donut Ring SVG -->
+                <div class="relative w-14 h-14 flex items-center justify-center shrink-0">
+                    <svg class="w-14 h-14 transform -rotate-90" viewBox="0 0 36 36">
+                        <path class="text-slate-100" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                        <path class="text-teal-500" stroke-linecap="round" stroke-dasharray="{{ $stats['overall_attendance_rate'] }}, 100" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <span class="absolute text-[10px] font-extrabold text-teal-700"><i class="fas fa-check"></i></span>
+                </div>
             </article>
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Pagamentos em Atraso</p>
-                <p class="mt-2 text-3xl font-bold text-rose-700">{{ number_format($stats['overdue_payments']) }}</p>
-                <p class="mt-2 text-sm text-rose-700">
-                    <i class="fas fa-clock"></i> {{ number_format($stats['overdue_amount'], 0, ',', '.') }} MT
-                </p>
+
+            <!-- Card 4: Média Académica -->
+            <article class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex flex-col justify-between hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Média Geral</span>
+                    <span class="rounded-xl bg-purple-50 p-2.5 text-purple-600 text-sm"><i class="fas fa-award"></i></span>
+                </div>
+                <div class="mt-3">
+                    <p class="text-2xl font-black text-purple-700">{{ $stats['global_grade_avg'] }} <span class="text-xs text-slate-400 font-normal">/ 20</span></p>
+                    <span class="mt-1 inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-[10px] font-bold text-purple-700">
+                        <i class="fas fa-star text-amber-500"></i> Bom Desempenho
+                    </span>
+                </div>
             </article>
+
+            <!-- Card 5: Inadimplência -->
+            <article class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex flex-col justify-between hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Em Atraso</span>
+                    <span class="rounded-xl bg-rose-50 p-2.5 text-rose-600 text-sm"><i class="fas fa-exclamation-circle"></i></span>
+                </div>
+                <div class="mt-3">
+                    <p class="text-2xl font-black text-rose-600">{{ number_format($stats['overdue_payments']) }}</p>
+                    <p class="mt-1 text-xs text-rose-600 font-bold truncate">
+                        {{ number_format($stats['overdue_amount'], 0, ',', '.') }} MT
+                    </p>
+                </div>
+            </article>
+
+            <!-- Card 6: Corpo Docente -->
+            <article class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex flex-col justify-between hover:shadow-md transition">
+                <div class="flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Professores</span>
+                    <span class="rounded-xl bg-blue-50 p-2.5 text-blue-600 text-sm"><i class="fas fa-chalkboard-user"></i></span>
+                </div>
+                <div class="mt-3">
+                    <p class="text-2xl font-black text-slate-800">{{ number_format($stats['total_teachers']) }}</p>
+                    <p class="mt-1 text-xs text-blue-600 font-semibold">
+                        <i class="fas fa-graduation-cap"></i> Docentes Ativos
+                    </p>
+                </div>
+            </article>
+
         </section>
 
+        <!-- Charts Section (Receita 12 Meses & Distribuição de Alunos MOPHY Cards) -->
         <section class="grid gap-6 xl:grid-cols-3">
-            <article class="xl:col-span-2 rounded-xl border border-slate-200 bg-white shadow-sm">
-                <header class="border-b border-slate-200 px-5 py-4">
-                    <h3 class="text-sm font-semibold text-slate-900">Receitas dos Ultimos 6 Meses</h3>
-                </header>
-                <div class="p-5">
-                    <div class="h-[320px]">
-                        <canvas id="revenueChart"></canvas>
+            
+            <!-- Revenue Chart Card -->
+            <article class="xl:col-span-2 min-w-0 rounded-3xl bg-white p-4 sm:p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0 overflow-hidden">
+                <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-extrabold text-slate-800 font-heading">Evolução da Receita</h3>
+                        <p class="text-xs text-slate-400">Histórico de propinas e mensalidades pagas nos últimos 12 meses</p>
                     </div>
+                    <span class="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700 text-nowrap">12 Meses</span>
+                </div>
+                <div class="relative w-full min-w-0 h-[240px] sm:h-[300px]">
+                    <canvas id="revenueChart"></canvas>
                 </div>
             </article>
-            <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
-                <header class="border-b border-slate-200 px-5 py-4">
-                    <h3 class="text-sm font-semibold text-slate-900">Distribuicao de Alunos por Classe</h3>
-                </header>
-                <div class="p-5">
-                    <div class="h-[320px]">
-                        <canvas id="studentsChart"></canvas>
+
+            <!-- Class Distribution Chart Card -->
+            <article class="min-w-0 rounded-3xl bg-white p-4 sm:p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0 overflow-hidden">
+                <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+                    <div>
+                        <h3 class="text-base sm:text-lg font-extrabold text-slate-800 font-heading">Alunos por Turma</h3>
+                        <p class="text-xs text-slate-400">Distribuição atual de matrículas</p>
                     </div>
+                    <span class="rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 text-nowrap">Turmas</span>
+                </div>
+                <div class="relative w-full min-w-0 h-[240px] sm:h-[300px]">
+                    <canvas id="studentsChart"></canvas>
                 </div>
             </article>
+
         </section>
 
-        <section class="grid gap-6 xl:grid-cols-2">
-            <article class="rounded-xl border border-slate-200 bg-white shadow-sm">
-                <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                    <h3 class="text-sm font-semibold text-slate-900">Proximos Eventos</h3>
-                    <a href="{{ route('events.index') }}"
-                        class="inline-flex items-center gap-2 rounded-lg bg-sky-700 px-3 py-2 text-xs font-semibold text-white hover:bg-sky-800">
-                        <i class="fas fa-calendar"></i> Ver Agenda
-                    </a>
-                </header>
-                <div class="space-y-3 p-5">
-                    @forelse($upcomingEvents as $event)
-                        <div class="flex items-center justify-between rounded-lg border border-slate-200 px-4 py-3">
-                            <div>
-                                <p class="text-sm font-semibold text-slate-900">{{ $event->title }}</p>
-                                <p class="text-xs text-slate-500">
-                                    {{ $event->event_date->format('d/m/Y H:i') }} • {{ $event->location ?? 'Escola' }}
-                                </p>
+        <!-- Rankings Section: Quadro de Honra & Melhores Turmas -->
+        <section class="grid gap-6 lg:grid-cols-2">
+            
+            <!-- Quadro de Honra (Top Alunos) -->
+            <article class="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0">
+                <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div class="rounded-2xl bg-amber-100/70 p-3 text-amber-600 text-lg">
+                            <i class="fas fa-trophy"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-800 font-heading">Quadro de Honra — Melhores Alunos</h3>
+                            <p class="text-xs text-slate-400">Estudantes com maior média académica global</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    @forelse($topStudents as $index => $student)
+                        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/70 hover:bg-slate-100/80 transition">
+                            <div class="flex items-center gap-3.5">
+                                <span class="flex h-8 w-8 items-center justify-center rounded-full font-black text-xs shadow-sm
+                                    {{ $index === 0 ? 'bg-amber-400 text-amber-950 ring-2 ring-amber-300' : '' }}
+                                    {{ $index === 1 ? 'bg-slate-300 text-slate-800' : '' }}
+                                    {{ $index === 2 ? 'bg-amber-600 text-white' : '' }}
+                                    {{ $index > 2 ? 'bg-slate-200 text-slate-600' : '' }}">
+                                    {{ $index + 1 }}º
+                                </span>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-900">{{ $student->first_name }} {{ $student->last_name }}</p>
+                                    <p class="text-xs text-slate-400 font-medium">Nº {{ $student->student_number }}</p>
+                                </div>
                             </div>
-                            <span
-                                class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $event->type === 'exam'
-                                    ? 'bg-rose-100 text-rose-700'
-                                    : ($event->type === 'holiday'
-                                        ? 'bg-amber-100 text-amber-700'
-                                        : 'bg-sky-100 text-sky-700') }}">
-                                {{ ucfirst($event->type) }}
-                            </span>
+                            <div>
+                                <span class="inline-block rounded-full bg-emerald-100 px-3.5 py-1 text-xs font-black text-emerald-800">
+                                    {{ number_format($student->average_grade, 1) }} / 20
+                                </span>
+                            </div>
                         </div>
                     @empty
-                        <p class="rounded-lg bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">Nenhum evento programado.</p>
+                        <p class="p-5 text-center text-sm text-slate-400">Nenhum aluno classificado.</p>
                     @endforelse
                 </div>
             </article>
 
-            <article class="rounded-xl border border-slate-200 bg-white shadow-sm" x-data="{ showActions: true }">
-                <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                    <button type="button" @click="showActions = !showActions"
-                        class="flex items-center gap-2 text-sm font-semibold text-slate-900">
-                        Acoes Necessarias
-                        @if ($stats['pending_actions'] > 0)
-                            <span class="rounded-full bg-rose-100 px-2 py-0.5 text-xs text-rose-700">{{ $stats['pending_actions'] }}</span>
-                        @endif
-                        <i class="fas fa-chevron-down text-xs transition" :class="{ 'rotate-180': showActions }"></i>
-                    </button>
-                </header>
-                <div class="space-y-3 p-5" x-show="showActions" x-transition>
+            <!-- Top Turmas por Média -->
+            <article class="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0">
+                <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-3">
+                        <div class="rounded-2xl bg-emerald-100/70 p-3 text-emerald-600 text-lg">
+                            <i class="fas fa-ranking-star"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-extrabold text-slate-800 font-heading">Ranking de Turmas</h3>
+                            <p class="text-xs text-slate-400">Média geral por turma</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-3">
+                    @forelse($topClasses as $index => $class)
+                        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50/70 hover:bg-slate-100/80 transition">
+                            <div class="flex items-center gap-3.5">
+                                <span class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-black text-slate-700">
+                                    #{{ $index + 1 }}
+                                </span>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-900">{{ $class->name }}</p>
+                                    <p class="text-xs text-slate-400 font-medium">{{ $class->current_students }} Alunos inscritos</p>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="inline-block rounded-full bg-teal-100 px-3.5 py-1 text-xs font-black text-teal-800">
+                                    {{ number_format($class->average_grade, 1) }} / 20
+                                </span>
+                            </div>
+                        </div>
+                    @empty
+                        <p class="p-5 text-center text-sm text-slate-400">Nenhuma turma classificada.</p>
+                    @endforelse
+                </div>
+            </article>
+
+        </section>
+
+        <!-- Ações Necessárias & Próximos Eventos -->
+        <section class="grid gap-6 xl:grid-cols-2">
+            
+            <article class="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0">
+                <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+                    <h3 class="text-base font-extrabold text-slate-800 font-heading">Próximos Eventos</h3>
+                    <a href="{{ route('events.index') }}"
+                        class="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-800 transition">
+                        <i class="fas fa-calendar-alt"></i> Agenda
+                    </a>
+                </div>
+                <div class="space-y-3">
+                    @forelse($upcomingEvents as $event)
+                        <div class="flex items-center justify-between rounded-2xl bg-slate-50/70 p-3.5">
+                            <div>
+                                <p class="text-sm font-bold text-slate-900">{{ $event->title }}</p>
+                                <p class="text-xs text-slate-400">
+                                    <i class="fas fa-clock text-slate-400 me-1"></i> {{ $event->event_date->format('d/m/Y H:i') }}
+                                </p>
+                            </div>
+                            <span class="rounded-full px-3 py-1 text-[11px] font-bold bg-emerald-100 text-emerald-800">
+                                {{ ucfirst($event->type) }}
+                            </span>
+                        </div>
+                    @empty
+                        <p class="rounded-2xl bg-slate-50 p-6 text-center text-sm text-slate-400">Nenhum evento programado.</p>
+                    @endforelse
+                </div>
+            </article>
+
+            <article class="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0">
+                <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+                    <h3 class="text-base font-extrabold text-slate-800 font-heading">Ações Administrativas</h3>
+                    <span class="rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800">{{ $stats['pending_actions'] }} Pendentes</span>
+                </div>
+                <div class="space-y-3">
                     @if ($stats['overdue_payments'] > 0)
-                        <div class="rounded-lg border border-rose-200 bg-rose-50 p-4">
-                            <p class="text-sm font-semibold text-rose-800">{{ $stats['overdue_payments'] }} pagamentos em atraso</p>
-                            <p class="mt-1 text-xs text-rose-700">Valor: {{ number_format($stats['overdue_amount'], 0, ',', '.') }} MT</p>
+                        <div class="rounded-2xl bg-rose-50/80 p-4 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-bold text-rose-950">{{ $stats['overdue_payments'] }} Mensalidades em Atraso</p>
+                                <p class="text-xs text-rose-700">Valor em mora: {{ number_format($stats['overdue_amount'], 2, ',', '.') }} MT</p>
+                            </div>
                             <a href="{{ route('payments.index') }}?status=overdue"
-                                class="mt-3 inline-flex rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-rose-700 ring-1 ring-rose-300 hover:bg-rose-100">
+                                class="rounded-full bg-rose-600 px-4 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-rose-700 transition">
                                 Resolver
                             </a>
                         </div>
                     @endif
+
                     @if ($stats['pending_enrollments'] > 0)
-                        <div class="rounded-lg border border-amber-200 bg-amber-50 p-4">
-                            <p class="text-sm font-semibold text-amber-800">{{ $stats['pending_enrollments'] }} matriculas pendentes</p>
-                            <p class="mt-1 text-xs text-amber-700">Aguardando aprovacao da secretaria.</p>
+                        <div class="rounded-2xl bg-amber-50/80 p-4 flex items-center justify-between">
+                            <div>
+                                <p class="text-sm font-bold text-amber-950">{{ $stats['pending_enrollments'] }} Pré-Matrículas Pendentes</p>
+                                <p class="text-xs text-amber-700">Aguardando aprovação da secretaria</p>
+                            </div>
                             <a href="{{ route('enrollments.index') }}?status=pending"
-                                class="mt-3 inline-flex rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-amber-700 ring-1 ring-amber-300 hover:bg-amber-100">
-                                Revisar
+                                class="rounded-full bg-amber-600 px-4 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-amber-700 transition">
+                                Aprovar
                             </a>
                         </div>
-                    @endif
-                    @if ($stats['pending_leave_requests'] > 0)
-                        <div class="rounded-lg border border-sky-200 bg-sky-50 p-4">
-                            <p class="text-sm font-semibold text-sky-800">{{ $stats['pending_leave_requests'] }} pedidos de licenca</p>
-                            <p class="mt-1 text-xs text-sky-700">Necessitam de analise administrativa.</p>
-                            <a href="{{ route('staff-leave-requests.index') }}"
-                                class="mt-3 inline-flex rounded-lg bg-white px-3 py-1.5 text-xs font-semibold text-sky-700 ring-1 ring-sky-300 hover:bg-sky-100">
-                                Analisar
-                            </a>
-                        </div>
-                    @endif
-                    @if ($stats['pending_actions'] === 0)
-                        <p class="rounded-lg bg-emerald-50 px-4 py-6 text-center text-sm text-emerald-700">Nenhuma acao critica no momento.</p>
                     @endif
 
-                    <div class="grid grid-cols-2 gap-2 pt-2">
-                        <a href="{{ route('students.create') }}"
-                            class="rounded-lg border border-slate-200 px-3 py-2 text-center text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                            Novo Aluno
-                        </a>
-                        <a href="{{ route('payments.create') }}"
-                            class="rounded-lg border border-slate-200 px-3 py-2 text-center text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                            Receber Pagamento
-                        </a>
-                        <a href="{{ route('reports.index') }}"
-                            class="rounded-lg border border-slate-200 px-3 py-2 text-center text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                            Relatorios
-                        </a>
-                        <a href="{{ route('communications.create') }}"
-                            class="rounded-lg border border-slate-200 px-3 py-2 text-center text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                            Comunicado
-                        </a>
-                    </div>
+                    @if ($stats['pending_actions'] === 0)
+                        <div class="rounded-2xl bg-emerald-50 p-6 text-center text-sm font-bold text-emerald-800">
+                            <i class="fas fa-circle-check text-xl mb-1 block text-emerald-600"></i>
+                            Todas as tarefas administrativas estão concluídas!
+                        </div>
+                    @endif
                 </div>
             </article>
+
         </section>
 
-        <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
-            <header class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                <h3 class="text-sm font-semibold text-slate-900">Ultimas Atividades</h3>
-                <a href="{{ route('admin.audit.index') }}"
-                    class="text-xs font-semibold text-sky-700 hover:text-sky-800">Ver log completo</a>
-            </header>
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-slate-50 text-slate-600">
-                        <tr>
-                            <th class="px-4 py-3 text-left font-semibold">Tipo</th>
-                            <th class="px-4 py-3 text-left font-semibold">Descricao</th>
-                            <th class="px-4 py-3 text-left font-semibold">Usuario</th>
-                            <th class="px-4 py-3 text-left font-semibold">Data/Hora</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        @forelse($recentActivities as $activity)
-                            <tr>
-                                <td class="px-4 py-3">
-                                    <span
-                                        class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold {{ $activity->type === 'payment'
-                                            ? 'bg-emerald-100 text-emerald-700'
-                                            : ($activity->type === 'enrollment'
-                                                ? 'bg-sky-100 text-sky-700'
-                                                : ($activity->type === 'user'
-                                                    ? 'bg-indigo-100 text-indigo-700'
-                                                    : 'bg-slate-100 text-slate-700')) }}">
-                                        <i class="fas fa-{{ $activity->icon }}"></i>
-                                        {{ ucfirst($activity->type) }}
-                                    </span>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <p class="font-semibold text-slate-900">{{ $activity->title }}</p>
-                                    <p class="text-xs text-slate-500">{{ $activity->description }}</p>
-                                </td>
-                                <td class="px-4 py-3">
-                                    <div class="flex items-center gap-2">
-                                        <div class="flex h-6 w-6 items-center justify-center rounded-full bg-slate-700 text-[10px] font-bold text-white">
-                                            {{ substr($activity->user_name, 0, 1) }}
-                                        </div>
-                                        <span class="text-slate-700">{{ $activity->user_name }}</span>
-                                    </div>
-                                </td>
-                                <td class="px-4 py-3 text-slate-600">{{ $activity->created_at->format('d/m/Y H:i') }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="px-4 py-6 text-center text-slate-500">Nenhuma atividade recente.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </section>
     </div>
 @endsection
-
-@push('styles')
-    <style>
-        [data-bs-theme="dark"] .admin-dashboard .bg-white {
-            background-color: var(--card-bg) !important;
-        }
-
-        [data-bs-theme="dark"] .admin-dashboard .bg-slate-50 {
-            background-color: rgba(148, 163, 184, 0.08) !important;
-        }
-
-        [data-bs-theme="dark"] .admin-dashboard .border-slate-100,
-        [data-bs-theme="dark"] .admin-dashboard .border-slate-200,
-        [data-bs-theme="dark"] .admin-dashboard .border-slate-300 {
-            border-color: var(--border-color) !important;
-        }
-
-        [data-bs-theme="dark"] .admin-dashboard .text-slate-900 {
-            color: var(--text-primary) !important;
-        }
-
-        [data-bs-theme="dark"] .admin-dashboard .text-slate-800,
-        [data-bs-theme="dark"] .admin-dashboard .text-slate-700 {
-            color: var(--text-secondary) !important;
-        }
-
-        [data-bs-theme="dark"] .admin-dashboard .text-slate-600,
-        [data-bs-theme="dark"] .admin-dashboard .text-slate-500 {
-            color: var(--text-muted) !important;
-        }
-
-        [data-bs-theme="dark"] .admin-dashboard .hover\:bg-slate-50:hover,
-        [data-bs-theme="dark"] .admin-dashboard .hover\:bg-slate-100:hover {
-            background-color: rgba(148, 163, 184, 0.12) !important;
-        }
-    </style>
-@endpush
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        let revenueChartInstance = null;
-        let studentsChartInstance = null;
+        document.addEventListener('DOMContentLoaded', function () {
+            // Obter cores dinâmicas do ThemeEngine
+            const computedStyle = getComputedStyle(document.documentElement);
+            const primaryColor = computedStyle.getPropertyValue('--primary').trim() || '#4F46E5';
+            const secondaryColor = computedStyle.getPropertyValue('--secondary').trim() || '#06B6D4';
+            const accentColor = computedStyle.getPropertyValue('--accent').trim() || '#F59E0B';
 
-        const chartData = {
-            revenue: @json($revenueData),
-            students: @json($studentsDistribution)
-        };
+            // Chart 1: Revenue 12 Months
+            const revenueCtx = document.getElementById('revenueChart')?.getContext('2d');
+            if (revenueCtx) {
+                const revenueChartData = @json($monthlyRevenueChart ?? []);
+                const labels = revenueChartData.map(item => item.month);
+                const values = revenueChartData.map(item => item.revenue);
 
-        function initializeCharts() {
-            if (revenueChartInstance) revenueChartInstance.destroy();
-            if (studentsChartInstance) studentsChartInstance.destroy();
+                // Criar gradiente dinâmico com a cor primária da escola
+                const gradientFill = revenueCtx.createLinearGradient(0, 0, 0, 300);
+                gradientFill.addColorStop(0, primaryColor + '33'); // 20% opacidade
+                gradientFill.addColorStop(1, primaryColor + '00'); // 0% opacidade
 
-            const revenueCtx = document.getElementById('revenueChart');
-            if (revenueCtx && chartData.revenue) {
-                revenueChartInstance = new Chart(revenueCtx, {
+                new Chart(revenueCtx, {
                     type: 'line',
                     data: {
-                        labels: chartData.revenue.months,
+                        labels: labels,
                         datasets: [{
-                            label: 'Receitas (MT)',
-                            data: chartData.revenue.amounts,
-                            borderColor: '#0f4c81',
-                            backgroundColor: 'rgba(15, 76, 129, 0.08)',
-                            borderWidth: 3,
+                            label: 'Receita (MT)',
+                            data: values,
+                            borderColor: primaryColor,
+                            backgroundColor: gradientFill,
+                            borderWidth: 3.5,
                             fill: true,
-                            tension: 0.35,
-                            pointRadius: 4
+                            tension: 0.4,
+                            pointBackgroundColor: accentColor,
+                            pointRadius: 5,
+                            pointHoverRadius: 7
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                display: false
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        return `Receita: ${context.parsed.y.toLocaleString('pt-MZ')} MT`;
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(226, 232, 240, 0.5)' },
+                                ticks: {
+                                    font: { size: window.innerWidth < 640 ? 10 : 11 },
+                                    callback: function(value) {
+                                        if (window.innerWidth < 640 && value >= 1000) {
+                                            return (value / 1000).toLocaleString('pt-MZ') + 'k';
+                                        }
+                                        return value.toLocaleString('pt-MZ') + ' MT';
                                     }
                                 }
+                            },
+                            x: { 
+                                grid: { display: false },
+                                ticks: { font: { size: window.innerWidth < 640 ? 9 : 11 } }
                             }
                         }
                     }
                 });
             }
 
-            const studentsCtx = document.getElementById('studentsChart');
-            if (studentsCtx && chartData.students) {
-                studentsChartInstance = new Chart(studentsCtx, {
-                    type: 'doughnut',
+            // Chart 2: Students Distribution
+            const studentsCtx = document.getElementById('studentsChart')?.getContext('2d');
+            if (studentsCtx) {
+                const studentsDistributionData = @json($studentsDistribution ?? []);
+                const labels = Array.isArray(studentsDistributionData)
+                    ? studentsDistributionData.map(item => item.label)
+                    : (studentsDistributionData.labels || []);
+                const values = Array.isArray(studentsDistributionData)
+                    ? studentsDistributionData.map(item => item.value)
+                    : (studentsDistributionData.data || []);
+
+                new Chart(studentsCtx, {
+                    type: 'bar',
                     data: {
-                        labels: chartData.students.labels,
+                        labels: labels,
                         datasets: [{
-                            data: chartData.students.data,
-                            backgroundColor: ['#0f4c81', '#0ea5e9', '#14b8a6', '#f59e0b', '#ef4444', '#8b5cf6'],
-                            borderWidth: 2,
-                            borderColor: '#ffffff'
+                            label: 'Nº de Alunos',
+                            data: values,
+                            backgroundColor: secondaryColor,
+                            borderRadius: 8,
+                            maxBarThickness: 32
                         }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                position: 'bottom'
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { 
+                                beginAtZero: true, 
+                                grid: { color: 'rgba(226, 232, 240, 0.5)' },
+                                ticks: { font: { size: window.innerWidth < 640 ? 10 : 11 } }
+                            },
+                            x: { 
+                                grid: { display: false },
+                                ticks: { font: { size: window.innerWidth < 640 ? 9 : 11 } }
                             }
-                        },
-                        cutout: '60%'
+                        }
                     }
                 });
             }
-        }
-
-        function refreshDashboard() {
-            const btn = document.getElementById('refresh-dashboard-btn');
-            if (!btn) return;
-
-            const original = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Atualizando...';
-            btn.disabled = true;
-
-            fetch('{{ route('api.dashboard.counters') }}')
-                .then(response => response.json())
-                .then(() => window.location.reload())
-                .catch(() => {
-                    btn.innerHTML = original;
-                    btn.disabled = false;
-                    window.VisionariosSchool?.showToast?.('Erro ao atualizar dashboard', 'error');
-                });
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeCharts();
-            setInterval(() => {
-                fetch('{{ route('api.dashboard.counters') }}').catch(() => {});
-            }, 120000);
         });
-
-        window.addEventListener('resize', initializeCharts);
     </script>
 @endpush

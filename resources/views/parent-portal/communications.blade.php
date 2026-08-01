@@ -31,9 +31,8 @@
                 <h3 class="text-sm font-semibold text-slate-900">Fale Conosco</h3>
             </header>
             <div class="p-5">
-                @if (session('success'))
-                    <div class="mb-4 rounded-lg bg-emerald-100 px-4 py-3 text-sm text-emerald-700">{{ session('success') }}</div>
-                @endif
+
+
 
                 <form action="{{ route('parent.send-message') }}" method="POST" class="space-y-3">
                     @csrf

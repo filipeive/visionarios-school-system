@@ -1,92 +1,124 @@
 @extends('layouts.app')
 
-@section('title', 'Desempenho Acadêmico')
+@section('title', 'Desempenho Académico')
 @section('page-title', 'Relatório de Desempenho')
 @section('page-title-icon', 'fas fa-chart-line')
 
 @section('breadcrumbs')
     <li class="breadcrumb-item"><a href="{{ route('reports.index') }}">Relatórios</a></li>
-    <li class="breadcrumb-item"><a href="{{ route('reports.academic') }}">Acadêmico</a></li>
+    <li class="breadcrumb-item"><a href="{{ route('reports.academic') }}">Académico</a></li>
     <li class="breadcrumb-item active">Desempenho</li>
 @endsection
 
+@section('page-actions')
+    <div class="flex items-center gap-2">
+        <a href="{{ route('reports.export.grades') }}" class="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-emerald-800 transition">
+            <i class="fas fa-file-excel"></i>
+            Exportar Pauta (CSV)
+        </a>
+        <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition">
+            <i class="fas fa-print"></i>
+            Imprimir
+        </button>
+    </div>
+@endsection
+
 @section('content')
-    <div class="row">
-        <div class="col-12">
-            <div class="school-card mb-4">
-                <div class="school-card-body">
-                    <form action="{{ route('reports.academic.performance') }}" method="GET" class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Turma</label>
-                            <select name="class_id" class="form-select">
-                                <option value="">Todas as turmas</option>
-                                @foreach($classes as $class)
-                                    <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
-                                        {{ $class->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Trimestre</label>
-                            <select name="term" class="form-select">
-                                <option value="">Todos</option>
-                                <option value="1" {{ request('term') == '1' ? 'selected' : '' }}>1º Trimestre</option>
-                                <option value="2" {{ request('term') == '2' ? 'selected' : '' }}>2º Trimestre</option>
-                                <option value="3" {{ request('term') == '3' ? 'selected' : '' }}>3º Trimestre</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary-school w-100">
-                                <i class="fas fa-filter"></i> Filtrar
-                            </button>
-                        </div>
-                    </form>
+    <div class="space-y-6 bg-[#F4F6FA] -m-4 p-6 rounded-3xl min-h-screen">
+
+        <!-- Filter Card MOPHY Style -->
+        <div class="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0">
+            <form action="{{ route('reports.academic.performance') }}" method="GET" class="grid gap-4 md:grid-cols-3 items-end">
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Turma</label>
+                    <select name="class_id" class="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Todas as Turmas</option>
+                        @foreach($classes as $class)
+                            <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
+                                {{ $class->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1.5">Trimestre</label>
+                    <select name="term" class="w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-4 py-2.5 text-xs font-bold text-slate-800 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="">Todos os Trimestres</option>
+                        <option value="1" {{ request('term') == '1' ? 'selected' : '' }}>1º Trimestre</option>
+                        <option value="2" {{ request('term') == '2' ? 'selected' : '' }}>2º Trimestre</option>
+                        <option value="3" {{ request('term') == '3' ? 'selected' : '' }}>3º Trimestre</option>
+                    </select>
+                </div>
+
+                <div>
+                    <button type="submit" class="w-full rounded-2xl bg-emerald-700 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-emerald-800 transition">
+                        <i class="fas fa-filter me-1"></i> Aplicar Filtro
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Table Card MOPHY Style -->
+        <div class="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0">
+            <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="rounded-2xl bg-emerald-100/70 p-3 text-emerald-600 text-lg">
+                        <i class="fas fa-list-check"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-800 font-heading">Notas e Avaliações Registadas</h3>
+                        <p class="text-xs text-slate-400">Pauta completa da instituição</p>
+                    </div>
                 </div>
             </div>
 
-            <div class="school-card">
-                <div class="school-card-header">
-                    <h3 class="school-card-title">
-                        <i class="fas fa-list"></i> Notas Lançadas
-                    </h3>
-                </div>
-                <div class="school-card-body">
-                    <div class="table-responsive">
-                        <table class="table table-school">
-                            <thead>
-                                <tr>
-                                    <th>Aluno</th>
-                                    <th>Turma</th>
-                                    <th>Disciplina</th>
-                                    <th>Trimestre</th>
-                                    <th>Nota</th>
-                                    <th>Data</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($grades as $grade)
-                                    <tr>
-                                        <td>{{ $grade->student->first_name }} {{ $grade->student->last_name }}</td>
-                                        <td>{{ $grade->class->name }}</td>
-                                        <td>{{ $grade->subject->name }}</td>
-                                        <td>{{ $grade->term }}º</td>
-                                        <td>
-                                            <span class="badge bg-{{ $grade->value >= 10 ? 'success' : 'danger' }}">
-                                                {{ number_format($grade->value, 1) }}
-                                            </span>
-                                        </td>
-                                        <td>{{ $grade->created_at->format('d/m/Y') }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="mt-4">
-                        {{ $grades->links() }}
-                    </div>
-                </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Aluno</th>
+                            <th class="px-4 py-3 text-left">Turma</th>
+                            <th class="px-4 py-3 text-left">Disciplina</th>
+                            <th class="px-4 py-3 text-left">Avaliação</th>
+                            <th class="px-4 py-3 text-left">Trimestre</th>
+                            <th class="px-4 py-3 text-left">Nota</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($grades as $grade)
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="px-4 py-3.5 font-bold text-slate-900">
+                                    {{ $grade->student ? ($grade->student->first_name . ' ' . $grade->student->last_name) : 'N/A' }}
+                                </td>
+                                <td class="px-4 py-3.5 text-slate-600 font-medium">{{ $grade->class ? $grade->class->name : 'N/A' }}</td>
+                                <td class="px-4 py-3.5 text-slate-700 font-semibold">{{ $grade->subject ? $grade->subject->name : 'N/A' }}</td>
+                                <td class="px-4 py-3.5">
+                                    <span class="inline-block rounded-full bg-slate-100 px-3 py-0.5 text-[11px] font-bold text-slate-700 uppercase">
+                                        {{ $grade->assessment_type }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3.5 text-slate-600 font-bold">{{ $grade->term }}º</td>
+                                <td class="px-4 py-3.5">
+                                    <span class="inline-block rounded-full px-3 py-1 text-xs font-black
+                                        {{ $grade->grade >= 10 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800' }}">
+                                        {{ number_format($grade->grade, 1) }} / 20
+                                    </span>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-4 py-8 text-center text-slate-400">Nenhum registo de nota encontrado.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mt-6">
+                {{ $grades->links() }}
             </div>
         </div>
+
     </div>
 @endsection

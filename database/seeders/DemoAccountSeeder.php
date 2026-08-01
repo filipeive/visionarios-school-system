@@ -14,11 +14,14 @@ class DemoAccountSeeder extends Seeder
         // Garantir que o role admin existe
         $adminRole = Role::firstOrCreate(['name' => 'admin']);
 
+        $demoEmail = setting('demo_email', 'demo@zamedu.co.mz');
+        $schoolName = setting('school_name', 'ZamEdu');
+
         // Criar usuário demo
         $demoUser = User::firstOrCreate(
-            ['email' => 'demo@visionarios.co.mz'],
+            ['email' => $demoEmail],
             [
-                'name' => 'Usuário Demo (Visionários)',
+                'name' => "Usuário Demo ({$schoolName})",
                 'password' => Hash::make('demo1234'),
                 'status' => 'active',
                 'phone' => '840000000',
@@ -30,6 +33,6 @@ class DemoAccountSeeder extends Seeder
             $demoUser->assignRole($adminRole);
         }
 
-        $this->command->info('Demo user created: demo@visionarios.co.mz / demo1234');
+        $this->command->info("Demo user created: {$demoEmail} / demo1234");
     }
 }

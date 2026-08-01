@@ -37,6 +37,7 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \App\Http\Middleware\DemoRestrictionMiddleware::class,
+            \App\Http\Middleware\LicenseCheckMiddleware::class,
         ],
 
         'api' => [
@@ -68,5 +69,6 @@ class Kernel extends HttpKernel
         'permission' => \App\Http\Middleware\CheckPermission::class,
         'role' => \App\Http\Middleware\RoleMiddleware::class,
         'demo_restriction' => \App\Http\Middleware\DemoRestrictionMiddleware::class,
+        'license' => \App\Http\Middleware\LicenseCheckMiddleware::class,
     ];
 }

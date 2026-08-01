@@ -11,39 +11,45 @@
 @section('content')
 <div class="row">
     <div class="col-12">
-        <!-- Filtros e Busca -->
+        <!-- Filtros e Busca Harmonizados -->
         <div class="school-card mb-4">
             <div class="school-card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <form action="{{ route('teachers.index') }}" method="GET">
-                            <div class="input-group">
-                                <input type="text" name="search" class="form-control" 
-                                       placeholder="Pesquisar por nome, email ou BI..." 
-                                       value="{{ request('search') }}">
-                                <button type="submit" class="btn btn-primary-school">
-                                    <i class="fas fa-search"></i>
-                                </button>
-                            </div>
-                        </form>
+                <form action="{{ route('teachers.index') }}" method="GET" class="row g-3 align-items-end">
+                    <div class="col-md-5">
+                        <label class="form-label text-xs font-bold text-slate-700 uppercase tracking-wider">Pesquisar Professor</label>
+                        <div class="input-group">
+                            <input type="text" name="search" class="form-control rounded-xl border-slate-200" 
+                                   placeholder="Pesquisar por nome, email ou BI..." 
+                                   value="{{ request('search') }}">
+                            <button type="submit" class="btn btn-primary-school">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
                     </div>
+
                     <div class="col-md-3">
-                        <select class="form-select" onchange="window.location.href = this.value">
-                            <option value="{{ route('teachers.index') }}">Todos os Status</option>
-                            <option value="{{ route('teachers.index', ['status' => 'active']) }}" 
-                                    {{ request('status') == 'active' ? 'selected' : '' }}>Ativos</option>
-                            <option value="{{ route('teachers.index', ['status' => 'inactive']) }}"
-                                    {{ request('status') == 'inactive' ? 'selected' : '' }}>Inativos</option>
+                        <label class="form-label text-xs font-bold text-slate-700 uppercase tracking-wider">Status</label>
+                        <select name="status" class="form-select rounded-xl border-slate-200" onchange="this.form.submit()">
+                            <option value="">Todos os Status</option>
+                            <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Ativos</option>
+                            <option value="inactive" {{ request('status') == 'inactive' ? 'selected' : '' }}>Inativos</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
+
+                    <div class="col-md-4 d-flex gap-2">
+                        @if(request()->anyFilled(['search', 'status']))
+                            <a href="{{ route('teachers.index') }}" class="btn btn-outline-secondary rounded-xl" title="Limpar Filtros">
+                                <i class="fas fa-times me-1"></i> Limpar
+                            </a>
+                        @endif
+
                         @can('create_teachers')
-                        <a href="{{ route('teachers.create') }}" class="btn btn-secondary-school w-100">
-                            <i class="fas fa-plus"></i> Novo Professor
+                        <a href="{{ route('teachers.create') }}" class="btn btn-secondary-school rounded-xl text-nowrap w-100">
+                            <i class="fas fa-plus me-1"></i> Novo Professor
                         </a>
                         @endcan
                     </div>
-                </div>
+                </form>
             </div>
         </div>
 
@@ -113,7 +119,7 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="user-avatar" style="width: 40px; height: 40px; font-size: 14px; margin-right: 12px; background: linear-gradient(135deg, var(--accent), #0097A7);">
+                                        <div class="user-avatar-sm me-3" style="background: linear-gradient(135deg, var(--primary), var(--primary-dark)); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
                                             {{ substr($teacher->first_name, 0, 1) }}{{ substr($teacher->last_name, 0, 1) }}
                                         </div>
                                         <div>
@@ -188,7 +194,7 @@
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-sm btn-danger" 
-                                                    title="Excluir" onclick="return confirm('Tem certeza?')">
+                                                    title="Excluir" data-confirm="Tem certeza que deseja excluir este professor?">
                                                 <i class="fas fa-trash"></i>
                                             </button>
                                         </form>

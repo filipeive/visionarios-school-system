@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditController;
+use App\Http\Controllers\Admin\LicenseController;
 use App\Http\Controllers\Admin\StudentArchiveController;
 use App\Http\Controllers\Admin\StudentPromotionController;
 use App\Http\Controllers\Admin\UserController;
@@ -37,6 +38,9 @@ Route::get('/', function () {
 })->name('welcome');
 
 Route::get('/demo-access', [DemoController::class, 'access'])->name('demo.access');
+
+// Rota de Licença Suspensa
+Route::get('/license/suspended', [LicenseController::class, 'suspended'])->name('license.suspended');
 
 // Informações públicas da escola
 Route::prefix('public')->name('public.')->group(function () {
@@ -676,6 +680,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
                     Route::get('/', 'index')->name('index');
                     Route::patch('/', 'update')->name('update');
                 });
+
+            // Gestão de Licença
+            Route::get('/license', [LicenseController::class, 'index'])->name('license');
+            Route::put('/license', [LicenseController::class, 'update'])->name('license.update');
 
             // Comunicações (Acesso para Admin/Secretaria sem restrição)
             Route::get('/communications', [NotificationController::class, 'index'])->name('communications.index');

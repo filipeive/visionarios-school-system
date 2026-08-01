@@ -219,7 +219,7 @@
                                                 @csrf
                                                 <button type="submit" class="btn btn-sm btn-danger"
                                                     title="Remover da Turma"
-                                                    onclick="return confirm('Tem certeza que deseja remover {{ $student->first_name }} da turma {{ $class->name }}?')">
+                                                    data-confirm="Tem certeza que deseja remover {{ $student->first_name }} da turma {{ $class->name }}?">
                                                     <i class="fas fa-user-minus"></i>
                                                 </button>
                                             </form>

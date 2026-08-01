@@ -175,7 +175,7 @@ function loadStudents() {
         })
         .catch(error => {
             console.error('Erro ao carregar alunos:', error);
-            alert('Erro ao carregar alunos. Tente novamente.');
+            showToast('Erro ao carregar alunos. Tente novamente.', 'error');
         });
 }
 

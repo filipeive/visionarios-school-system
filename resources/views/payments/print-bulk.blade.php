@@ -91,7 +91,7 @@
     @foreach($references as $index => $payment)
         <div class="reference-container">
             <div class="header">
-                <div class="school-name">ESCOLA VISIONÁRIOS</div>
+                <div class="school-name">{{ strtoupper(setting('school_name', 'ZamEdu')) }}</div>
                 <div>REFERÊNCIA DE PAGAMENTO</div>
             </div>
 
@@ -102,7 +102,7 @@
             <div class="info-grid">
                 <div>
                     <div class="info-label">BENEFICIÁRIO</div>
-                    <div class="info-value">ESCOLA VISIONÁRIOS</div>
+                    <div class="info-value">{{ strtoupper(setting('school_name', 'ZamEdu')) }}</div>
 
                     <div class="info-label">CONTA</div>
                     <div class="info-value">1234-5678-9012-3456 (BIM)</div>

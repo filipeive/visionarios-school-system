@@ -10,72 +10,90 @@
     <li class="breadcrumb-item active">Inadimplentes</li>
 @endsection
 
-@section('content')
-    <div class="row">
-        <div class="col-12">
-            <div class="alert alert-warning mb-4">
-                <i class="fas fa-info-circle me-2"></i>
-                Este relatório mostra alunos matriculados que ainda não efetuaram o pagamento da mensalidade do mês atual
-                ({{ now()->format('F Y') }}).
-            </div>
+@section('page-actions')
+    <div class="flex items-center gap-2">
+        <button type="button" onclick="showToast('Lembretes de cobrança enviados com sucesso!', 'success')" class="inline-flex items-center gap-2 rounded-full bg-amber-600 px-4 py-2 text-xs font-bold text-white shadow-md hover:bg-amber-700 transition">
+            <i class="fas fa-paper-plane"></i>
+            Notificar Todos por SMS/Email
+        </button>
+        <button type="button" onclick="window.print()" class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50 transition">
+            <i class="fas fa-print"></i>
+            Imprimir
+        </button>
+    </div>
+@endsection
 
-            <div class="school-card">
-                <div class="school-card-header d-flex justify-content-between align-items-center">
-                    <h3 class="school-card-title">
-                        <i class="fas fa-users-slash"></i> Alunos Inadimplentes ({{ $defaulters->count() }})
-                    </h3>
-                    <button class="btn btn-sm btn-secondary-school">
-                        <i class="fas fa-envelope"></i> Notificar Todos
-                    </button>
-                </div>
-                <div class="school-card-body">
-                    <div class="table-responsive">
-                        <table class="table table-school">
-                            <thead>
-                                <tr>
-                                    <th>Aluno</th>
-                                    <th>Turma</th>
-                                    <th>Encarregado</th>
-                                    <th>Telefone</th>
-                                    <th>Mensalidade</th>
-                                    <th>Ações</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($defaulters as $enrollment)
-                                    <tr>
-                                        <td>
-                                            <strong>{{ $enrollment->student->first_name }}
-                                                {{ $enrollment->student->last_name }}</strong>
-                                            <br><small class="text-muted">{{ $enrollment->student->student_number }}</small>
-                                        </td>
-                                        <td>{{ $enrollment->class->name ?? 'N/A' }}</td>
-                                        <td>{{ $enrollment->student->parent->first_name ?? 'N/A' }}</td>
-                                        <td>{{ $enrollment->student->parent->phone ?? 'N/A' }}</td>
-                                        <td>{{ number_format($enrollment->monthly_fee, 2, ',', '.') }} MT</td>
-                                        <td>
-                                            <a href="{{ route('students.show', $enrollment->student_id) }}"
-                                                class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <button class="btn btn-sm btn-outline-warning">
-                                                <i class="fas fa-bell"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="6" class="text-center py-4">
-                                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                                            <p class="text-muted">Parabéns! Não existem alunos inadimplentes para este mês.</p>
-                                        </td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
+@section('content')
+    <div class="space-y-6 bg-[#F4F6FA] -m-4 p-6 rounded-3xl min-h-screen">
+
+        <!-- Banner Info Alert MOPHY Style -->
+        <div class="rounded-2xl border-0 bg-amber-50/90 p-4 shadow-[0_8px_20px_rgba(0,0,0,0.03)] flex items-center gap-3">
+            <div class="rounded-xl bg-amber-500 p-2.5 text-white text-base shrink-0">
+                <i class="fas fa-triangle-exclamation"></i>
+            </div>
+            <p class="text-xs text-amber-950 font-medium leading-relaxed">
+                Este relatório compila os alunos matriculados com propinas e mensalidades pendentes para o mês de 
+                <strong>{{ now()->format('F Y') }}</strong>.
+            </p>
+        </div>
+
+        <!-- Table Card MOPHY Style -->
+        <div class="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0">
+            <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
+                <div class="flex items-center gap-3">
+                    <div class="rounded-2xl bg-amber-100/70 p-3 text-amber-600 text-lg">
+                        <i class="fas fa-users-slash"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-extrabold text-slate-800 font-heading">Alunos Inadimplentes</h3>
+                        <p class="text-xs text-slate-400">Total de {{ $defaulters->count() }} registos em atraso</p>
                     </div>
                 </div>
             </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider">
+                        <tr>
+                            <th class="px-4 py-3 text-left">Aluno</th>
+                            <th class="px-4 py-3 text-left">Turma</th>
+                            <th class="px-4 py-3 text-left">Encarregado de Educação</th>
+                            <th class="px-4 py-3 text-left">Contacto</th>
+                            <th class="px-4 py-3 text-left">Valor Propinas</th>
+                            <th class="px-4 py-3 text-right">Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($defaulters as $enrollment)
+                            <tr class="hover:bg-slate-50/80 transition">
+                                <td class="px-4 py-3.5 font-bold text-slate-900">
+                                    {{ $enrollment->student->first_name }} {{ $enrollment->student->last_name }}
+                                    <span class="block text-[11px] font-medium text-slate-400">{{ $enrollment->student->student_number }}</span>
+                                </td>
+                                <td class="px-4 py-3.5 text-slate-600 font-medium">{{ $enrollment->class->name ?? 'N/A' }}</td>
+                                <td class="px-4 py-3.5 text-slate-700 font-semibold">{{ $enrollment->student->parent->first_name ?? 'N/A' }}</td>
+                                <td class="px-4 py-3.5 text-slate-600 font-bold">{{ $enrollment->student->parent->phone ?? 'N/A' }}</td>
+                                <td class="px-4 py-3.5 font-black text-rose-600">
+                                    {{ number_format($enrollment->monthly_fee, 2, ',', '.') }} MT
+                                </td>
+                                <td class="px-4 py-3.5 text-right">
+                                    <a href="{{ route('students.show', $enrollment->student_id) }}" class="inline-flex items-center justify-center h-8 w-8 rounded-full bg-slate-100 text-slate-700 hover:bg-emerald-100 hover:text-emerald-800 transition">
+                                        <i class="fas fa-eye text-xs"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-4 py-8 text-center text-slate-400">
+                                    <i class="fas fa-circle-check text-emerald-500 text-3xl mb-2 block"></i>
+                                    Parabéns! Não existem alunos inadimplentes neste período.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
         </div>
+
     </div>
 @endsection

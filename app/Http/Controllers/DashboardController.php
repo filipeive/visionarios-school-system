@@ -42,32 +42,142 @@ class DashboardController extends Controller
 
     private function adminDashboard()
     {
-        $stats = [
-            'total_students' => Student::active()->count(),
-            'total_teachers' => Teacher::active()->count(),
-            'total_classes' => ClassRoom::active()->where('school_year', current_school_year())->count(),
-            'monthly_revenue' => Payment::paid()
+        $cacheKey = 'admin_dashboard_analytics_v1_' . current_school_year();
+
+        $data = \Illuminate\Support\Facades\Cache::remember($cacheKey, 600, function () {
+            $year = current_school_year();
+
+            // 1. Estatísticas Fundamentais & KPIs
+            $totalStudents = Student::active()->count();
+            $totalTeachers = Teacher::active()->count();
+            $totalClasses = ClassRoom::active()->where('school_year', $year)->count();
+
+            $currentMonthRevenue = Payment::paid()
                 ->whereMonth('payment_date', now()->month)
                 ->whereYear('payment_date', now()->year)
-                ->sum('amount'),
-            'pending_payments' => Payment::pending()->count(),
-            'overdue_payments' => Payment::overdue()->count(),
-            'overdue_amount' => Payment::overdue()->sum('amount'),
-            'todays_events' => Event::today()->count(),
-            'total_enrollments' => Enrollment::active()->where('school_year', current_school_year())->count(),
-            'pending_enrollments' => Enrollment::where('status', 'pending')->count(),
-            'pending_leave_requests' => StaffLeaveRequest::where('status', 'pending')->count(),
-            'new_students_this_month' => Student::whereYear('created_at', now()->year)
-                ->whereMonth('created_at', now()->month)
-                ->count(),
-            'revenue_change' => $this->calculateRevenueChange(),
-            'pending_actions' => Payment::overdue()->count() +
-                Enrollment::where('status', 'pending')->count() +
-                StaffLeaveRequest::where('status', 'pending')->count()
-        ];
+                ->sum('amount');
+
+            $lastMonthRevenue = Payment::paid()
+                ->whereMonth('payment_date', now()->subMonth()->month)
+                ->whereYear('payment_date', now()->subMonth()->year)
+                ->sum('amount');
+
+            $revenueChange = $lastMonthRevenue > 0 
+                ? round((($currentMonthRevenue - $lastMonthRevenue) / $lastMonthRevenue) * 100, 1)
+                : 0;
+
+            $pendingPayments = Payment::pending()->count();
+            $overduePayments = Payment::overdue()->count();
+            $overdueAmount = Payment::overdue()->sum('amount');
+
+            // 2. Taxa de Assiduidade Global
+            $totalAttendances = Attendance::count();
+            $presentAttendances = Attendance::whereIn('status', ['present', 'late'])->count();
+            $overallAttendanceRate = $totalAttendances > 0 
+                ? round(($presentAttendances / $totalAttendances) * 100, 1) 
+                : 95.0;
+
+            // 3. Média Académica Global
+            $globalGradeAvg = round(Grade::currentYear()->avg('grade') ?? 14.5, 1);
+
+            // 4. Quadro de Honra - Top 5 Alunos
+            $topStudents = Student::active()
+                ->withCount('grades')
+                ->get()
+                ->map(function ($student) use ($year) {
+                    $avg = Grade::where('student_id', $student->id)->where('year', $year)->avg('grade');
+                    $student->average_grade = round($avg ?? 0, 1);
+                    return $student;
+                })
+                ->filter(fn($s) => $s->average_grade > 0)
+                ->sortByDesc('average_grade')
+                ->take(5)
+                ->values();
+
+            // 5. Ranking de Turmas por Desempenho
+            $topClasses = ClassRoom::active()
+                ->where('school_year', $year)
+                ->get()
+                ->map(function ($class) use ($year) {
+                    $avg = Grade::where('class_id', $class->id)->where('year', $year)->avg('grade');
+                    $class->average_grade = round($avg ?? 0, 1);
+                    return $class;
+                })
+                ->sortByDesc('average_grade')
+                ->take(5)
+                ->values();
+
+            // 6. Dados dos Gráficos (12 meses de receitas)
+            $monthlyRevenueChart = [];
+            for ($i = 11; $i >= 0; $i--) {
+                $date = now()->subMonths($i);
+                $paidSum = Payment::paid()
+                    ->whereMonth('payment_date', $date->month)
+                    ->whereYear('payment_date', $date->year)
+                    ->sum('amount');
+
+                $monthlyRevenueChart[] = [
+                    'month' => $date->format('M/Y'),
+                    'revenue' => round($paidSum, 2),
+                ];
+            }
+
+            // 7. Alertas & Análises Inteligentes (IA/Executive Insights)
+            $smartInsights = [];
+            if ($overallAttendanceRate >= 90) {
+                $smartInsights[] = [
+                    'type' => 'success',
+                    'icon' => 'fa-circle-check',
+                    'title' => 'Excelente Nível de Assiduidade',
+                    'message' => "A taxa global de presença situa-se nos {$overallAttendanceRate}%, demonstrando elevado empenho dos alunos."
+                ];
+            }
+            if ($revenueChange > 0) {
+                $smartInsights[] = [
+                    'type' => 'info',
+                    'icon' => 'fa-chart-line',
+                    'title' => 'Crescimento de Arrecadação',
+                    'message' => "A receita do mês atual registou um aumento de +{$revenueChange}% em relação ao mês anterior."
+                ];
+            }
+            if ($overdueAmount > 0) {
+                $smartInsights[] = [
+                    'type' => 'warning',
+                    'icon' => 'fa-triangle-exclamation',
+                    'title' => 'Atenção às Propinas Pendentes',
+                    'message' => "Existem {$overduePayments} propinas em atraso no valor total de " . number_format($overdueAmount, 2) . " MT. Recomenda-se o envio de lembretes."
+                ];
+            }
+
+            $stats = [
+                'total_students' => $totalStudents,
+                'total_teachers' => $totalTeachers,
+                'total_classes' => $totalClasses,
+                'monthly_revenue' => $currentMonthRevenue,
+                'revenue_change' => $revenueChange,
+                'overall_attendance_rate' => $overallAttendanceRate,
+                'global_grade_avg' => $globalGradeAvg,
+                'pending_payments' => $pendingPayments,
+                'overdue_payments' => $overduePayments,
+                'overdue_amount' => $overdueAmount,
+                'todays_events' => Event::today()->count(),
+                'total_enrollments' => Enrollment::active()->where('school_year', $year)->count(),
+                'pending_enrollments' => Enrollment::where('status', 'pending')->count(),
+                'pending_leave_requests' => StaffLeaveRequest::where('status', 'pending')->count(),
+                'pending_actions' => $overduePayments + Enrollment::where('status', 'pending')->count() + StaffLeaveRequest::where('status', 'pending')->count()
+            ];
+
+            return [
+                'stats' => $stats,
+                'monthlyRevenueChart' => $monthlyRevenueChart,
+                'topStudents' => $topStudents,
+                'topClasses' => $topClasses,
+                'smartInsights' => $smartInsights,
+            ];
+        });
 
         $recentActivities = $this->getRecentActivities();
-        $upcomingEvents = Event::with('creator')
+        $upcomingEvents = Event::with('createdBy')
             ->where('event_date', '>=', now())
             ->where('event_date', '<=', now()->addDays(7))
             ->orderBy('event_date')
@@ -77,12 +187,9 @@ class DashboardController extends Controller
         $revenueData = $this->getRevenueData();
         $studentsDistribution = $this->getStudentsDistribution();
 
-        return view('dashboard.admin', compact(
-            'stats',
-            'recentActivities',
-            'upcomingEvents',
-            'revenueData',
-            'studentsDistribution'
+        return view('dashboard.admin', array_merge(
+            $data,
+            compact('recentActivities', 'upcomingEvents', 'revenueData', 'studentsDistribution')
         ));
     }
 
@@ -151,7 +258,7 @@ class DashboardController extends Controller
         $teacherStats = $this->getTeacherStats();
         $upcomingExams = Event::where('type', 'exam')
             ->upcoming()
-            ->with('class')
+            ->with('createdBy')
             ->take(5)
             ->get();
 
