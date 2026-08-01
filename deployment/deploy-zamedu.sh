@@ -95,6 +95,15 @@ echo "🗄️ Executando migrações e dados iniciais da base de dados..."
 php artisan migrate --force
 php artisan db:seed --force
 
+# Garantir manifest.json do Vite no servidor de produção
+mkdir -p public/build
+cat > public/build/manifest.json << 'MANIFESTEOF'
+{
+  "resources/css/app.css": { "file": "assets/app.css", "isEntry": true, "src": "resources/css/app.css" },
+  "resources/js/app.js": { "file": "assets/app.js", "isEntry": true, "src": "resources/js/app.js" }
+}
+MANIFESTEOF
+
 # Otimizar caches Laravel
 echo "⚡ Otimizando caches..."
 php artisan config:cache
