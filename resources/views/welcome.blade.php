@@ -718,7 +718,7 @@
                 <li><a href="{{ route('welcome') }}" class="active"><i class="fas fa-home"></i> Início</a></li>
                 <li><a href="{{ route('sobre') }}"><i class="fas fa-info-circle"></i> Sobre o Sistema</a></li>
                 <li><a href="{{ route('demo.access') }}"><i class="fas fa-bolt text-warning"></i> 1-Click Demo</a></li>
-                <li><a href="#recursos"><i class="fas fa-cogs"></i> Recursos & Portaria</a></li>
+                <li><a href="{{ route('public.trial-register') }}" style="color: #FFC107; font-weight: 700;"><i class="fas fa-rocket"></i> Testar 15 Dias Grátis</a></li>
                 <li><a href="{{ route('contacto') }}"><i class="fas fa-envelope"></i> Contactos & Proposta</a></li>
                 <li><a href="{{ route('public.pre-enrollment') }}"><i class="fas fa-file-pen"></i> Pré-Matrícula</a></li>
             </ul>

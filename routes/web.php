@@ -47,6 +47,8 @@ Route::get('/license/suspended', [LicenseController::class, 'suspended'])->name(
 // Páginas públicas diretas
 Route::get('/sobre', fn () => view('public.about'))->name('sobre');
 Route::get('/contacto', fn () => view('public.contact'))->name('contacto');
+Route::get('/registar-escola', [App\Http\Controllers\TrialRegisterController::class, 'create'])->name('public.trial-register');
+Route::post('/registar-escola', [App\Http\Controllers\TrialRegisterController::class, 'store'])->name('public.trial-register.store');
 
 // Informações públicas da escola
 Route::prefix('public')->name('public.')->group(function () {
