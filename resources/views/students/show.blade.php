@@ -167,7 +167,7 @@
                             <i class="fas fa-medal"></i>
                         </div>
                         <div class="stat-content">
-                            <div class="stat-value">{{ $student->grades->avg('score') ?? 0 }}</div>
+                            <div class="stat-value">{{ number_format($student->grades->avg('grade') ?? 0, 1) }}</div>
                             <div class="stat-label">Média</div>
                         </div>
                     </div>

@@ -31,7 +31,47 @@ class ReportController extends Controller
                 ->sum('amount'),
         ];
 
-        return view('reports.index', compact('stats'));
+        // Demografia dos Estudantes
+        $genderStats = [
+            'male' => Student::where('gender', 'male')->count(),
+            'female' => Student::where('gender', 'female')->count(),
+        ];
+
+        // Distribuição por Nível de Ensino (Turmas)
+        $gradeDistribution = ClassRoom::active()
+            ->select('grade_level', DB::raw('count(*) as total'))
+            ->groupBy('grade_level')
+            ->orderBy('grade_level')
+            ->pluck('total', 'grade_level')
+            ->toArray();
+
+        // Evolução Mensal da Receita (Últimos 6 Meses)
+        $monthlyRevenueTrend = [];
+        $monthsLabels = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $date = now()->subMonths($i);
+            $monthsLabels[] = $date->format('M/Y');
+            $monthlyRevenueTrend[] = Payment::whereMonth('payment_date', $date->month)
+                ->whereYear('payment_date', $date->year)
+                ->where('status', 'paid')
+                ->sum('amount');
+        }
+
+        // Assiduidade Global
+        $attendanceStats = [
+            'present' => Attendance::where('status', 'present')->count(),
+            'absent' => Attendance::where('status', 'absent')->count(),
+            'late' => Attendance::where('status', 'late')->count(),
+        ];
+
+        return view('reports.index', compact(
+            'stats',
+            'genderStats',
+            'gradeDistribution',
+            'monthsLabels',
+            'monthlyRevenueTrend',
+            'attendanceStats'
+        ));
     }
 
     /**

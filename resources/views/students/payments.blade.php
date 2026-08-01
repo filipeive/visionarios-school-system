@@ -290,9 +290,11 @@
                                             </button>
                                         @endif
                                         
-                                        <a href="#" class="btn btn-sm btn-primary-school" title="Ver Detalhes">
+                                        <button type="button" class="btn btn-sm btn-primary-school" 
+                                                onclick="openPaymentDetailsModal({{ $payment->id }}, '{{ $payment->reference_number }}', '{{ ucfirst($payment->type) }}', '{{ $payment->month ? $payment->month.'/'.$payment->year : '-' }}', '{{ number_format($payment->amount, 2, ',', '.') }}', '{{ number_format($payment->discount, 2, ',', '.') }}', '{{ $payment->due_date->format('d/m/Y') }}', '{{ $payment->payment_date ? $payment->payment_date->format('d/m/Y') : '-' }}', '{{ $payment->status }}', '{{ $payment->payment_method ?? '-' }}', '{{ $payment->notes ?? 'Sem observações' }}')"
+                                                title="Ver Detalhes do Pagamento">
                                             <i class="fas fa-eye"></i>
-                                        </a>
+                                        </button>
                                         
                                         @if($payment->status === 'pending')
                                             <button class="btn btn-sm btn-warning" title="Editar">
@@ -469,29 +471,87 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Detalhes do Pagamento Especifico -->
+<div class="modal fade" id="paymentDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-3">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title font-bold d-flex align-items-center gap-2">
+                    <i class="fas fa-receipt"></i> Detalhes do Pagamento
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="text-center mb-4 pb-3 border-bottom">
+                    <small class="text-uppercase tracking-wider text-muted font-semibold">Número de Referência</small>
+                    <h3 class="font-mono font-bold text-dark my-1" id="detailRef">---</h3>
+                    <span id="detailStatusBadge" class="badge bg-success">---</span>
+                </div>
+                <div class="space-y-2 text-sm">
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Tipo de Pagamento:</span>
+                        <strong id="detailType" class="text-dark">---</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Mês / Ano:</span>
+                        <strong id="detailPeriod" class="text-dark">---</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Valor Base:</span>
+                        <strong id="detailAmount" class="text-dark">--- MT</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Desconto:</span>
+                        <strong id="detailDiscount" class="text-danger">--- MT</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Data Vencimento:</span>
+                        <strong id="detailDueDate" class="text-dark">---</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Data Pagamento:</span>
+                        <strong id="detailPayDate" class="text-dark">---</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom">
+                        <span class="text-muted">Método de Pagamento:</span>
+                        <strong id="detailMethod" class="text-dark">---</strong>
+                    </div>
+                    <div class="py-2">
+                        <span class="text-muted d-block mb-1">Observações:</span>
+                        <p id="detailNotes" class="bg-light p-2 rounded small text-secondary mb-0">---</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light d-flex justify-content-between">
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">Fechar</button>
+                <a id="printReceiptBtn" href="#" class="btn btn-success btn-sm rounded-pill px-4" onclick="showToast('Imprimindo comprovativo de pagamento...', 'info')">
+                    <i class="fas fa-print me-1"></i> Imprimir Recibo
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const paidCount = {{ $paymentStats['total_paid'] }};
+    const pendingCount = {{ $paymentStats['total_pending'] }};
+    const overdueCount = {{ $paymentStats['total_overdue'] }};
+    const totalPayments = paidCount + pendingCount + overdueCount;
+
     // Gráfico de status de pagamentos
     const ctx = document.getElementById('paymentStatusChart').getContext('2d');
     const paymentStatusChart = new Chart(ctx, {
         type: 'pie',
         data: {
-            labels: ['Pago', 'Pendente', 'Em Atraso'],
+            labels: totalPayments > 0 ? ['Pago', 'Pendente', 'Em Atraso'] : ['Sem Lançamentos'],
             datasets: [{
-                data: [
-                    {{ $paymentStats['total_paid'] }},
-                    {{ $paymentStats['total_pending'] }},
-                    {{ $paymentStats['total_overdue'] }}
-                ],
-                backgroundColor: [
-                    '#28a745',
-                    '#ffc107',
-                    '#dc3545'
-                ],
+                data: totalPayments > 0 ? [paidCount, pendingCount, overdueCount] : [1],
+                backgroundColor: totalPayments > 0 ? ['#28a745', '#ffc107', '#dc3545'] : ['#cbd5e1'],
                 borderWidth: 2,
                 borderColor: '#fff'
             }]
@@ -504,11 +564,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 title: {
                     display: true,
-                    text: 'Distribuição por Status'
+                    text: totalPayments > 0 ? 'Distribuição por Status' : 'Aguardando Registos Financeiros'
                 }
             }
         }
     });
+
+    // Função para abrir modal de detalhes de pagamento específico
+    window.openPaymentDetailsModal = function(id, ref, type, period, amount, discount, dueDate, payDate, status, method, notes) {
+        document.getElementById('detailRef').textContent = ref;
+        document.getElementById('detailType').textContent = type;
+        document.getElementById('detailPeriod').textContent = period;
+        document.getElementById('detailAmount').textContent = amount + ' MT';
+        document.getElementById('detailDiscount').textContent = discount + ' MT';
+        document.getElementById('detailDueDate').textContent = dueDate;
+        document.getElementById('detailPayDate').textContent = payDate;
+        document.getElementById('detailMethod').textContent = method;
+        document.getElementById('detailNotes').textContent = notes;
+
+        const badge = document.getElementById('detailStatusBadge');
+        const statusMap = {
+            paid: { label: 'Pago', class: 'bg-success' },
+            pending: { label: 'Pendente', class: 'bg-warning' },
+            overdue: { label: 'Em Atraso', class: 'bg-danger' },
+            cancelled: { label: 'Cancelado', class: 'bg-secondary' }
+        };
+        const s = statusMap[status] || { label: status, class: 'bg-secondary' };
+        badge.textContent = s.label;
+        badge.className = 'badge ' + s.class;
+
+        new bootstrap.Modal(document.getElementById('paymentDetailModal')).show();
+    };
 
     // Função para marcar pagamento como pago
     window.markAsPaid = function(paymentId) {
@@ -519,7 +605,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Função para submeter novo pagamento
     window.submitPayment = function() {
-        // Implementar AJAX para criar novo pagamento
         showToast('Funcionalidade de registrar pagamento será implementada em breve.', 'info');
     };
 });

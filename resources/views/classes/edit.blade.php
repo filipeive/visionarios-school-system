@@ -62,13 +62,16 @@
                                 <label for="teacher_id" class="form-label">Professor Responsável</label>
                                 <select class="form-select @error('teacher_id') is-invalid @enderror" 
                                         id="teacher_id" name="teacher_id">
-                                    <option value="">Selecione o professor...</option>
+                                    <option value="">-- Sem Professor Responsável (Remover) --</option>
                                     @foreach($teachers as $teacher)
                                         <option value="{{ $teacher->id }}" {{ old('teacher_id', $class->teacher_id) == $teacher->id ? 'selected' : '' }}>
                                             {{ $teacher->first_name }} {{ $teacher->last_name }}
                                         </option>
                                     @endforeach
                                 </select>
+                                <div class="form-text text-muted small mt-1">
+                                    Selecione a opção sem professor caso deseje remover a atribuição atual.
+                                </div>
                                 @error('teacher_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror

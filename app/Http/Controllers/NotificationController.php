@@ -132,12 +132,19 @@ class NotificationController extends Controller
             $users = \App\Models\User::role('student')->get();
         }
 
-        // Usar uma notificação genérica para o comunicado
-        \Illuminate\Support\Facades\Notification::send($users, new \App\Notifications\GenericNotification([
-            'title' => 'Novo Comunicado: ' . $communication->title,
-            'message' => $communication->excerpt,
-            'action_url' => route('parent.communications'), // Ajustar conforme o papel se necessário
-            'type' => 'communication'
-        ]));
+        foreach ($users as $user) {
+            $actionUrl = match ($user->role ?? '') {
+                'parent' => route('parent.communications'),
+                'teacher' => route('teacher.communications.index'),
+                default => route('communications.index'),
+            };
+
+            $user->notify(new \App\Notifications\GenericNotification([
+                'title' => 'Novo Comunicado: ' . $communication->title,
+                'message' => $communication->excerpt,
+                'action_url' => $actionUrl,
+                'type' => 'communication'
+            ]));
+        }
     }
 }

@@ -193,7 +193,12 @@ class ClassRoomController extends Controller
     public function update(Request $request, ClassRoom $class)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:classes,name,' . $class->id,
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('classes', 'name')->ignore($class->id),
+            ],
             'grade_level' => 'required|integer|min:0|max:12',
             'teacher_id' => 'nullable|exists:teachers,id',
             'max_students' => 'required|integer|min:1|max:50',

@@ -134,9 +134,14 @@
         @yield('content')
 
         <div class="mt-5">
-            <a href="{{ url('/') }}" class="btn-home">
+            @php
+                $fallbackUrl = auth()->check() ? route('dashboard') : url('/');
+            @endphp
+            <a href="{{ $fallbackUrl }}" 
+               onclick="if (document.referrer && document.referrer !== window.location.href) { history.back(); return false; }" 
+               class="btn-home">
                 <i class="fas fa-arrow-left"></i>
-                Voltar para o Início
+                Voltar à Página Anterior
             </a>
         </div>
     </div>

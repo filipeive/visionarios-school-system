@@ -280,23 +280,19 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Gráfico de presenças
+    const presentCount = {{ $attendanceStats['present'] }};
+    const absentCount = {{ $attendanceStats['absent'] }};
+    const lateCount = {{ $attendanceStats['late'] }};
+    const totalCount = presentCount + absentCount + lateCount;
+
     const ctx = document.getElementById('attendanceChart').getContext('2d');
     const attendanceChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Presente', 'Ausente', 'Atrasado'],
+            labels: totalCount > 0 ? ['Presente', 'Ausente', 'Atrasado'] : ['Sem Lançamentos'],
             datasets: [{
-                data: [
-                    {{ $attendanceStats['present'] }},
-                    {{ $attendanceStats['absent'] }},
-                    {{ $attendanceStats['late'] }}
-                ],
-                backgroundColor: [
-                    '#28a745',
-                    '#dc3545',
-                    '#ffc107'
-                ],
+                data: totalCount > 0 ? [presentCount, absentCount, lateCount] : [1],
+                backgroundColor: totalCount > 0 ? ['#28a745', '#dc3545', '#ffc107'] : ['#cbd5e1'],
                 borderWidth: 2,
                 borderColor: '#fff'
             }]
@@ -309,9 +305,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 title: {
                     display: true,
-                    text: 'Distribuição de Presenças'
+                    text: totalCount > 0 ? 'Distribuição de Presenças' : 'Aguardando Lançamentos de Assiduidade'
                 }
             }
+        }
         }
     });
 
