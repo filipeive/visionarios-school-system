@@ -43,6 +43,10 @@ Route::get('/demo-access', [DemoController::class, 'access'])->name('demo.access
 // Rota de Licença Suspensa
 Route::get('/license/suspended', [LicenseController::class, 'suspended'])->name('license.suspended');
 
+// Páginas públicas diretas
+Route::get('/sobre', fn () => view('public.about'))->name('sobre');
+Route::get('/contacto', fn () => view('public.contact'))->name('contacto');
+
 // Informações públicas da escola
 Route::prefix('public')->name('public.')->group(function () {
     Route::get('/about', fn () => view('public.about'))->name('about');
