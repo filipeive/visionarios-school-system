@@ -38,7 +38,8 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
-Route::get('/demo-access', [DemoController::class, 'access'])->name('demo.access');
+Route::get('/demo-access', [DemoController::class, 'index'])->name('demo.access');
+Route::get('/demo-access/{role}', [DemoController::class, 'loginAsRole'])->name('demo.role');
 
 // Rota de Licença Suspensa
 Route::get('/license/suspended', [LicenseController::class, 'suspended'])->name('license.suspended');

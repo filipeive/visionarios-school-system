@@ -2092,6 +2092,23 @@
 
         <!-- Área de Conteúdo -->
         <div class="content-area">
+            @if(isset($licenseGraceWarning))
+                <div class="alert alert-danger shadow-sm border-0 rounded-3 mb-4 d-flex align-items-center justify-content-between" role="alert">
+                    <div>
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        {{ $licenseGraceWarning }}
+                    </div>
+                    <a href="{{ route('contacto') }}" class="btn btn-sm btn-danger font-semibold">Solicitar Renovação</a>
+                </div>
+            @elseif(isset($licenseTrialWarning))
+                <div class="alert alert-warning shadow-sm border-0 rounded-3 mb-4 d-flex align-items-center justify-content-between" role="alert">
+                    <div>
+                        <i class="fas fa-clock me-2"></i>
+                        {{ $licenseTrialWarning }}
+                    </div>
+                    <a href="{{ route('contacto') }}" class="btn btn-sm btn-dark font-semibold">Ver Planos & Licenças</a>
+                </div>
+            @endif
             <!-- Breadcrumb -->
             <nav class="school-breadcrumb" aria-label="breadcrumb">
                 <ol class="breadcrumb">

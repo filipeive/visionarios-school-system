@@ -41,6 +41,11 @@ class LicenseCheckMiddleware
                 }
             }
 
+            if ($status === 'trial' || ($license->is_trial && $status === 'active')) {
+                $daysRemaining = max(0, (int) now()->diffInDays($license->expires_at, false));
+                view()->share('licenseTrialWarning', "Modo de Teste / Avaliação: Restam {$daysRemaining} dias de acesso completo.");
+            }
+
             if ($status === 'grace_period') {
                 $daysRemaining = max(0, (int) now()->diffInDays($license->expires_at->addDays($license->grace_period_days), false));
                 view()->share('licenseGraceWarning', "Atenção: A licença expirou. Encontra-se no período de tolerância ({$daysRemaining} dias restantes). Contacte a FDS Software.");

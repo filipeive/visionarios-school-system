@@ -6,7 +6,36 @@ Este documento apresenta uma análise comparativa profunda e imparcial entre a p
 
 ---
 
-## 2. Categorização de Funcionalidades e Módulos
+## 2. Auditoria Detalhada de Testes, Demonstrações e Licenciamento (SoftGenial)
+
+### A. Período de Teste ("Testar Grátis" — `/inscricao/`)
+* **Natureza**: Trial assistido de **15 dias** (não é instantâneo).
+* **Fluxo**: O utilizador preenche um formulário enviado à equipa ("SIGE Hub"), que valida o pedido e provisiona manualmente um ambiente isolado com subdomínio personalizado (ex: `escola.softgenial.edu.mz`).
+* **Dados Solicitados**: Nome da Escola, Província, Distrito, N.º Estimado de Alunos, N.º de Turmas, Responsável (Nome, WhatsApp, E-mail) e subdomínio desejado.
+
+### B. Demonstração Pública ("Ver Demonstração" — `/demo/`)
+* **Natureza**: Acesso instantâneo a um ambiente *sandbox* compartilhado preenchido com dados fictícios.
+* **Credenciais por Perfil**:
+  - **Direcção Geral**: `demo_director` / `Director@Demo2026!`
+  - **Secretaria Escolar**: `demo_secretario` / `Secretario@Demo2026!`
+  - **Área Financeira**: `demo_financeiro` / `Financeiro@Demo2026!`
+  - **Professor**: `demo_professor` / `Professor@Demo2026!`
+  - **Encarregado de Educação**: `demo_encarregado` / `Encarregado@Demo2026!`
+
+### C. Estrutura de Preços e Licenciamento ("Preços" — `/precos/`)
+* **Tabelas por Escalão de Alunos (Valores em Meticais - MT)**:
+  - *Secretaria Digital*: 3.500 MT (Até 150 alunos) | 5.500 MT (151–400) | 8.500 MT (401–800)
+  - *Tesouraria*: 4.500 MT (Até 150 alunos) | 7.000 MT (151–400) | 11.000 MT (401–800)
+  - *Académico*: 5.000 MT (Até 150 alunos) | 7.500 MT (151–400) | 11.500 MT (401–800)
+  - *Pré-Escolar*: 6.000 MT (Até 100 alunos) | 9.000 MT (101–250)
+  - *Gestão Completa*: 9.500 MT (Até 150 alunos) | 14.500 MT (151–400) | 20.500 MT (401–800)
+* **Descontos por Ciclo de Pagamento**:
+  - Mensal: 0% | Trimestral: 5% | Semestral: 8% | Anual: 12%
+* **Simulador de Proposta Comercial**: O visitante simula o valor e preenche os contactos para descarregar a proposta em PDF e notificar a equipa comercial.
+
+---
+
+## 3. Categorização de Funcionalidades e Módulos
 
 ### 🟢 Categoria A — Já possuímos (Manter e Consolidar)
 - **Gestão Integrada de Matrículas e Alunos**: Cadastro completo, histórico e gestão de estados (Ativo, Pendente Renovação, Transferido, Formado).
@@ -20,26 +49,21 @@ Este documento apresenta uma análise comparativa profunda e imparcial entre a p
 
 ### 🟡 Categoria B — Já possuímos, mas podemos melhorar
 1. **Perfil 360º do Estudante**:
-   - *Atual*: View vertical longa dividida em cards.
-   - *Melhoria*: Transformar em um **Hub 360º com Separadores (Tabs)** e **Timeline de Eventos do Aluno**, agrupando Dados Pessoais/Encarregados, Histórico Académico, Frequência, Situação Financeira, Registos Disciplinares/Acompanhamento e Atividade Recente.
-2. **Empty States & Feedback Visual**:
-   - *Atual*: Mensagens de texto simples quando não há registos.
-   - *Melhoria*: Criar componentes ilustrados de *Empty State* com ícones temáticos, explicações claras e botões diretos de ação rápida.
-3. **Navegação & Pesquisa Global**:
-   - *Atual*: Pesquisa restrita por módulo.
-   - *Melhoria*: Implementar um **Command Palette (Ctrl+K / Cmd+K)** acessível em qualquer ecrã para pesquisa instantânea de alunos, professores, turmas e atalhos rápidos de navegação.
+   - Hub 360º em Tabs (Resumo, Dados Pessoais/Encarregados, Histórico Académico, Frequência, Financeiro, Acompanhamento, Timeline de Eventos).
+2. **Navegação & Pesquisa Global**:
+   - Command Palette (`Ctrl+K`) acessível em qualquer ecrã para pesquisa instantânea de alunos, professores, turmas e atalhos.
+3. **Páginas Públicas Institucionais**:
+   - Páginas públicas `/sobre` (Sobre a Plataforma) e `/contacto` (Formulário de Demonstração e Contactos).
 
 ---
 
-### 🚀 Categoria C — Não possuímos e é um diferencial competitivo (A Implementar)
+### 🚀 Categoria C — Diferenciais Competitivos Implementados no ZAMEDU
 1. **Portaria Digital (Controlo de Acesso Escolar)**:
-   - *Valor*: Permite que os encarregados da segurança/portaria confirmem o número do estudante, foto, turma e estado de matrícula em 1 segundo, registando a entrada/saída sem dar acesso a notas ou finanças.
-   - *Impacto*: Elevado (segurança física da escola e tranquilidade dos encarregados).
-   - *Complexidade*: Média.
-2. **Simulador de Propostas / Planos na Landing Page**:
-   - *Valor*: Permite que diretores escolares simulem o custo mensal com base no número de alunos e descarreguem/solicitem uma proposta em PDF personalizada.
-   - *Impacto*: Elevado para conversão de novos clientes.
-   - *Complexidade*: Baixa.
+   - Painel para validação instantânea por número de matrícula/código do cartão com badges de estado (Autorizado / Atenção) e registo de entradas/saídas.
+2. **Entrada Instantânea em Demonstração (1-Click Demo Login)**:
+   - Em vez de obligar o utilizador a memorizar credenciais, criamos um seletor visual onde um único clique autentica o visitante no perfil desejado (Diretor, Secretaria, Professor, Encarregado).
+3. **Indicador Visual de Licença Escolar & Período de Teste**:
+   - Alerta inteligente no topo do painel administrativo informando os dias restantes do período de teste ou validade da licença.
 
 ---
 
@@ -48,26 +72,14 @@ Este documento apresenta uma análise comparativa profunda e imparcial entre a p
 
 ---
 
-## 3. Matriz Comparativa de UX/UI & Arquitetura
+## 4. Matriz Comparativa de UX/UI & Arquitetura
 
 | Funcionalidade / Componente | SoftGenial | ZAMEDU SIGE (Pós-Melhoria) |
 |-----------------------------|------------|----------------------------|
-| **Ficha 360º do Aluno** | Painel unificado por perfil | **Hub 360º em Tabs com Timeline e Gráfico de Desempenho** |
+| **Ficha 360º do Aluno** | Painel unificado por perfil | **Hub 360º em Tabs com Timeline e Gráficos Chart.js** |
 | **Portaria Digital** | Módulo de consulta simples | **Painel de Portaria com Validação Instantânea e Log de Acessos** |
+| **Acesso a Demonstração** | Lista de credenciais de texto | **Seletor Visual 1-Click Demo (Entrada Automática por Perfil)** |
 | **Pesquisa Global** | Filtros locais por tabela | **Command Palette (Ctrl+K) com pesquisa universal** |
+| **Gestão de Licenças** | Validação passiva de backend | **Banner de Status de Licença/Trial em Tempo Real + Gestão no Admin** |
 | **Central de Relatórios** | Lista estática de relatórios | **Dashboard com 4 Gráficos Chart.js e Exportação CSV/PDF** |
-| **Notificações & Toasts** | Alertas padrão de página | **Sistema Global de Toasts + Modais de Confirmação Interativos** |
 | **Navegação de Erros** | Redirecionamento fixo | **Botão Voltar Inteligente (`history.back()` com fallback)** |
-
----
-
-## 4. Plano de Execução Priorizado
-
-1. **Fase 1: Hub Perfil 360º do Estudante (`students/show.blade.php`)**
-   - Estrutura baseada em separadores Bootstrap (Visão Geral, Dados Pessoais, Académico, Frequência, Financeiro, Acompanhamento, Timeline).
-2. **Fase 2: Módulo de Portaria Digital (`/gatekeeper` / `portaria`)**
-   - Rota e view simplificada para consulta rápida por número do aluno/pesquisa com indicador de permissão de entrada.
-3. **Fase 3: Command Palette / Pesquisa Global (`Ctrl+K`)**
-   - Modal de pesquisa rápida no layout principal (`app.blade.php`) com suporte a teclado.
-4. **Fase 4: Landing Page & Simulador de Proposta (`welcome.blade.php`)**
-   - Secção Hero modernizada, benefícios claros, FAQ interativo e simulador de planos para escolas.

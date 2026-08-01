@@ -748,6 +748,9 @@
                             <a href="{{ route('login') }}" class="btn-hero-primary">
                                 <i class="fas fa-right-to-bracket"></i> Entrar na Conta
                             </a>
+                            <a href="{{ route('demo.access') }}" class="btn-hero-secondary" style="background: rgba(255,255,255,0.15); color: #ffffff; border: 1px solid rgba(255,255,255,0.3);">
+                                <i class="fas fa-bolt text-warning me-1"></i> Testar 1-Click Demo
+                            </a>
                             <a href="{{ route('public.pre-enrollment') }}" class="btn-hero-secondary">
                                 <i class="fas fa-file-pen"></i> Pré-Matrícula Online
                             </a>
