@@ -1533,6 +1533,13 @@
                         <div class="nav-section-title">Estudantes</div>
                         <ul class="nav-list">
                             <li class="nav-item">
+                                <a href="{{ route('gatekeeper.index') }}"
+                                    class="nav-link {{ request()->routeIs('gatekeeper.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-id-card-clip"></i></span>
+                                    <span class="nav-text">Portaria Digital</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
                                 <a href="{{ route('students.index') }}"
                                     class="nav-link {{ request()->routeIs('students.*') && !request()->routeIs('admin.students-archive.*') ? 'active' : '' }}">
                                     <span class="nav-icon"><i class="fas fa-user-graduate"></i></span>
@@ -1923,9 +1930,9 @@
             </div>
 
             <div class="header-right">
-                <div class="header-search">
-                    <input type="text" class="search-input"
-                        placeholder="Pesquisar alunos, professores, turmas...">
+                <div class="header-search" onclick="openCommandPalette()" style="cursor: pointer;">
+                    <input type="text" class="search-input" readonly style="cursor: pointer;"
+                        placeholder="Pesquisar alunos, turmas... (Ctrl + K)">
                     <i class="fas fa-search search-icon"></i>
                 </div>
 
@@ -2539,6 +2546,76 @@
             if (_confirmCallback) { _confirmCallback(); _confirmCallback = null; }
         });
 
+        // ===== COMMAND PALETTE (CTRL+K) =====
+        document.addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                openCommandPalette();
+            }
+        });
+
+        let cpModalInstance = null;
+        function openCommandPalette() {
+            const el = document.getElementById('commandPaletteModal');
+            if (!el) return;
+            if (!cpModalInstance) {
+                cpModalInstance = new bootstrap.Modal(el);
+            }
+            cpModalInstance.show();
+            setTimeout(() => {
+                const input = document.getElementById('commandPaletteInput');
+                if (input) {
+                    input.focus();
+                    input.value = '';
+                    fetchCommandResults('');
+                }
+            }, 200);
+        }
+
+        let cpDebounce = null;
+        document.getElementById('commandPaletteInput')?.addEventListener('input', function(e) {
+            clearTimeout(cpDebounce);
+            cpDebounce = setTimeout(() => {
+                fetchCommandResults(e.target.value);
+            }, 200);
+        });
+
+        function fetchCommandResults(query) {
+            const container = document.getElementById('commandPaletteResults');
+            if (!container) return;
+            container.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-spinner fa-spin me-2"></i> A pesquisar...</div>';
+            fetch(`/search/quick?q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (!data || data.length === 0) {
+                        container.innerHTML = '<div class="text-center py-4 text-muted">Nenhum resultado encontrado.</div>';
+                        return;
+                    }
+                    let html = '<div class="list-group list-group-flush rounded-3">';
+                    data.forEach(item => {
+                        html += `
+                            <a href="${item.url}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between p-2.5 border-0 rounded-3 mb-1">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="rounded-circle bg-emerald-50 text-emerald-700 p-2 d-flex align-items-center justify-content-center" style="width:36px; height:36px;">
+                                        <i class="${item.icon}"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-bold text-slate-800 mb-0 text-sm">${item.title}</h6>
+                                        <small class="text-xs text-muted">${item.subtitle}</small>
+                                    </div>
+                                </div>
+                                <i class="fas fa-chevron-right text-xs text-slate-300"></i>
+                            </a>
+                        `;
+                    });
+                    html += '</div>';
+                    container.innerHTML = html;
+                })
+                .catch(() => {
+                    container.innerHTML = '<div class="text-center py-4 text-rose-500 text-xs">Erro ao carregar dados.</div>';
+                });
+        }
+
         // ===== API GLOBAL =====
         window.ZamEdu = {
             showToast,
@@ -2548,9 +2625,32 @@
             markAsRead,
             markAllAsRead,
             showHelpModal,
+            openCommandPalette,
             version: '1.0.0'
         };
     </script>
+
+    <!-- COMMAND PALETTE (CTRL+K) MODAL -->
+    <div class="modal fade" id="commandPaletteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="p-3 border-bottom bg-white d-flex align-items-center gap-2">
+                    <i class="fas fa-search text-emerald-600 text-lg ms-2"></i>
+                    <input type="text" id="commandPaletteInput" class="form-control border-0 shadow-none text-base font-semibold"
+                        placeholder="Digite para pesquisar alunos, professores, turmas ou atalhos (Ctrl + K)..." autofocus>
+                    <kbd class="badge bg-slate-100 text-slate-600 border px-2 py-1 text-xs me-2">ESC</kbd>
+                </div>
+                <div class="modal-body p-2" style="max-height: 380px; overflow-y: auto;" id="commandPaletteResults">
+                    <!-- Dynamic items -->
+                </div>
+                <div class="modal-footer bg-slate-50 border-top py-2 px-3 justify-content-between text-xs text-muted">
+                    <span><kbd class="me-1">↑↓</kbd> Navegar</span>
+                    <span><kbd class="me-1">↵</kbd> Selecionar</span>
+                    <span><kbd class="me-1">ESC</kbd> Fechar</span>
+                </div>
+            </div>
+        </div>
+    </div>
 
     @stack('scripts')
 </body>

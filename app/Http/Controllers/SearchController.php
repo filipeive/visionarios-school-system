@@ -152,4 +152,75 @@ class SearchController extends Controller
 
         return response()->json($results);
     }
+
+    /**
+     * Resposta JSON para o Command Palette (Ctrl+K)
+     */
+    public function quickSearch(Request $request)
+    {
+        $query = trim($request->get('q', ''));
+        $results = [];
+
+        // Atalhos do Sistema quando campo estiver com busca curta
+        if (empty($query) || strlen($query) < 2) {
+            $shortcuts = [
+                ['type' => 'shortcut', 'title' => 'Dashboard', 'subtitle' => 'Painel Principal', 'url' => route('dashboard'), 'icon' => 'fas fa-home'],
+                ['type' => 'shortcut', 'title' => 'Portaria Digital', 'subtitle' => 'Controlo de Acesso Escolar', 'url' => route('gatekeeper.index'), 'icon' => 'fas fa-id-card-clip'],
+                ['type' => 'shortcut', 'title' => 'Alunos', 'subtitle' => 'Lista de Estudantes', 'url' => route('students.index'), 'icon' => 'fas fa-user-graduate'],
+                ['type' => 'shortcut', 'title' => 'Central de Relatórios', 'subtitle' => 'Analytics e Pautas', 'url' => route('reports.index'), 'icon' => 'fas fa-chart-pie'],
+                ['type' => 'shortcut', 'title' => 'Comunicados', 'subtitle' => 'Mural de Avisos', 'url' => route('communications.index'), 'icon' => 'fas fa-bullhorn'],
+            ];
+            return response()->json($shortcuts);
+        }
+
+        // 1. Alunos
+        if (auth()->user()->can('view_students')) {
+            $students = Student::where('first_name', 'like', "%{$query}%")
+                ->orWhere('last_name', 'like', "%{$query}%")
+                ->orWhere('student_number', 'like', "%{$query}%")
+                ->limit(6)
+                ->get()
+                ->map(fn($st) => [
+                    'type' => 'student',
+                    'title' => $st->full_name,
+                    'subtitle' => 'Nº: ' . $st->student_number,
+                    'url' => route('students.show', $st->id),
+                    'icon' => 'fas fa-user-graduate'
+                ]);
+            $results = array_merge($results, $students->toArray());
+        }
+
+        // 2. Professores
+        if (auth()->user()->can('view_teachers')) {
+            $teachers = Teacher::where('first_name', 'like', "%{$query}%")
+                ->orWhere('last_name', 'like', "%{$query}%")
+                ->limit(4)
+                ->get()
+                ->map(fn($tc) => [
+                    'type' => 'teacher',
+                    'title' => $tc->full_name,
+                    'subtitle' => $tc->specialization ?? 'Docente',
+                    'url' => route('teachers.show', $tc->id),
+                    'icon' => 'fas fa-chalkboard-teacher'
+                ]);
+            $results = array_merge($results, $teachers->toArray());
+        }
+
+        // 3. Turmas
+        if (auth()->user()->can('view_classes')) {
+            $classes = ClassRoom::where('name', 'like', "%{$query}%")
+                ->limit(4)
+                ->get()
+                ->map(fn($cl) => [
+                    'type' => 'class',
+                    'title' => 'Turma: ' . $cl->name,
+                    'subtitle' => $cl->grade_level . 'ª Classe · ' . ($cl->classroom ?? 'Sala N/A'),
+                    'url' => route('classes.show', $cl->id),
+                    'icon' => 'fas fa-school'
+                ]);
+            $results = array_merge($results, $classes->toArray());
+        }
+
+        return response()->json($results);
+    }
 }

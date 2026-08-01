@@ -12,6 +12,7 @@ use App\Http\Controllers\DemoController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\GradeController;
+use App\Http\Controllers\GateKeeperController;
 use App\Http\Controllers\LeaveRequestManagementController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ParentPortalController;
@@ -95,8 +96,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::delete('/', 'destroy')->name('destroy');
     });
 
-    // Pesquisa Global
+    // Pesquisa Global & Quick Search
     Route::get('/search', [SearchController::class, 'search'])->name('search');
+    Route::get('/search/quick', [SearchController::class, 'quickSearch'])->name('search.quick');
+
+    // Portaria Digital (Controlo de Acesso)
+    Route::get('/gatekeeper', [GateKeeperController::class, 'index'])->name('gatekeeper.index');
+    Route::post('/gatekeeper/{student}/log', [GateKeeperController::class, 'logAccess'])->name('gatekeeper.log');
 
     /*
     |--------------------------------------------------------------------------

@@ -946,6 +946,78 @@
 
             </div>
         </div>
+    <!-- ====== SIMULADOR DE PLANOS ====== -->
+    <section class="features-section" id="planos" style="background: #ffffff; padding: 70px 0; border-top: 1px solid var(--gray-200);">
+        <div class="container">
+            <div class="section-header text-center mb-5">
+                <h2>Simulador de Planos para Escolas</h2>
+                <div class="underline-accent mx-auto"></div>
+                <p style="margin-top: 12px; color: var(--gray-700);">Calcule o investimento ideal para a sua instituição de ensino em Moçambique</p>
+            </div>
+
+            <div style="background: #F4F6FA; border-radius: 24px; padding: 36px; border: 1px solid #E2E8F0;" class="shadow-sm">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; align-items: center;">
+                    <div>
+                        <label style="font-weight: 700; font-size: 14px; margin-bottom: 8px; display: block; color: #1E293B;">Selecione o Plano desejado</label>
+                        <select id="simPlan" style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid #CBD5E1; font-weight: 600; font-size: 14px;">
+                            <option value="3500">Secretaria Digital (desde 3.500 MT/mês)</option>
+                            <option value="4500">Tesouraria & Mensalidades (desde 4.500 MT/mês)</option>
+                            <option value="5000">Académico & Pautas (desde 5.000 MT/mês)</option>
+                            <option value="9500" selected>Gestão Completa ERP (desde 9.500 MT/mês)</option>
+                        </select>
+
+                        <label style="font-weight: 700; font-size: 14px; margin-top: 20px; margin-bottom: 8px; display: block; color: #1E293B;">Número de Alunos (<span id="simStudentCountText">150</span> alunos)</label>
+                        <input type="range" id="simStudentRange" min="50" max="1500" step="50" value="150" style="width: 100%; accent-color: #047857;">
+
+                        <label style="font-weight: 700; font-size: 14px; margin-top: 20px; margin-bottom: 8px; display: block; color: #1E293B;">Ciclo de Pagamento</label>
+                        <select id="simCycle" style="width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid #CBD5E1; font-weight: 600; font-size: 14px;">
+                            <option value="1">Mensal</option>
+                            <option value="0.95">Trimestral (5% Desconto)</option>
+                            <option value="0.92">Semestral (8% Desconto)</option>
+                            <option value="0.88" selected>Anual (12% Desconto)</option>
+                        </select>
+                    </div>
+
+                    <div style="background: linear-gradient(135deg, #047857 0%, #0F766E 100%); border-radius: 20px; padding: 32px; color: #ffffff; text-align: center;">
+                        <span style="font-size: 12px; text-transform: uppercase; font-weight: 800; tracking: 1px; opacity: 0.9; display: block;">Estimativa de Investimento</span>
+                        <div style="font-size: 38px; font-weight: 900; margin: 12px 0;" id="simTotalDisplay">9.500 MT /mês</div>
+                        <p style="font-size: 13px; opacity: 0.85; margin-bottom: 24px;" id="simPerStudentDisplay">Apenas ~63 MT por aluno / mês</p>
+                        
+                        <a href="https://wa.me/258840000000?text=Ol%C3%A1!%20Gostaria%20de%20solicitar%20uma%20proposta%20comercial%20do%20ZAMEDU%20para%20a%20minha%20escola." 
+                           target="_blank"
+                           style="display: inline-block; background: #F59E0B; color: #0F172A; font-weight: 800; padding: 14px 28px; border-radius: 50px; text-decoration: none; font-size: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.15);">
+                            <i class="fab fa-whatsapp me-2"></i> Solicitar Proposta em PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        function updateSimulator() {
+            const basePrice = parseFloat(document.getElementById('simPlan').value);
+            const students = parseInt(document.getElementById('simStudentRange').value);
+            const cycleDiscount = parseFloat(document.getElementById('simCycle').value);
+
+            let multiplier = 1;
+            if (students > 800) multiplier = 2.2;
+            else if (students > 400) multiplier = 1.6;
+            else if (students > 150) multiplier = 1.25;
+
+            const monthlyTotal = Math.round(basePrice * multiplier * cycleDiscount);
+            const perStudent = Math.round(monthlyTotal / students);
+
+            document.getElementById('simStudentCountText').textContent = students;
+            document.getElementById('simTotalDisplay').textContent = monthlyTotal.toLocaleString('pt-PT') + ' MT /mês';
+            document.getElementById('simPerStudentDisplay').textContent = 'Apenas ~' + perStudent + ' MT por aluno / mês';
+        }
+
+        document.getElementById('simPlan')?.addEventListener('change', updateSimulator);
+        document.getElementById('simStudentRange')?.addEventListener('input', updateSimulator);
+        document.getElementById('simCycle')?.addEventListener('change', updateSimulator);
+        document.addEventListener('DOMContentLoaded', updateSimulator);
+    </script>
     </section>
 
     <!-- ====== FOOTER ====== -->
