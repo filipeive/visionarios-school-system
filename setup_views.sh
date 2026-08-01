@@ -1,5 +1,5 @@
 #!/bin/bash
-# Script para criar toda a estrutura de views do Sistema Visionários
+# Script para criar toda a estrutura de views do ZamEdu
 
 # Criar estrutura de diretórios
 mkdir -p resources/views/{layouts,components,auth,dashboard,students,teachers,classes,subjects,enrollments,payments,attendances,grades,events,reports,parent,teacher-portal,admin,errors,partials,public}
