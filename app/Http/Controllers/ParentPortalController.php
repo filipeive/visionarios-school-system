@@ -33,12 +33,17 @@ class ParentPortalController extends Controller
     public function dashboard()
     {
         $parent = $this->getParent();
+        $nextYear = app(AcademicYearService::class)->getNextYear();
 
         if (!$parent) {
             return view('parent-portal.dashboard', [
+                'parent' => null,
                 'children' => collect([]),
+                'recentCommunications' => collect([]),
                 'communications' => collect([]),
                 'pendingPayments' => collect([]),
+                'totalPendingPayments' => 0,
+                'nextYear' => $nextYear,
                 'noParentProfile' => true
             ]);
         }
@@ -50,7 +55,6 @@ class ParentPortalController extends Controller
         ])->get();
 
         $currentYear = app(AcademicYearService::class)->getCurrentYear();
-        $nextYear = app(AcademicYearService::class)->getNextYear();
 
         foreach ($children as $child) {
             // Identificar se o aluno é elegível para renovação
@@ -75,7 +79,7 @@ class ParentPortalController extends Controller
             $totalPendingPayments += $this->paymentService->getStudentTotalDebt($child->id);
         }
 
-        return view('parent-portal.dashboard', compact('parent', 'children', 'totalPendingPayments', 'recentCommunications'));
+        return view('parent-portal.dashboard', compact('parent', 'children', 'totalPendingPayments', 'recentCommunications', 'nextYear'));
     }
 
     /**
