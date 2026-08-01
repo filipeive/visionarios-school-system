@@ -715,11 +715,12 @@
                 <i class="fas fa-bars"></i>
             </button>
             <ul class="nav-links" id="navLinks">
-                <li><a href="#inicio" class="active"><i class="fas fa-home"></i> Início</a></li>
-                <li><a href="#servicos"><i class="fas fa-concierge-bell"></i> Serviços</a></li>
-                <li><a href="#recursos"><i class="fas fa-cogs"></i> Recursos</a></li>
-                <li><a href="#sobre"><i class="fas fa-info-circle"></i> Sobre</a></li>
-                <li><a href="#contacto"><i class="fas fa-envelope"></i> Contactos</a></li>
+                <li><a href="{{ route('welcome') }}" class="active"><i class="fas fa-home"></i> Início</a></li>
+                <li><a href="{{ route('sobre') }}"><i class="fas fa-info-circle"></i> Sobre o Sistema</a></li>
+                <li><a href="{{ route('demo.access') }}"><i class="fas fa-bolt text-warning"></i> 1-Click Demo</a></li>
+                <li><a href="#recursos"><i class="fas fa-cogs"></i> Recursos & Portaria</a></li>
+                <li><a href="{{ route('contacto') }}"><i class="fas fa-envelope"></i> Contactos & Proposta</a></li>
+                <li><a href="{{ route('public.pre-enrollment') }}"><i class="fas fa-file-pen"></i> Pré-Matrícula</a></li>
             </ul>
         </div>
     </nav>
@@ -898,11 +899,41 @@
 
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="fas fa-sliders"></i>
+                        <i class="fas fa-id-badge"></i>
                     </div>
                     <div>
-                        <h4>Personalizável</h4>
-                        <p>Logótipo, paleta de cores e parâmetros de ano lectivo configuráveis por cada escola.</p>
+                        <h4>Portaria Digital</h4>
+                        <p>Controlo de acessos físicos com validação instantânea da matrícula e registo de entrada/saída.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div>
+                        <h4>Perfil 360º do Estudante</h4>
+                        <p>Ficha unificada do aluno com gráficos de notas, histórico de faltas e linha do tempo de eventos.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-bolt text-warning"></i>
+                    </div>
+                    <div>
+                        <h4>Seletor 1-Click Demo</h4>
+                        <p>Experimente a plataforma em 1 clique no perfil de Direção, Secretaria, Professor ou Pais.</p>
+                    </div>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-keyboard"></i>
+                    </div>
+                    <div>
+                        <h4>Command Palette (Ctrl + K)</h4>
+                        <p>Pesquisa universal instantânea de estudantes, turmas, professores e atalhos operacionais.</p>
                     </div>
                 </div>
 
