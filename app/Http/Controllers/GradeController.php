@@ -298,7 +298,7 @@ class GradeController extends Controller
             DB::rollBack();
             Log::error('Erro ao processar notas em lote: '.$e->getMessage());
 
-            return back()->with('error', 'Erro ao processar notas. Contacte o administrador.')->withInput();
+            return back()->with('error', 'Erro ao processar notas: ' . $e->getMessage())->withInput();
         }
     }
 

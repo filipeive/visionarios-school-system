@@ -137,7 +137,7 @@
                                                    min="0" 
                                                    max="20" 
                                                    step="0.1" 
-                                                   value="{{ $existingGrade->grade ?? '' }}"
+                                                   value="{{ old('grades.' . $student->id . '.grade', $existingGrade->grade ?? '') }}"
                                                    placeholder="0 - 20"
                                                    style="font-size: 1.1rem;">
                                         </td>
@@ -145,7 +145,7 @@
                                             <input type="text" 
                                                    name="grades[{{ $student->id }}][comments]" 
                                                    class="form-control form-control-sm" 
-                                                   value="{{ $existingGrade->comments ?? '' }}"
+                                                   value="{{ old('grades.' . $student->id . '.comments', $existingGrade->comments ?? '') }}"
                                                    placeholder="Observação individual...">
                                         </td>
                                     </tr>
