@@ -1525,22 +1525,12 @@
                             </a>
                         </li>
                     </ul>
-                </div>
-            @endif
-
-            <!-- 2. ESTUDANTES -->
+                </di            <!-- 2. GESTÃO DE ESTUDANTES & MATRÍCULAS -->
             @canany(['manage_students', 'view_students'])
                 @if (auth()->user()->role !== 'teacher')
                     <div class="nav-section">
-                        <div class="nav-section-title">Estudantes</div>
+                        <div class="nav-section-title">Estudantes & Matrículas</div>
                         <ul class="nav-list">
-                            <li class="nav-item">
-                                <a href="{{ route('gatekeeper.index') }}"
-                                    class="nav-link {{ request()->routeIs('gatekeeper.*') ? 'active' : '' }}">
-                                    <span class="nav-icon"><i class="fas fa-id-card-clip"></i></span>
-                                    <span class="nav-text">Portaria Digital</span>
-                                </a>
-                            </li>
                             <li class="nav-item">
                                 <a href="{{ route('students.index') }}"
                                     class="nav-link {{ request()->routeIs('students.*') && !request()->routeIs('admin.students-archive.*') ? 'active' : '' }}">
@@ -1548,26 +1538,12 @@
                                     <span class="nav-text">Todos os Alunos</span>
                                 </a>
                             </li>
-                            <li class="nav-item">
-                                <a href="{{ route('parents.index') }}"
-                                    class="nav-link {{ request()->routeIs('parents.*') ? 'active' : '' }}">
-                                    <span class="nav-icon"><i class="fas fa-users-cog"></i></span>
-                                    <span class="nav-text">Encarregados de Educação</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="{{ route('certificates.index') }}"
-                                    class="nav-link {{ request()->routeIs('certificates.*') ? 'active' : '' }}">
-                                    <span class="nav-icon"><i class="fas fa-certificate"></i></span>
-                                    <span class="nav-text">Certidões & Certificados</span>
-                                </a>
-                            </li>
                             @can('manage_enrollments')
                                 <li class="nav-item">
                                     <a href="{{ route('enrollments.index') }}"
                                         class="nav-link {{ request()->routeIs('enrollments.*') && !request()->routeIs('admin.enrollments.renewals') ? 'active' : '' }}">
                                         <span class="nav-icon"><i class="fas fa-clipboard-list"></i></span>
-                                        <span class="nav-text">Matrículas</span>
+                                        <span class="nav-text">Matrículas & Inscrições</span>
                                         @php
                                             $pendingEnrollments = \App\Models\Enrollment::where('status', 'pending')->count();
                                         @endphp
@@ -1583,6 +1559,22 @@
                                         <span class="nav-text">Renovação de Matrículas</span>
                                     </a>
                                 </li>
+                            @endcan
+                            <li class="nav-item">
+                                <a href="{{ route('parents.index') }}"
+                                    class="nav-link {{ request()->routeIs('parents.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-users-cog"></i></span>
+                                    <span class="nav-text">Encarregados de Educação</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('gatekeeper.index') }}"
+                                    class="nav-link {{ request()->routeIs('gatekeeper.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-id-card-clip"></i></span>
+                                    <span class="nav-text">Portaria Digital (Cartões)</span>
+                                </a>
+                            </li>
+                            @can('manage_enrollments')
                                 <li class="nav-item">
                                     <a href="{{ route('admin.promotion.index') }}"
                                         class="nav-link {{ request()->routeIs('admin.promotion.*') ? 'active' : '' }}">
@@ -1603,18 +1595,38 @@
                 @endif
             @endcanany
 
-            <!-- 3. PROFESSORES -->
-            @canany(['manage_teachers', 'view_teachers'])
+            <!-- 3. ORGANIZAÇÃO ACADÉMICA & DOCENTES -->
+            @canany(['manage_classes', 'view_classes', 'manage_subjects', 'manage_teachers', 'view_teachers'])
                 <div class="nav-section">
-                    <div class="nav-section-title">Professores</div>
+                    <div class="nav-section-title">Organização Académica & Docentes</div>
                     <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('teachers.index') }}"
-                                class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
-                                <span class="nav-icon"><i class="fas fa-chalkboard-teacher"></i></span>
-                                <span class="nav-text">Corpo Docente</span>
-                            </a>
-                        </li>
+                        @canany(['manage_classes', 'view_classes'])
+                            <li class="nav-item">
+                                <a href="{{ route('classes.index') }}"
+                                    class="nav-link {{ request()->routeIs('classes.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-school"></i></span>
+                                    <span class="nav-text">Turmas Escolares</span>
+                                </a>
+                            </li>
+                        @endcanany
+                        @can('manage_subjects')
+                            <li class="nav-item">
+                                <a href="{{ route('subjects.index') }}"
+                                    class="nav-link {{ request()->routeIs('subjects.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-book-open"></i></span>
+                                    <span class="nav-text">Matriz Curricular</span>
+                                </a>
+                            </li>
+                        @endcan
+                        @canany(['manage_teachers', 'view_teachers'])
+                            <li class="nav-item">
+                                <a href="{{ route('teachers.index') }}"
+                                    class="nav-link {{ request()->routeIs('teachers.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-chalkboard-teacher"></i></span>
+                                    <span class="nav-text">Corpo Docente</span>
+                                </a>
+                            </li>
+                        @endcanany
                         @can('manage_leave_requests')
                             <li class="nav-item">
                                 <a href="{{ route('staff-leave-requests.index') }}"
@@ -1634,68 +1646,39 @@
                 </div>
             @endcanany
 
-            <!-- 4. TURMAS & CLASSES -->
-            @canany(['manage_classes', 'view_classes'])
+            <!-- 4. AVALIAÇÕES, PAUTAS & DOCUMENTOS -->
+            @canany(['manage_grades', 'view_grades', 'manage_attendances'])
                 <div class="nav-section">
-                    <div class="nav-section-title">Turmas & Classes</div>
+                    <div class="nav-section-title">Avaliações & Documentos</div>
                     <ul class="nav-list">
+                        @can('manage_grades')
+                            <li class="nav-item">
+                                <a href="{{ route('grades.index') }}"
+                                    class="nav-link {{ request()->routeIs('grades.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-medal"></i></span>
+                                    <span class="nav-text">Lançamento de Notas & Pautas</span>
+                                </a>
+                            </li>
+                        @endcan
                         <li class="nav-item">
-                            <a href="{{ route('classes.index') }}"
-                                class="nav-link {{ request()->routeIs('classes.*') ? 'active' : '' }}">
-                                <span class="nav-icon"><i class="fas fa-school"></i></span>
-                                <span class="nav-text">Turmas Escolares</span>
+                            <a href="{{ route('certificates.index') }}"
+                                class="nav-link {{ request()->routeIs('certificates.*') ? 'active' : '' }}">
+                                <span class="nav-icon"><i class="fas fa-certificate"></i></span>
+                                <span class="nav-text">Certidões & Certificados (MINEDH)</span>
                             </a>
                         </li>
+                        @can('manage_attendances')
+                            <li class="nav-item">
+                                <a href="{{ route('attendances.index') }}"
+                                    class="nav-link {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
+                                    <span class="nav-text">Frequência & Assiduidade</span>
+                                </a>
+                            </li>
+                        @endcan
                     </ul>
                 </div>
-            @endcanany
-
-            <!-- 5. DISCIPLINAS -->
-            @can('manage_subjects')
-                <div class="nav-section">
-                    <div class="nav-section-title">Disciplinas</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('subjects.index') }}"
-                                class="nav-link {{ request()->routeIs('subjects.*') ? 'active' : '' }}">
-                                <span class="nav-icon"><i class="fas fa-book-open"></i></span>
-                                <span class="nav-text">Matriz Curricular</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            @endcan
-
-            <!-- 6. AVALIAÇÕES & PAUTAS -->
-            @can('manage_grades')
-                <div class="nav-section">
-                    <div class="nav-section-title">Avaliações & Pautas</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('grades.index') }}"
-                                class="nav-link {{ request()->routeIs('grades.*') ? 'active' : '' }}">
-                                <span class="nav-icon"><i class="fas fa-medal"></i></span>
-                                <span class="nav-text">Lançamento de Notas</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            @endcan
-
-            <!-- 7. ASSIDUIDADE -->
-            @can('manage_attendances')
-                <div class="nav-section">
-                    <div class="nav-section-title">Assiduidade</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('attendances.index') }}"
-                                class="nav-link {{ request()->routeIs('attendances.*') ? 'active' : '' }}">
-                                <span class="nav-icon"><i class="fas fa-calendar-check"></i></span>
-                                <span class="nav-text">Frequência Diária</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+            @endcanany             </div>
             @endcan
 
             <!-- 8. ENCARREGADOS DE EDUCAÇÃO -->
