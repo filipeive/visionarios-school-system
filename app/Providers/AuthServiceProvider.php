@@ -32,7 +32,10 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
-            return $user->hasRole(['admin', 'super_admin']) ? true : null;
+            if ($user && in_array($user->role, ['admin', 'super_admin'])) {
+                return true;
+            }
+            return $user?->hasRole(['admin', 'super_admin']) ? true : null;
         });
     }
 }
