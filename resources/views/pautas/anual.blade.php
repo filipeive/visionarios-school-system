@@ -16,17 +16,26 @@
                 </span>
             </div>
             <h1 class="h3 font-weight-bold text-dark mb-0">Pauta Anual Consolidada: {{ $class->name }}</h1>
-            <p class="text-muted small mb-0">Consolidação dos três trimestres (MT1, MT2, MT3) e Média Frequência (MF).</p>
+            <p class="text-muted small mb-0">Consolidação dos três trimestres (MT1, MT2, MT3), Média Final (MF) e Resultado de Promoção.</p>
         </div>
 
         <div class="d-flex align-items-center gap-2">
+            <form method="GET" action="{{ route('pautas.anual', $class->id) }}" class="d-flex align-items-center gap-2">
+                <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="2026" {{ $year == 2026 ? 'selected' : '' }}>2026 (Ano Letivo Atual)</option>
+                    <option value="2025" {{ $year == 2025 ? 'selected' : '' }}>2025 (Histórico)</option>
+                    <option value="2024" {{ $year == 2024 ? 'selected' : '' }}>2024 (Histórico)</option>
+                    <option value="2023" {{ $year == 2023 ? 'selected' : '' }}>2023 (Histórico)</option>
+                </select>
+            </form>
+
             <a href="{{ route('pautas.trimestral', $class->id) }}" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-list-alt me-1"></i> Trimestral
             </a>
             <a href="{{ route('pautas.final', $class->id) }}" class="btn btn-outline-warning btn-sm text-dark">
                 <i class="fas fa-graduation-cap me-1"></i> Pauta Final & Exames
             </a>
-            <a href="{{ route('pautas.pdf', ['class' => $class->id, 'type' => 'anual']) }}" class="btn btn-danger btn-sm">
+            <a href="{{ route('pautas.pdf', ['class' => $class->id, 'type' => 'anual', 'year' => $year]) }}" class="btn btn-danger btn-sm">
                 <i class="fas fa-file-pdf me-1"></i> Exportar PDF
             </a>
         </div>
@@ -50,6 +59,7 @@
                                 <th colspan="4" class="text-center border-bottom-0">{{ $subject->code ?? $subject->name }}</th>
                             @endforeach
                             <th rowspan="2" class="align-middle bg-dark text-white">Média Geral</th>
+                            <th rowspan="2" class="align-middle bg-secondary text-white">Resultado Final</th>
                         </tr>
                         <tr>
                             @foreach($subjects as $subject)
@@ -82,10 +92,19 @@
                                 <td class="fw-bold bg-dark text-white">
                                     {{ $item['overall_average'] > 0 ? number_format($item['overall_average'], 1) : '-' }}
                                 </td>
+                                <td>
+                                    @if($item['final_status'] === 'Aprovado')
+                                        <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i> Aprovado</span>
+                                    @elseif($item['final_status'] === 'Retido')
+                                        <span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i> Reprovado</span>
+                                    @else
+                                        <span class="badge bg-secondary"><i class="fas fa-clock me-1"></i> Em Curso</span>
+                                    @endif
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ count($subjects) * 4 + 2 }}" class="py-5 text-center text-muted">
+                                <td colspan="{{ count($subjects) * 4 + 3 }}" class="py-5 text-center text-muted">
                                     <i class="fas fa-folder-open fa-3x mb-3 text-secondary"></i>
                                     <p class="mb-0">Nenhum registo de notas encontrado para o ano lectivo {{ $year }}.</p>
                                 </td>
