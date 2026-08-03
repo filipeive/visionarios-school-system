@@ -29,7 +29,16 @@ class GradeController extends Controller
         $term = (int) $request->get('term', 1);
         $level = $request->get('level', 'all');
 
-        $classesQuery = ClassRoom::active()->where('school_year', $currentYear);
+        $selectedClassId = $request->get('class_id');
+
+        if ($selectedClassId) {
+            $selectedClass = ClassRoom::with('subjects')->find($selectedClassId);
+            if ($selectedClass) {
+                $currentYear = (int) $request->get('year', $selectedClass->school_year);
+            }
+        }
+
+        $classesQuery = ClassRoom::active();
         if ($level === 'primary') {
             $classesQuery->whereIn('grade_level', [1, 2, 3, 4, 5, 6]);
         } elseif ($level === 'secondary') {
@@ -37,9 +46,10 @@ class GradeController extends Controller
         }
 
         $classes = $classesQuery->orderBy('grade_level')->orderBy('name')->get();
-        $selectedClassId = $request->get('class_id', $classes->first()?->id);
 
-        $selectedClass = $selectedClassId ? ClassRoom::with('subjects')->find($selectedClassId) : null;
+        if (! isset($selectedClass)) {
+            $selectedClass = $classes->first() ? ClassRoom::with('subjects')->find($classes->first()->id) : null;
+        }
 
         $students = collect();
         $subjects = collect();
@@ -47,8 +57,12 @@ class GradeController extends Controller
 
         if ($selectedClass) {
             $students = Student::whereHas('enrollments', function ($q) use ($selectedClass) {
-                $q->where('class_id', $selectedClass->id)->where('status', 'active');
+                $q->where('class_id', $selectedClass->id);
             })->orderBy('first_name')->orderBy('last_name')->get();
+
+            if ($students->isEmpty()) {
+                $students = $selectedClass->students;
+            }
 
             $subjects = $selectedClass->subjects->isEmpty()
                 ? Subject::active()->get()
@@ -184,9 +198,14 @@ class GradeController extends Controller
         $existingGrades = collect();
 
         if ($classId && $subjectId) {
-            $students = Student::whereHas('currentEnrollment', function ($q) use ($classId) {
+            $selectedClassObj = ClassRoom::find($classId);
+            $students = Student::whereHas('enrollments', function ($q) use ($classId) {
                 $q->where('class_id', $classId);
-            })->active()->with('currentEnrollment.class')->get();
+            })->orderBy('first_name')->orderBy('last_name')->get();
+
+            if ($students->isEmpty() && $selectedClassObj) {
+                $students = $selectedClassObj->students;
+            }
 
             // Buscar notas existentes para esta combinação
             $existingGrades = Grade::whereIn('student_id', $students->pluck('id'))
