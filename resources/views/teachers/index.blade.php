@@ -54,37 +54,44 @@
         </div>
 
         <!-- Cards de Estatísticas -->
-        <div class="school-stats mb-4">
-            <div class="stat-card students">
-                <div class="stat-icon students">
-                    <i class="fas fa-chalkboard-teacher"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ \App\Models\Teacher::count() }}</div>
-                    <div class="stat-label">Total de Professores</div>
-                </div>
-            </div>
-
-            <div class="stat-card teachers">
-                <div class="stat-icon teachers">
-                    <i class="fas fa-user-check"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ \App\Models\Teacher::active()->count() }}</div>
-                    <div class="stat-label">Professores Ativos</div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-primary">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-primary-subtle text-primary rounded-circle p-3 me-3">
+                            <i class="fas fa-chalkboard-teacher fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Total de Professores</div>
+                            <h4 class="mb-0 text-primary font-weight-bold">{{ \App\Models\Teacher::count() }}</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="stat-card payments">
-                <div class="stat-icon payments">
-                    <i class="fas fa-graduation-cap"></i>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-success">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-success-subtle text-success rounded-circle p-3 me-3">
+                            <i class="fas fa-user-check fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Professores Ativos</div>
+                            <h4 class="mb-0 text-success font-weight-bold">{{ \App\Models\Teacher::active()->count() }}</h4>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-content">
-                    @php
-                        $totalClasses = \App\Models\ClassRoom::whereNotNull('teacher_id')->count();
-                    @endphp
-                    <div class="stat-value">{{ $totalClasses }}</div>
-                    <div class="stat-label">Turmas com Professor</div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-info">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-info-subtle text-info rounded-circle p-3 me-3">
+                            <i class="fas fa-graduation-cap fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Turmas com Director/Prof.</div>
+                            <h4 class="mb-0 text-info font-weight-bold">{{ \App\Models\ClassRoom::whereNotNull('teacher_id')->count() }}</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

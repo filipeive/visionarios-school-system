@@ -12,44 +12,57 @@
 <div class="row">
     <div class="col-12">
         <!-- Estatísticas Rápidas -->
-        <div class="school-stats mb-4">
-            <div class="stat-card students">
-                <div class="stat-icon students">
-                    <i class="fas fa-user-graduate"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $totalStudents }}</div>
-                    <div class="stat-label">Total de Alunos</div>
-                </div>
-            </div>
-
-            <div class="stat-card teachers">
-                <div class="stat-icon teachers">
-                    <i class="fas fa-male"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ \App\Models\Student::where('gender', 'male')->count() }}</div>
-                    <div class="stat-label">Alunos</div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-primary">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-primary-subtle text-primary rounded-circle p-3 me-3">
+                            <i class="fas fa-user-graduate fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Total de Alunos</div>
+                            <h4 class="mb-0 text-primary font-weight-bold">{{ $totalStudents }}</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="stat-card payments">
-                <div class="stat-icon payments">
-                    <i class="fas fa-female"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ \App\Models\Student::where('gender', 'female')->count() }}</div>
-                    <div class="stat-label">Alunas</div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-info">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-info-subtle text-info rounded-circle p-3 me-3">
+                            <i class="fas fa-male fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Alunos Masculino</div>
+                            <h4 class="mb-0 text-info font-weight-bold">{{ \App\Models\Student::where('gender', 'male')->count() }}</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="stat-card events">
-                <div class="stat-icon events">
-                    <i class="fas fa-chalkboard"></i>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-warning">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-warning-subtle text-warning rounded-circle p-3 me-3">
+                            <i class="fas fa-female fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Alunas Feminino</div>
+                            <h4 class="mb-0 text-dark font-weight-bold">{{ \App\Models\Student::where('gender', 'female')->count() }}</h4>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ \App\Models\Enrollment::where('status', 'active')->count() }}</div>
-                    <div class="stat-label">Matrículas Ativas</div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-success">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-success-subtle text-success rounded-circle p-3 me-3">
+                            <i class="fas fa-chalkboard fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Matrículas Ativas</div>
+                            <h4 class="mb-0 text-success font-weight-bold">{{ \App\Models\Enrollment::where('status', 'active')->count() }}</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

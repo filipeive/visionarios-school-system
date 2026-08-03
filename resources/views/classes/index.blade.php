@@ -63,53 +63,62 @@
             </div>
 
             <!-- Cards de Estatísticas -->
-            <div class="school-stats mb-4">
-                <div class="stat-card students">
-                    <div class="stat-icon students">
-                        <i class="fas fa-chalkboard"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">{{ \App\Models\ClassRoom::count() }}</div>
-                        <div class="stat-label">Total de Turmas</div>
-                    </div>
-                </div>
-
-                <div class="stat-card teachers">
-                    <div class="stat-icon teachers">
-                        <i class="fas fa-user-check"></i>
-                    </div>
-                    <div class="stat-content">
-                        <div class="stat-value">{{ \App\Models\ClassRoom::active()->count() }}</div>
-                        <div class="stat-label">Turmas Ativas</div>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-primary">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 bg-primary-subtle text-primary rounded-circle p-3 me-3">
+                                <i class="fas fa-chalkboard fa-lg"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted small text-uppercase font-weight-bold">Total de Turmas</div>
+                                <h4 class="mb-0 text-primary font-weight-bold">{{ \App\Models\ClassRoom::count() }}</h4>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="stat-card payments">
-                    <div class="stat-icon payments">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                    <div class="stat-content">
-                        @php
-                            $totalStudents = \App\Models\Enrollment::where('status', 'active')->count();
-                        @endphp
-                        <div class="stat-value">{{ $totalStudents }}</div>
-                        <div class="stat-label">Alunos Matriculados</div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-success">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 bg-success-subtle text-success rounded-circle p-3 me-3">
+                                <i class="fas fa-user-check fa-lg"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted small text-uppercase font-weight-bold">Turmas Ativas</div>
+                                <h4 class="mb-0 text-success font-weight-bold">{{ \App\Models\ClassRoom::active()->count() }}</h4>
+                            </div>
+                        </div>
                     </div>
                 </div>
-
-                <div class="stat-card events">
-                    <div class="stat-icon events">
-                        <i class="fas fa-chart-pie"></i>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-info">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 bg-info-subtle text-info rounded-circle p-3 me-3">
+                                <i class="fas fa-user-graduate fa-lg"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted small text-uppercase font-weight-bold">Matrículas Ativas</div>
+                                <h4 class="mb-0 text-info font-weight-bold">{{ \App\Models\Enrollment::where('status', 'active')->count() }}</h4>
+                            </div>
+                        </div>
                     </div>
-                    <div class="stat-content">
-                        @php
-                            // Use aggregatequery to avoid loading all records
-                            $totalCapacity = \App\Models\ClassRoom::sum('max_students');
-                            $usedCapacity = \App\Models\Enrollment::where('status', 'active')->count();
-                            $capacityPercentage = $totalCapacity > 0 ? round(($usedCapacity / $totalCapacity) * 100, 1) : 0;
-                        @endphp
-                        <div class="stat-value">{{ $capacityPercentage }}%</div>
-                        <div class="stat-label">Capacidade Ocupada</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-warning">
+                        <div class="d-flex align-items-center">
+                            <div class="flex-shrink-0 bg-warning-subtle text-warning rounded-circle p-3 me-3">
+                                <i class="fas fa-chart-pie fa-lg"></i>
+                            </div>
+                            <div>
+                                <div class="text-muted small text-uppercase font-weight-bold">Ocupação Média</div>
+                                @php
+                                    $totalCapacity = \App\Models\ClassRoom::sum('max_students');
+                                    $usedCapacity = \App\Models\Enrollment::where('status', 'active')->count();
+                                    $capacityPercentage = $totalCapacity > 0 ? round(($usedCapacity / $totalCapacity) * 100, 1) : 0;
+                                @endphp
+                                <h4 class="mb-0 text-dark font-weight-bold">{{ $capacityPercentage }}%</h4>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -14,56 +14,57 @@
 <div class="row">
     <div class="col-12">
         <!-- Estatísticas Rápidas -->
-        <div class="school-stats mb-4">
-            <div class="stat-card">
-                <div class="stat-icon primary">
-                    <i class="fas fa-medal"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ \App\Models\Grade::currentYear()->count() }}</div>
-                    <div class="stat-label">Notas Registradas</div>
-                    <span class="stat-change positive">
-                        <i class="fas fa-calendar"></i> Este ano
-                    </span>
-                </div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-icon success">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ number_format(\App\Models\Grade::currentYear()->avg('grade') ?? 0, 1) }}</div>
-                    <div class="stat-label">Média Geral</div>
-                    <span class="stat-change positive">
-                        <i class="fas fa-trend-up"></i> Desempenho
-                    </span>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-primary">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-primary-subtle text-primary rounded-circle p-3 me-3">
+                            <i class="fas fa-medal fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Notas Registadas</div>
+                            <h4 class="mb-0 text-primary font-weight-bold">{{ \App\Models\Grade::currentYear()->count() }}</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-icon info">
-                    <i class="fas fa-book"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ \App\Models\Subject::active()->count() }}</div>
-                    <div class="stat-label">Disciplinas</div>
-                    <span class="stat-change positive">
-                        <i class="fas fa-graduation-cap"></i> Ativas
-                    </span>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-success">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-success-subtle text-success rounded-circle p-3 me-3">
+                            <i class="fas fa-chart-line fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Média Geral</div>
+                            <h4 class="mb-0 text-success font-weight-bold">{{ number_format(\App\Models\Grade::currentYear()->avg('grade') ?? 0, 1) }} / 20</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="stat-card">
-                <div class="stat-icon warning">
-                    <i class="fas fa-user-graduate"></i>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-info">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-info-subtle text-info rounded-circle p-3 me-3">
+                            <i class="fas fa-book fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Disciplinas</div>
+                            <h4 class="mb-0 text-info font-weight-bold">{{ \App\Models\Subject::active()->count() }}</h4>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ \App\Models\Student::active()->count() }}</div>
-                    <div class="stat-label">Alunos Ativos</div>
-                    <span class="stat-change positive">
-                        <i class="fas fa-users"></i> Com notas
-                    </span>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-warning">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-warning-subtle text-warning rounded-circle p-3 me-3">
+                            <i class="fas fa-user-graduate fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Alunos Ativos</div>
+                            <h4 class="mb-0 text-dark font-weight-bold">{{ \App\Models\Student::active()->count() }}</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

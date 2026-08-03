@@ -12,50 +12,57 @@
 <div class="row">
     <div class="col-12">
         <!-- Estatísticas -->
-        <div class="school-stats mb-4">
-            <div class="stat-card students">
-                <div class="stat-icon students">
-                    <i class="fas fa-book"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $totalSubjects }}</div>
-                    <div class="stat-label">Total de Disciplinas</div>
-                </div>
-            </div>
-
-            <div class="stat-card teachers">
-                <div class="stat-icon teachers">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="stat-content">
-                    <div class="stat-value">{{ $activeSubjects }}</div>
-                    <div class="stat-label">Disciplinas Ativas</div>
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-primary">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-primary-subtle text-primary rounded-circle p-3 me-3">
+                            <i class="fas fa-book fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Total de Disciplinas</div>
+                            <h4 class="mb-0 text-primary font-weight-bold">{{ $totalSubjects }}</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="stat-card payments">
-                <div class="stat-icon payments">
-                    <i class="fas fa-chalkboard"></i>
-                </div>
-                <div class="stat-content">
-                    @php
-                        $totalClasses = \App\Models\ClassSubject::distinct('class_id')->count();
-                    @endphp
-                    <div class="stat-value">{{ $totalClasses }}</div>
-                    <div class="stat-label">Turmas com Disciplinas</div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-success">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-success-subtle text-success rounded-circle p-3 me-3">
+                            <i class="fas fa-check-circle fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Disciplinas Ativas</div>
+                            <h4 class="mb-0 text-success font-weight-bold">{{ $activeSubjects }}</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            <div class="stat-card events">
-                <div class="stat-icon events">
-                    <i class="fas fa-medal"></i>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-info">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-info-subtle text-info rounded-circle p-3 me-3">
+                            <i class="fas fa-chalkboard fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Turmas Atribuidas</div>
+                            <h4 class="mb-0 text-info font-weight-bold">{{ \App\Models\ClassSubject::distinct('class_id')->count() }}</h4>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-content">
-                    @php
-                        $totalGrades = \App\Models\Grade::count();
-                    @endphp
-                    <div class="stat-value">{{ $totalGrades }}</div>
-                    <div class="stat-label">Notas Registradas</div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-warning">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-warning-subtle text-warning rounded-circle p-3 me-3">
+                            <i class="fas fa-medal fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Notas Registadas</div>
+                            <h4 class="mb-0 text-dark font-weight-bold">{{ \App\Models\Grade::count() }}</h4>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
