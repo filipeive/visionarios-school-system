@@ -75,15 +75,33 @@
                     <i class="fas fa-medal"></i>
                     Lista de Notas
                 </h3>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 flex-wrap">
                     @can('create_grades')
                     <a href="{{ route('grades.batch-create') }}" class="btn btn-school btn-warning-school">
-                        <i class="fas fa-layer-group"></i> Notas em Lote
+                        <i class="fas fa-layer-group"></i> Lançar Notas em Lote
                     </a>
-                                            <a href="{{ route('grades.create') }}" class="btn btn-school btn-primary-school">
+                    <a href="{{ route('grades.create') }}" class="btn btn-school btn-primary-school">
                         <i class="fas fa-plus"></i> Nova Nota
                     </a>
                     @endcan
+                    @if(count($classes) > 0)
+                        <div class="dropdown">
+                            <button class="btn btn-school btn-secondary-school dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <i class="fas fa-table me-1"></i> Emitir Pautas
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <li><h6 class="dropdown-header text-uppercase small font-weight-bold">Selecione uma Turma</h6></li>
+                                @foreach($classes as $c)
+                                    <li>
+                                        <a class="dropdown-item d-flex align-items-center justify-content-between py-2" href="{{ route('pautas.trimestral', $c->id) }}">
+                                            <span><i class="fas fa-chalkboard-teacher text-success me-2"></i> {{ $c->name }}</span>
+                                            <span class="badge bg-light text-dark ms-2">{{ $c->grade_level_name }}</span>
+                                        </a>
+                                    </li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                 </div>
             </div>
 

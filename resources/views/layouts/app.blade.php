@@ -1801,7 +1801,28 @@
                                 <a href="{{ route('admin.academic-years.index') }}"
                                     class="nav-link {{ request()->routeIs('admin.academic-years.*') ? 'active' : '' }}">
                                     <span class="nav-icon"><i class="fas fa-calendar-alt"></i></span>
-                                    <span class="nav-text">Ano Lectivo & Transição</span>
+                                    <span class="nav-text">Gestão do Ano Lectivo</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.promotion.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.promotion.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-user-graduate"></i></span>
+                                    <span class="nav-text">Passagem de Classe (Promoção)</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.enrollments.renewals') }}"
+                                    class="nav-link {{ request()->routeIs('admin.enrollments.renewals') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-sync-alt"></i></span>
+                                    <span class="nav-text">Renovação de Matrículas</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('admin.students-archive.index') }}"
+                                    class="nav-link {{ request()->routeIs('admin.students-archive.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-archive"></i></span>
+                                    <span class="nav-text">Arquivo Escolar</span>
                                 </a>
                             </li>
                         @endcan

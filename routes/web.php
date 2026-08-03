@@ -447,6 +447,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
             });
         });
 
+    // Módulo de Pautas Oficiais (Moçambique - MINEDH)
+    Route::middleware('permission:view_grades')
+        ->prefix('pautas')
+        ->name('pautas.')
+        ->controller(\App\Http\Controllers\PautaController::class)
+        ->group(function () {
+            Route::get('/trimestral/{class}', 'trimestral')->name('trimestral');
+            Route::get('/anual/{class}', 'anual')->name('anual');
+            Route::get('/final/{class}', 'final')->name('final');
+            Route::get('/pdf/{class}', 'exportPdf')->name('pdf');
+        });
+
     /*
     |--------------------------------------------------------------------------
     | Gestão de Eventos

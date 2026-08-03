@@ -112,9 +112,39 @@ class ClassRoom extends Model
             5 => '4ª Classe',
             6 => '5ª Classe',
             7 => '6ª Classe',
+            8 => '7ª Classe',
+            9 => '8ª Classe',
+            10 => '9ª Classe',
+            11 => '10ª Classe',
+            12 => '11ª Classe',
+            13 => '12ª Classe',
         ];
 
-        return $grades[$this->grade_level] ?? $this->grade_level . 'ª Classe';
+        return $grades[$this->grade_level] ?? (is_numeric($this->grade_level) ? $this->grade_level . 'ª Classe' : $this->grade_level);
+    }
+
+    public function getEducationLevelAttribute(): string
+    {
+        $num = (int) preg_replace('/[^0-9]/', '', (string)$this->grade_level);
+        if ($num >= 1 && $num <= 6) {
+            return 'primary';
+        }
+        return 'secondary';
+    }
+
+    public function getEducationLevelNameAttribute(): string
+    {
+        return $this->education_level === 'primary' ? 'Ensino Primário' : 'Ensino Secundário';
+    }
+
+    public function isPrimary(): bool
+    {
+        return $this->education_level === 'primary';
+    }
+
+    public function isSecondary(): bool
+    {
+        return $this->education_level === 'secondary';
     }
 
     public function getCapacityPercentageAttribute()

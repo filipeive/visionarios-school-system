@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', 'Gestao de Eventos')
-@section('page-title', 'Gestao de Eventos')
+@section('title', 'Gestão de Eventos & Calendário')
+@section('page-title', 'Gestão de Eventos')
 @section('title-icon', 'fas fa-calendar-alt')
 
 @section('breadcrumbs')
@@ -11,137 +11,166 @@
 @section('content')
     @php
         $typeLabels = [
-            'meeting' => 'Reuniao',
-            'celebration' => 'Celebracao',
-            'exam' => 'Exame',
-            'activity' => 'Atividade',
+            'meeting' => 'Reunião',
+            'celebration' => 'Celebração / Festa',
+            'exam' => 'Exame / Avaliação',
+            'activity' => 'Atividade Extracurricular',
         ];
         $audienceLabels = [
-            'all' => 'Geral',
+            'all' => 'Geral (Todos)',
             'students' => 'Alunos',
-            'parents' => 'Pais',
+            'parents' => 'Pais & Encarregados',
             'teachers' => 'Professores',
         ];
     @endphp
 
-    <div class="events-shell space-y-6">
-        <section class="grid gap-4 md:grid-cols-3">
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Proximos Eventos</p>
-                <p class="mt-2 text-3xl font-bold text-slate-900">{{ \App\Models\Event::upcoming()->count() }}</p>
-            </article>
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Eventos Hoje</p>
-                <p class="mt-2 text-3xl font-bold text-sky-700">{{ \App\Models\Event::today()->count() }}</p>
-            </article>
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Esta Semana</p>
-                <p class="mt-2 text-3xl font-bold text-indigo-700">{{ \App\Models\Event::thisWeek()->count() }}</p>
-            </article>
-        </section>
-
-        <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="flex flex-wrap items-end justify-between gap-3">
-                <form action="{{ route('events.index') }}" method="GET" class="grid w-full gap-3 lg:max-w-4xl lg:grid-cols-4">
-                    <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-600">Pesquisar</label>
-                        <input type="text" name="search" value="{{ request('search') }}"
-                            class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500"
-                            placeholder="Titulo do evento...">
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-primary">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-primary-subtle text-primary rounded-circle p-3 me-3">
+                        <i class="fas fa-calendar-check fa-lg"></i>
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-600">Tipo</label>
-                        <select name="type" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500">
-                            <option value="">Todos</option>
-                            @foreach ($typeLabels as $key => $label)
-                                <option value="{{ $key }}" @selected(request('type') === $key)>{{ $label }}</option>
-                            @endforeach
-                        </select>
+                        <div class="text-muted small text-uppercase font-weight-bold">Próximos Eventos</div>
+                        <h4 class="mb-0 text-primary font-weight-bold">{{ \App\Models\Event::upcoming()->count() }}</h4>
                     </div>
-                    <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-600">Publico</label>
-                        <select name="audience" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500">
-                            <option value="">Todos</option>
-                            @foreach ($audienceLabels as $key => $label)
-                                <option value="{{ $key }}" @selected(request('audience') === $key)>{{ $label }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                    <div class="flex gap-2">
-                        <button type="submit" class="rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800">Filtrar</button>
-                        @if (request()->anyFilled(['search', 'type', 'audience']))
-                            <a href="{{ route('events.index') }}"
-                                class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">Limpar</a>
-                        @endif
-                    </div>
-                </form>
-
-                <div class="flex gap-2">
-                    <a href="{{ route('events.calendar') }}"
-                        class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 hover:bg-slate-50">Calendario</a>
-                    @can('create_events')
-                        <a href="{{ route('events.create') }}"
-                            class="rounded-lg bg-sky-700 px-3 py-2 text-sm font-semibold text-white hover:bg-sky-800">Novo Evento</a>
-                    @endcan
                 </div>
             </div>
-        </section>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-success">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-success-subtle text-success rounded-circle p-3 me-3">
+                        <i class="fas fa-clock fa-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small text-uppercase font-weight-bold">Eventos Hoje</div>
+                        <h4 class="mb-0 text-success font-weight-bold">{{ \App\Models\Event::today()->count() }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-info">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0 bg-info-subtle text-info rounded-circle p-3 me-3">
+                        <i class="fas fa-calendar-week fa-lg"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small text-uppercase font-weight-bold">Esta Semana</div>
+                        <h4 class="mb-0 text-info font-weight-bold">{{ \App\Models\Event::thisWeek()->count() }}</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-slate-50 text-slate-600">
+    <!-- Card Principal -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <h5 class="mb-0 text-dark font-weight-bold">
+                <i class="fas fa-calendar-alt text-success me-2"></i> Calendário & Lista de Eventos
+            </h5>
+            <div class="d-flex gap-2">
+                <a href="{{ route('events.calendar') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="fas fa-calendar-day me-1"></i> Visualização Calendário
+                </a>
+                @can('create_events')
+                    <a href="{{ route('events.create') }}" class="btn btn-success btn-sm">
+                        <i class="fas fa-plus me-1"></i> Novo Evento
+                    </a>
+                @endcan
+            </div>
+        </div>
+
+        <div class="card-body">
+            <!-- Filtros -->
+            <form action="{{ route('events.index') }}" method="GET" class="row g-3 mb-4">
+                <div class="col-md-4">
+                    <input type="text" name="search" value="{{ request('search') }}" class="form-control form-control-sm" placeholder="Título do evento...">
+                </div>
+                <div class="col-md-3">
+                    <select name="type" class="form-select form-select-sm">
+                        <option value="">Todos os Tipos</option>
+                        @foreach ($typeLabels as $key => $label)
+                            <option value="{{ $key }}" @selected(request('type') === $key)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="audience" class="form-select form-select-sm">
+                        <option value="">Todos os Públicos</option>
+                        @foreach ($audienceLabels as $key => $label)
+                            <option value="{{ $key }}" @selected(request('audience') === $key)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">Filtrar</button>
+                    @if (request()->anyFilled(['search', 'type', 'audience']))
+                        <a href="{{ route('events.index') }}" class="btn btn-light btn-sm border">Limpar</a>
+                    @endif
+                </div>
+            </form>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
                         <tr>
-                            <th class="px-4 py-3 text-left font-semibold">Data</th>
-                            <th class="px-4 py-3 text-left font-semibold">Horario</th>
-                            <th class="px-4 py-3 text-left font-semibold">Evento</th>
-                            <th class="px-4 py-3 text-left font-semibold">Tipo</th>
-                            <th class="px-4 py-3 text-left font-semibold">Publico</th>
-                            <th class="px-4 py-3 text-left font-semibold">Criado por</th>
-                            <th class="px-4 py-3 text-right font-semibold">Acoes</th>
+                            <th>Data & Hora</th>
+                            <th>Evento</th>
+                            <th>Tipo</th>
+                            <th>Público-Alvo</th>
+                            <th>Organizador</th>
+                            <th class="text-end">Ações</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody>
                         @forelse($events as $event)
                             <tr>
-                                <td class="px-4 py-3">
-                                    <p class="font-semibold text-slate-900">{{ $event->event_date->format('d/m/Y') }}</p>
-                                    <p class="text-xs text-slate-500">{{ $event->event_date->translatedFormat('l') }}</p>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ $event->event_date->format('d/m/Y') }}</div>
+                                    <div class="text-muted small">
+                                        <i class="far fa-clock me-1"></i> {{ $event->start_time->format('H:i') }} - {{ $event->end_time->format('H:i') }}
+                                    </div>
                                 </td>
-                                <td class="px-4 py-3 text-slate-700">{{ $event->start_time->format('H:i') }} - {{ $event->end_time->format('H:i') }}</td>
-                                <td class="px-4 py-3">
-                                    <p class="font-semibold text-slate-900">{{ $event->title }}</p>
-                                    <p class="max-w-[240px] truncate text-xs text-slate-500">{{ $event->description }}</p>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ $event->title }}</div>
+                                    <div class="text-muted small text-truncate" style="max-width: 280px;">{{ $event->description }}</div>
                                 </td>
-                                <td class="px-4 py-3">
+                                <td>
                                     @php
-                                        $typeClass = $event->type === 'meeting'
-                                            ? 'bg-sky-100 text-sky-700'
-                                            : ($event->type === 'celebration'
-                                                ? 'bg-amber-100 text-amber-700'
-                                                : ($event->type === 'exam'
-                                                    ? 'bg-rose-100 text-rose-700'
-                                                    : 'bg-emerald-100 text-emerald-700'));
+                                        $badgeBg = match($event->type) {
+                                            'meeting' => 'bg-info',
+                                            'celebration' => 'bg-warning text-dark',
+                                            'exam' => 'bg-danger',
+                                            default => 'bg-success',
+                                        };
                                     @endphp
-                                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $typeClass }}">{{ $typeLabels[$event->type] ?? ucfirst($event->type) }}</span>
+                                    <span class="badge {{ $badgeBg }}">{{ $typeLabels[$event->type] ?? ucfirst($event->type) }}</span>
                                 </td>
-                                <td class="px-4 py-3 text-slate-700">{{ $audienceLabels[$event->target_audience] ?? $event->target_audience }}</td>
-                                <td class="px-4 py-3 text-slate-600">{{ $event->createdBy->name ?? 'Sistema' }}</td>
-                                <td class="px-4 py-3 text-right">
-                                    <div class="inline-flex gap-1">
-                                        <a href="{{ route('events.show', $event) }}"
-                                            class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Ver</a>
+                                <td>
+                                    <span class="badge bg-light text-dark border">{{ $audienceLabels[$event->target_audience] ?? $event->target_audience }}</span>
+                                </td>
+                                <td class="text-muted small">{{ $event->createdBy->name ?? 'Sistema' }}</td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ route('events.show', $event) }}" class="btn btn-outline-secondary" title="Ver Detalhes">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
                                         @can('edit_events')
-                                            <a href="{{ route('events.edit', $event) }}"
-                                                class="rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 hover:bg-slate-50">Editar</a>
+                                            <a href="{{ route('events.edit', $event) }}" class="btn btn-outline-primary" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
                                         @endcan
                                         @can('delete_events')
-                                            <form action="{{ route('events.destroy', $event) }}" method="POST" class="inline"
-                                                data-confirm="Tem certeza que deseja excluir este evento?">
+                                            <form action="{{ route('events.destroy', $event) }}" method="POST" class="d-inline" data-confirm="Deseja excluir este evento?">
                                                 @csrf
                                                 @method('DELETE')
-                                                <button type="submit"
-                                                    class="rounded-lg border border-rose-300 px-2 py-1 text-xs text-rose-700 hover:bg-rose-50">Excluir</button>
+                                                <button type="submit" class="btn btn-outline-danger" title="Excluir">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
                                             </form>
                                         @endcan
                                     </div>
@@ -149,7 +178,10 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="px-4 py-8 text-center text-slate-500">Nenhum evento encontrado.</td>
+                                <td colspan="6" class="text-center py-5 text-muted">
+                                    <i class="fas fa-calendar-times fa-3x mb-3 text-secondary"></i>
+                                    <p class="mb-0">Nenhum evento encontrado.</p>
+                                </td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -157,36 +189,8 @@
             </div>
 
             @if ($events->hasPages())
-                <div class="border-t border-slate-200 px-5 py-4">{{ $events->links() }}</div>
+                <div class="mt-4">{{ $events->links() }}</div>
             @endif
-        </section>
+        </div>
     </div>
 @endsection
-
-@push('styles')
-    <style>
-        [data-bs-theme="dark"] .events-shell .bg-white {
-            background-color: var(--card-bg) !important;
-        }
-
-        [data-bs-theme="dark"] .events-shell .bg-slate-50 {
-            background-color: rgba(148, 163, 184, 0.08) !important;
-        }
-
-        [data-bs-theme="dark"] .events-shell .border-slate-100,
-        [data-bs-theme="dark"] .events-shell .border-slate-200,
-        [data-bs-theme="dark"] .events-shell .border-slate-300 {
-            border-color: var(--border-color) !important;
-        }
-
-        [data-bs-theme="dark"] .events-shell .text-slate-900 {
-            color: var(--text-primary) !important;
-        }
-
-        [data-bs-theme="dark"] .events-shell .text-slate-700,
-        [data-bs-theme="dark"] .events-shell .text-slate-600,
-        [data-bs-theme="dark"] .events-shell .text-slate-500 {
-            color: var(--text-secondary) !important;
-        }
-    </style>
-@endpush
