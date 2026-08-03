@@ -19,9 +19,14 @@ class PautaController extends Controller
     {
         $this->authorize('view_grades');
 
-        $term = (int) $request->get('term', 1);
+        $termRaw = $request->get('term', 1);
         $year = (int) $request->get('year', current_school_year());
 
+        if ($termRaw === 'all' || $termRaw === 'final') {
+            return redirect()->route('pautas.final', ['class' => $class->id, 'year' => $year]);
+        }
+
+        $term = (int) $termRaw;
         $classData = $this->buildPautaData($class, $term, $year, 'trimestral');
 
         return view('pautas.trimestral', array_merge($classData, [

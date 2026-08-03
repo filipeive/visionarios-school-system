@@ -63,7 +63,7 @@ class StudentPromotionController extends Controller
         $request->validate([
             'student_ids' => 'required|array',
             'student_ids.*' => 'exists:students,id',
-            'action' => 'required|in:promote,retain',
+            'action' => 'required|in:promote,retain,graduate',
             'target_class_id' => 'required_if:action,promote|nullable|exists:classes,id',
         ]);
 
@@ -72,12 +72,32 @@ class StudentPromotionController extends Controller
 
             $promotedCount = 0;
             $retainedCount = 0;
+            $graduatedCount = 0;
 
             foreach ($request->student_ids as $studentId) {
                 $student = Student::findOrFail($studentId);
                 $currentEnrollment = $student->currentEnrollment;
 
-                if ($request->action === 'promote') {
+                $currentClassGrade = (int) ($currentEnrollment?->class?->grade_level ?? 0);
+                $isEndCycleClass = in_array($currentClassGrade, [7, 13]); // 6ª e 12ª Classe
+
+                if ($request->action === 'graduate' || ($request->action === 'promote' && $isEndCycleClass && ! $request->filled('target_class_id'))) {
+                    if ($currentEnrollment && $currentEnrollment->status === 'active') {
+                        $currentEnrollment->update([
+                            'status' => 'completed',
+                            'cancellation_date' => now(),
+                        ]);
+                    }
+
+                    $student->update(['status' => 'graduated']);
+                    $graduatedCount++;
+
+                    Log::info('Aluno graduado no fim do ciclo escolar', [
+                        'student_id' => $student->id,
+                        'class_id' => $currentEnrollment?->class_id,
+                        'admin_id' => auth()->id(),
+                    ]);
+                } elseif ($request->action === 'promote') {
                     // Marcar matrícula atual como transferida
                     if ($currentEnrollment && $currentEnrollment->status === 'active') {
                         $currentEnrollment->update([
@@ -102,16 +122,11 @@ class StudentPromotionController extends Controller
                     }
 
                     $promotedCount++;
-
-                    Log::info('Aluno promovido', [
-                        'student_id' => $student->id,
-                        'target_class' => $request->target_class_id,
-                        'admin_id' => auth()->id(),
-                    ]);
                 } else {
                     // Reprovação - manter na mesma turma
                     $student->update(['status' => 'pending_renewal']);
                     $retainedCount++;
+                }
 
                     Log::info('Aluno retido', [
                         'student_id' => $student->id,

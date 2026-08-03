@@ -175,7 +175,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/', 'store')->name('store');
             Route::get('/{parent}', 'show')->name('show');
             Route::get('/{parent}/edit', 'edit')->name('edit');
-            Route::put('/{parent}', 'update')->name('update');
+        });
+
+    // Emissão de Certidões & Certificados Oficiais MINEDH
+    Route::middleware('permission:view_students')
+        ->prefix('certificates')
+        ->name('certificates.')
+        ->controller(\App\Http\Controllers\CertificateController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{student}/certidao', 'certidao')->name('certidao');
+            Route::get('/{student}/certificado', 'certificado')->name('certificado');
         });
 
     /*

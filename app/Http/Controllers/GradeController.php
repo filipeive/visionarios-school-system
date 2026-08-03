@@ -39,10 +39,12 @@ class GradeController extends Controller
         }
 
         $classesQuery = ClassRoom::active();
-        if ($level === 'primary') {
-            $classesQuery->whereIn('grade_level', [1, 2, 3, 4, 5, 6]);
+        if ($level === 'preschool') {
+            $classesQuery->whereIn('grade_level', [0, 1]);
+        } elseif ($level === 'primary') {
+            $classesQuery->whereIn('grade_level', [2, 3, 4, 5, 6, 7]);
         } elseif ($level === 'secondary') {
-            $classesQuery->whereNotIn('grade_level', [1, 2, 3, 4, 5, 6]);
+            $classesQuery->whereIn('grade_level', [8, 9, 10, 11, 12, 13]);
         }
 
         $classes = $classesQuery->orderBy('grade_level')->orderBy('name')->get();

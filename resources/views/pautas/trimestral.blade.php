@@ -26,6 +26,7 @@
                     <option value="1" {{ $term == 1 ? 'selected' : '' }}>1º Trimestre</option>
                     <option value="2" {{ $term == 2 ? 'selected' : '' }}>2º Trimestre</option>
                     <option value="3" {{ $term == 3 ? 'selected' : '' }}>3º Trimestre</option>
+                    <option value="all">Resultado Final & Exames (Todos os Trimestres)</option>
                 </select>
             </form>
             <a href="{{ route('pautas.anual', $class->id) }}" class="btn btn-outline-primary btn-sm">

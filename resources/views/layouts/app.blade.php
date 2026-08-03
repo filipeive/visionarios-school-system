@@ -1555,6 +1555,13 @@
                                     <span class="nav-text">Encarregados de Educação</span>
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a href="{{ route('certificates.index') }}"
+                                    class="nav-link {{ request()->routeIs('certificates.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-certificate"></i></span>
+                                    <span class="nav-text">Certidões & Certificados</span>
+                                </a>
+                            </li>
                             @can('manage_enrollments')
                                 <li class="nav-item">
                                     <a href="{{ route('enrollments.index') }}"

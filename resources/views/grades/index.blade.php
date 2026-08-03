@@ -74,8 +74,9 @@
                     <label class="form-label text-xs font-bold text-muted uppercase">Nível de Ensino</label>
                     <select name="level" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="all" {{ $level === 'all' ? 'selected' : '' }}>Todos os Níveis</option>
-                        <option value="primary" {{ $level === 'primary' ? 'selected' : '' }}>Ensino Primário (1ª - 6ª)</option>
-                        <option value="secondary" {{ $level === 'secondary' ? 'selected' : '' }}>Ensino Secundário (7ª - 12ª)</option>
+                        <option value="preschool" {{ $level === 'preschool' ? 'selected' : '' }}>Pré-Escolar & Infantil (Pré-Infantil & Creche)</option>
+                        <option value="primary" {{ $level === 'primary' ? 'selected' : '' }}>Ensino Primário (1ª - 6ª Classe)</option>
+                        <option value="secondary" {{ $level === 'secondary' ? 'selected' : '' }}>Ensino Secundário (7ª - 12ª Classe)</option>
                     </select>
                 </div>
                 <div class="col-md-4">
