@@ -28,13 +28,15 @@
                     <option value="3" {{ $term == 3 ? 'selected' : '' }}>3º Trimestre</option>
                 </select>
             </form>
-
             <a href="{{ route('pautas.anual', $class->id) }}" class="btn btn-outline-primary btn-sm">
                 <i class="fas fa-calendar-alt me-1"></i> Pauta Anual
             </a>
 
             <a href="{{ route('pautas.pdf', ['class' => $class->id, 'type' => 'trimestral', 'term' => $term]) }}" class="btn btn-danger btn-sm">
                 <i class="fas fa-file-pdf me-1"></i> Exportar PDF
+            </a>
+             <a href="{{ route('classes.show', $class->id) }}" class="btn btn-outline-primary btn-sm">
+                <i class="fas fa-arrow-left me-1"></i> Voltar
             </a>
         </div>
     </div>

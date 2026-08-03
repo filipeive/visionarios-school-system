@@ -118,7 +118,12 @@ class GradeController extends Controller
 
             // Determinar teacher_id
             $teacherId = $user->teacher?->id;
-            if (! $teacherId && ! $user->hasRole('admin')) {
+            if (! $teacherId && ($user->hasRole('admin') || $user->hasRole('super-admin') || $user->can('create_grades'))) {
+                $classTeacherId = ClassRoom::find($request->class_id)?->teacher_id;
+                $teacherId = $classTeacherId ?? \App\Models\Teacher::first()?->id;
+            }
+
+            if (! $teacherId) {
                 return back()->with('error', 'Apenas professores podem atribuir notas.')->withInput();
             }
 
@@ -230,8 +235,13 @@ class GradeController extends Controller
             $user = $request->user();
             $teacherId = $user->teacher?->id;
 
+            if (! $teacherId && ($user->hasRole('admin') || $user->hasRole('super-admin') || $user->can('create_grades'))) {
+                $classTeacherId = ClassRoom::find($request->class_id)?->teacher_id;
+                $teacherId = $classTeacherId ?? \App\Models\Teacher::first()?->id;
+            }
+
             if (! $teacherId) {
-                throw new \Exception('Apenas professores podem atribuir notas.');
+                throw new \Exception('Não foi possível identificar o professor responsável. Certifique-se de que existe pelo menos um professor registado.');
             }
 
             $successCount = 0;

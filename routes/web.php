@@ -164,6 +164,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
             });
         });
 
+    // Gestão de Encarregados de Educação
+    Route::middleware('permission:view_students')
+        ->prefix('parents')
+        ->name('parents.')
+        ->controller(\App\Http\Controllers\ParentController::class)
+        ->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/create', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{parent}', 'show')->name('show');
+            Route::get('/{parent}/edit', 'edit')->name('edit');
+            Route::put('/{parent}', 'update')->name('update');
+        });
+
     /*
     |--------------------------------------------------------------------------
     | Gestão de Professores

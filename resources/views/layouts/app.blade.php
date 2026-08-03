@@ -1548,6 +1548,13 @@
                                     <span class="nav-text">Todos os Alunos</span>
                                 </a>
                             </li>
+                            <li class="nav-item">
+                                <a href="{{ route('parents.index') }}"
+                                    class="nav-link {{ request()->routeIs('parents.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-users-cog"></i></span>
+                                    <span class="nav-text">Encarregados de Educação</span>
+                                </a>
+                            </li>
                             @can('manage_enrollments')
                                 <li class="nav-item">
                                     <a href="{{ route('enrollments.index') }}"

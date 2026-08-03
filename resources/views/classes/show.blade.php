@@ -106,31 +106,35 @@
         <!-- Card de Ações Rápidas -->
         <div class="school-card mb-4">
             <div class="school-card-body">
-                <div class="row text-center">
-                    <div class="col-md-3 mb-3">
+                <div class="row text-center g-2">
+                    <div class="col-md-3 mb-2">
                         <a href="{{ route('classes.students', $class->id) }}" class="btn btn-primary-school btn-lg w-100">
                             <i class="fas fa-users fa-2x mb-2"></i><br>
                             Alunos
                         </a>
                     </div>
-                    <div class="col-md-3 mb-3">
+                    <div class="col-md-3 mb-2">
                         <a href="{{ route('attendances.mark-by-class', $class->id) }}" class="btn btn-success btn-lg w-100">
                             <i class="fas fa-clipboard-check fa-2x mb-2"></i><br>
                             Presenças
                         </a>
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="{{ route('grades.class-report', $class->id) }}" class="btn btn-info btn-lg w-100">
-                            <i class="fas fa-chart-line fa-2x mb-2"></i><br>
-                            Notas
+                    @can('create_grades')
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ route('grades.index', ['class_id' => $class->id]) }}" class="btn btn-warning-school btn-lg w-100">
+                            <i class="fas fa-edit fa-2x mb-2"></i><br>
+                            Lançar Notas
                         </a>
                     </div>
-                    <div class="col-md-3 mb-3">
-                        <a href="#" class="btn btn-warning btn-lg w-100">
-                            <i class="fas fa-calendar-alt fa-2x mb-2"></i><br>
-                            Calendário
+                    @endcan
+                    @can('view_grades')
+                    <div class="col-md-3 mb-2">
+                        <a href="{{ route('pautas.trimestral', $class->id) }}" class="btn btn-info btn-lg w-100 text-white">
+                            <i class="fas fa-table fa-2x mb-2"></i><br>
+                            Pauta Trimestral
                         </a>
                     </div>
+                    @endcan
                 </div>
             </div>
         </div>
