@@ -10,6 +10,7 @@ use App\Models\Enrollment;
 use App\Models\ClassSubject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class ClassRoomController extends Controller
 {
