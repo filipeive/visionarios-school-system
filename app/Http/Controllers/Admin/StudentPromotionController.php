@@ -126,7 +126,6 @@ class StudentPromotionController extends Controller
                     // Reprovação - manter na mesma turma
                     $student->update(['status' => 'pending_renewal']);
                     $retainedCount++;
-                }
 
                     Log::info('Aluno retido', [
                         'student_id' => $student->id,
