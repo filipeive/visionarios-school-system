@@ -62,14 +62,17 @@
                         <tr>
                             <th rowspan="2" class="align-middle text-start" style="min-width: 220px;">Nome do Aluno</th>
                             @foreach($subjects as $subject)
-                                <th colspan="3" class="text-center border-bottom-0">{{ $subject->code ?? $subject->name }}</th>
+                                <th colspan="6" class="text-center border-bottom-0">{{ $subject->code ?? $subject->name }}</th>
                             @endforeach
                             <th rowspan="2" class="align-middle bg-primary text-white">Média Geral</th>
                             <th rowspan="2" class="align-middle">Situação</th>
                         </tr>
                         <tr>
                             @foreach($subjects as $subject)
-                                <th class="small fw-normal bg-secondary">ACS</th>
+                                <th class="small fw-normal bg-secondary">ACS 1</th>
+                                <th class="small fw-normal bg-secondary">ACS 2</th>
+                                <th class="small fw-normal bg-secondary">ACS 3</th>
+                                <th class="small fw-bold bg-dark text-info">MACS</th>
                                 <th class="small fw-normal bg-secondary">ACP</th>
                                 <th class="small fw-bold bg-dark text-warning">MT</th>
                             @endforeach
@@ -84,13 +87,16 @@
                                 </td>
                                 @foreach($subjects as $subject)
                                     @php
-                                        $subData = $item['subjects'][$subject->id] ?? ['acs' => '-', 'acp' => '-', 'mt' => '-'];
+                                        $subData = $item['subjects'][$subject->id] ?? ['acs1' => '-', 'acs2' => '-', 'acs3' => '-', 'macs' => '-', 'acp' => '-', 'mt' => '-'];
                                         $mtVal = is_numeric($subData['mt']) ? (float)$subData['mt'] : null;
                                     @endphp
-                                    <td class="text-muted">{{ $subData['acs'] }}</td>
-                                    <td class="text-muted">{{ $subData['acp'] }}</td>
+                                    <td class="text-muted">{{ $subData['acs1'] ?? '-' }}</td>
+                                    <td class="text-muted">{{ $subData['acs2'] ?? '-' }}</td>
+                                    <td class="text-muted">{{ $subData['acs3'] ?? '-' }}</td>
+                                    <td class="fw-bold text-info">{{ $subData['macs'] ?? '-' }}</td>
+                                    <td class="text-muted">{{ $subData['acp'] ?? '-' }}</td>
                                     <td class="fw-bold {{ $mtVal !== null ? ($mtVal >= 10 ? 'text-success bg-success-subtle' : 'text-danger bg-danger-subtle') : '' }}">
-                                        {{ $subData['mt'] }}
+                                        {{ $subData['mt'] ?? '-' }}
                                     </td>
                                 @endforeach
                                 <td class="fw-bold bg-light text-primary">
@@ -108,7 +114,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="{{ count($subjects) * 3 + 3 }}" class="py-5 text-center text-muted">
+                                <td colspan="{{ count($subjects) * 6 + 3 }}" class="py-5 text-center text-muted">
                                     <i class="fas fa-folder-open fa-3x mb-3 text-secondary"></i>
                                     <p class="mb-0">Nenhuma nota registada para esta turma no {{ $term }}º Trimestre.</p>
                                 </td>

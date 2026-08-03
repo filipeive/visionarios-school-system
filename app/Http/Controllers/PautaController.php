@@ -141,17 +141,24 @@ class PautaController extends Controller
                 if ($type === 'trimestral') {
                     $termGrades = $studentSubjectGrades->where('term', $term);
                     
-                    $acs = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'test', 'assignment', 'participation'])->avg('grade');
+                    $acs1 = $termGrades->whereIn('assessment_type', ['ACS1', 'continuous', 'test'])->first()?->grade;
+                    $acs2 = $termGrades->where('assessment_type', 'ACS2')->first()?->grade;
+                    $acs3 = $termGrades->where('assessment_type', 'ACS3')->first()?->grade;
+
+                    $macs = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test', 'assignment', 'participation'])->avg('grade');
                     $acp = $termGrades->whereIn('assessment_type', ['ACP', 'exam', 'ACF'])->first()?->grade;
 
-                    if ($acs !== null && $acp !== null) {
-                        $mt = round(($acs * 0.4) + ($acp * 0.6), 1);
+                    if ($macs !== null && $acp !== null) {
+                        $mt = round(($macs * 0.4) + ($acp * 0.6), 1);
                     } else {
                         $mt = round($termGrades->avg('grade') ?? 0, 1);
                     }
 
                     $studentData['subjects'][$subject->id] = [
-                        'acs' => $acs !== null ? round($acs, 1) : '-',
+                        'acs1' => $acs1 !== null ? round($acs1, 1) : '-',
+                        'acs2' => $acs2 !== null ? round($acs2, 1) : '-',
+                        'acs3' => $acs3 !== null ? round($acs3, 1) : '-',
+                        'macs' => $macs !== null ? round($macs, 1) : '-',
                         'acp' => $acp !== null ? round($acp, 1) : '-',
                         'mt' => $termGrades->isNotEmpty() ? $mt : '-',
                     ];

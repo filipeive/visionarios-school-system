@@ -47,7 +47,7 @@
                 <th rowspan="2" style="width: 25px;">N.º</th>
                 <th rowspan="2" class="text-left" style="width: 170px;">Nome Completo do Aluno</th>
                 @foreach($subjects as $subject)
-                    <th colspan="{{ $type === 'anual' ? 4 : 3 }}">{{ $subject->code ?? strtoupper(substr($subject->name, 0, 7)) }}</th>
+                    <th colspan="{{ $type === 'trimestral' ? 6 : ($type === 'anual' ? 4 : 3) }}">{{ $subject->code ?? strtoupper(substr($subject->name, 0, 7)) }}</th>
                 @endforeach
                 <th rowspan="2" style="width: 45px;">Média (MF)</th>
                 <th rowspan="2" style="width: 70px;">Resultado Final</th>
@@ -55,7 +55,10 @@
             <tr>
                 @foreach($subjects as $subject)
                     @if($type === 'trimestral')
-                        <th class="sub-header">ACS</th>
+                        <th class="sub-header">ACS 1</th>
+                        <th class="sub-header">ACS 2</th>
+                        <th class="sub-header">ACS 3</th>
+                        <th class="sub-header">MACS</th>
                         <th class="sub-header">ACP</th>
                         <th class="sub-header">MT</th>
                     @elseif($type === 'anual')
@@ -79,9 +82,12 @@
                     @foreach($subjects as $subject)
                         @php $subData = $item['subjects'][$subject->id] ?? []; @endphp
                         @if($type === 'trimestral')
-                            <td>{{ isset($subData['acs']) ? number_format($subData['acs'], 1) : '-' }}</td>
-                            <td>{{ isset($subData['acp']) ? number_format($subData['acp'], 1) : '-' }}</td>
-                            <td><strong>{{ isset($subData['mt']) ? number_format($subData['mt'], 1) : '-' }}</strong></td>
+                            <td>{{ isset($subData['acs1']) && is_numeric($subData['acs1']) ? number_format($subData['acs1'], 1) : '-' }}</td>
+                            <td>{{ isset($subData['acs2']) && is_numeric($subData['acs2']) ? number_format($subData['acs2'], 1) : '-' }}</td>
+                            <td>{{ isset($subData['acs3']) && is_numeric($subData['acs3']) ? number_format($subData['acs3'], 1) : '-' }}</td>
+                            <td><strong>{{ isset($subData['macs']) && is_numeric($subData['macs']) ? number_format($subData['macs'], 1) : '-' }}</strong></td>
+                            <td>{{ isset($subData['acp']) && is_numeric($subData['acp']) ? number_format($subData['acp'], 1) : '-' }}</td>
+                            <td><strong>{{ isset($subData['mt']) && is_numeric($subData['mt']) ? number_format($subData['mt'], 1) : '-' }}</strong></td>
                         @elseif($type === 'anual')
                             <td>{{ isset($subData['mt1']) ? number_format($subData['mt1'], 1) : '-' }}</td>
                             <td>{{ isset($subData['mt2']) ? number_format($subData['mt2'], 1) : '-' }}</td>
