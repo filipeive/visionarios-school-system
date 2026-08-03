@@ -49,6 +49,10 @@ class GradeController extends Controller
 
         $classes = $classesQuery->orderBy('grade_level')->orderBy('name')->get();
 
+        if (isset($selectedClass) && ! $classes->contains('id', $selectedClass->id)) {
+            $selectedClass = null;
+        }
+
         if (! isset($selectedClass)) {
             $selectedClass = $classes->first() ? ClassRoom::with('subjects')->find($classes->first()->id) : null;
         }
