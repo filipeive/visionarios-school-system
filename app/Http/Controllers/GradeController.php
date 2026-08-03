@@ -18,48 +18,71 @@ class GradeController extends Controller
     /**
      * Display a listing of the grades.
      */
+    /**
+     * Display class grade matrix and editable Pauta.
+     */
     public function index(Request $request)
     {
         $this->authorize('view_grades');
 
-        $query = Grade::with(['student', 'subject', 'teacher']);
+        $currentYear = (int) $request->get('year', current_school_year());
+        $term = (int) $request->get('term', 1);
+        $level = $request->get('level', 'all');
 
-        // Filtros
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->whereHas('student', function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('student_number', 'like', "%{$search}%");
-            });
+        $classesQuery = ClassRoom::active()->where('school_year', $currentYear);
+        if ($level === 'primary') {
+            $classesQuery->whereIn('grade_level', [1, 2, 3, 4, 5, 6]);
+        } elseif ($level === 'secondary') {
+            $classesQuery->whereNotIn('grade_level', [1, 2, 3, 4, 5, 6]);
         }
 
-        if ($request->filled('subject_id')) {
-            $query->where('subject_id', $request->subject_id);
+        $classes = $classesQuery->orderBy('grade_level')->orderBy('name')->get();
+        $selectedClassId = $request->get('class_id', $classes->first()?->id);
+
+        $selectedClass = $selectedClassId ? ClassRoom::with('subjects')->find($selectedClassId) : null;
+
+        $students = collect();
+        $subjects = collect();
+        $matrixGrades = [];
+
+        if ($selectedClass) {
+            $students = Student::whereHas('enrollments', function ($q) use ($selectedClass) {
+                $q->where('class_id', $selectedClass->id)->where('status', 'active');
+            })->orderBy('first_name')->orderBy('last_name')->get();
+
+            $subjects = $selectedClass->subjects->isEmpty()
+                ? Subject::active()->get()
+                : $selectedClass->subjects;
+
+            $allGrades = Grade::where('class_id', $selectedClass->id)
+                ->where('term', $term)
+                ->where('year', $currentYear)
+                ->get();
+
+            foreach ($allGrades as $g) {
+                $matrixGrades[$g->student_id][$g->subject_id][$g->assessment_type] = $g->grade;
+            }
         }
 
-        if ($request->filled('class_id')) {
-            $query->where('class_id', $request->class_id);
-        }
+        $assessmentTypes = [
+            'ACS1' => 'ACS 1 (Avaliação Contínua 1)',
+            'ACS2' => 'ACS 2 (Avaliação Contínua 2)',
+            'ACS3' => 'ACS 3 (Avaliação Contínua 3)',
+            'ACP' => 'ACP (Avaliação de Controlo Parcial)',
+            'ACF' => 'ACF / Exame Final',
+        ];
 
-        if ($request->filled('term')) {
-            $query->where('term', $request->term);
-        }
-
-        if ($request->filled('year')) {
-            $query->where('year', $request->year);
-        }
-
-        if ($request->filled('assessment_type')) {
-            $query->where('assessment_type', $request->assessment_type);
-        }
-
-        $grades = $query->latest()->paginate(25);
-        $subjects = Subject::active()->get();
-        $classes = ClassRoom::active()->get();
-        $currentYear = current_school_year();
-
-        return view('grades.index', compact('grades', 'subjects', 'classes', 'currentYear'));
+        return view('grades.index', compact(
+            'classes',
+            'selectedClass',
+            'students',
+            'subjects',
+            'matrixGrades',
+            'term',
+            'currentYear',
+            'level',
+            'assessmentTypes'
+        ));
     }
 
     /**
