@@ -187,7 +187,7 @@ class StudentController extends Controller
             ]);
         }
 
-        foreach ($student->enrollments as $enr) {
+        foreach ($student->enrollments ?? [] as $enr) {
             $timelineEvents->push([
                 'title' => 'Matrícula na Turma ' . ($enr->class->name ?? 'N/A'),
                 'description' => 'Ano Lectivo ' . $enr->school_year . ' · Status: ' . ucfirst($enr->status),
@@ -197,7 +197,7 @@ class StudentController extends Controller
             ]);
         }
 
-        foreach ($student->observations as $obs) {
+        foreach ($student->observations ?? [] as $obs) {
             $timelineEvents->push([
                 'title' => 'Observação Registada: ' . ucfirst($obs->type ?? 'Geral'),
                 'description' => $obs->description ?? 'Sem detalhes',
@@ -207,14 +207,16 @@ class StudentController extends Controller
             ]);
         }
 
-        foreach ($student->payments->where('status', 'paid') as $pay) {
-            $timelineEvents->push([
-                'title' => 'Pagamento Confirmado: ' . ucfirst($pay->type),
-                'description' => 'Valor: ' . number_format($pay->amount, 2, ',', '.') . ' MT · Ref: ' . $pay->reference_number,
-                'date' => $pay->payment_date ?? $pay->created_at,
-                'icon' => 'fas fa-receipt',
-                'color' => 'emerald'
-            ]);
+        if ($student->payments) {
+            foreach ($student->payments->where('status', 'paid') as $pay) {
+                $timelineEvents->push([
+                    'title' => 'Pagamento Confirmado: ' . ucfirst($pay->type),
+                    'description' => 'Valor: ' . number_format($pay->amount, 2, ',', '.') . ' MT · Ref: ' . $pay->reference_number,
+                    'date' => $pay->payment_date ?? $pay->created_at,
+                    'icon' => 'fas fa-receipt',
+                    'color' => 'emerald'
+                ]);
+            }
         }
 
         $timelineEvents = $timelineEvents->sortByDesc('date')->take(10)->values();
