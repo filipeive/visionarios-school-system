@@ -1525,7 +1525,9 @@
                             </a>
                         </li>
                     </ul>
-                </di            <!-- 2. GESTÃO DE ESTUDANTES & MATRÍCULAS -->
+                </div>
+            @endif
+                <!-- 2. GESTÃO DE ESTUDANTES & MATRÍCULAS -->
             @canany(['manage_students', 'view_students'])
                 @if (auth()->user()->role !== 'teacher')
                     <div class="nav-section">
@@ -1678,8 +1680,7 @@
                         @endcan
                     </ul>
                 </div>
-            @endcanany             </div>
-            @endcan
+            @endcanany
 
             <!-- 8. ENCARREGADOS DE EDUCAÇÃO -->
             @if (auth()->user()->role === 'parent')
