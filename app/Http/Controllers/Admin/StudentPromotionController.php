@@ -40,11 +40,22 @@ class StudentPromotionController extends Controller
 
             $students = $query->get();
 
-            // Calcular médias e elegibilidade
+            // Calcular médias e elegibilidade (incluindo avaliação parcial e botão de rápida resolução)
             foreach ($students as $student) {
                 $mf = Grade::calculateMF($student->id, null, $classId, current_school_year());
+                $avgPartial = Grade::where('student_id', $student->id)->where('class_id', $classId)->avg('grade');
+                
                 $student->calculated_mf = $mf;
-                $student->is_eligible = $mf !== null && $mf >= 10;
+                $student->partial_mf = $avgPartial ? round($avgPartial, 1) : null;
+                $student->has_incomplete_evaluations = $mf === null;
+
+                if ($mf !== null) {
+                    $student->is_eligible = $mf >= 10;
+                } elseif ($student->partial_mf !== null) {
+                    $student->is_eligible = $student->partial_mf >= 10;
+                } else {
+                    $student->is_eligible = false;
+                }
             }
 
             // Ordenar por elegibilidade
@@ -54,6 +65,20 @@ class StudentPromotionController extends Controller
         }
 
         return view('admin.promotion.index', compact('classes', 'students', 'classId', 'filter'));
+    }
+
+    /**
+     * Reverter transição/restaurar matrículas do ano lectivo atual.
+     */
+    public function reset(Request $request)
+    {
+        $this->authorize('manage_enrollments');
+
+        $year = current_school_year();
+        Enrollment::where('school_year', $year)->update(['status' => 'active', 'cancellation_date' => null]);
+        Student::query()->update(['status' => 'active']);
+
+        return redirect()->back()->with('success', 'Transição desfeita! Todas as matrículas e alunos foram restaurados para o estado Ativo com sucesso.');
     }
 
     public function promote(PromotionRequest $request)

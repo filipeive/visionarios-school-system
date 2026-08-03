@@ -754,6 +754,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // Passagem de Classe (Promoção)
             Route::get('/promotion', [StudentPromotionController::class, 'index'])->name('promotion.index');
             Route::post('/promotion/process', [StudentPromotionController::class, 'promote'])->name('promotion.process');
+            Route::post('/promotion/reset', [StudentPromotionController::class, 'reset'])->name('promotion.reset');
 
             // Renovação de Matrículas
             Route::get('/enrollments/renewals', [EnrollmentController::class, 'renewalIndex'])->name('enrollments.renewals');
