@@ -105,7 +105,7 @@ class ClassRoom extends Model
     {
         $grades = [
             0 => 'Pré-Infantil',
-            1 => 'Pré-Escolar',
+            1 => 'Pré-Escolar / Infantil',
             2 => '1ª Classe',
             3 => '2ª Classe',
             4 => '3ª Classe',
@@ -125,8 +125,11 @@ class ClassRoom extends Model
 
     public function getEducationLevelAttribute(): string
     {
-        $num = (int) preg_replace('/[^0-9]/', '', (string)$this->grade_level);
-        if ($num >= 1 && $num <= 6) {
+        $num = (int) $this->grade_level;
+        if ($num === 0 || $num === 1 || str_contains(strtolower((string)$this->grade_level), 'pré') || str_contains(strtolower((string)$this->grade_level), 'infantil')) {
+            return 'preschool';
+        }
+        if ($num >= 2 && $num <= 7) {
             return 'primary';
         }
         return 'secondary';
@@ -134,7 +137,17 @@ class ClassRoom extends Model
 
     public function getEducationLevelNameAttribute(): string
     {
-        return $this->education_level === 'primary' ? 'Ensino Primário' : 'Ensino Secundário';
+        return match ($this->education_level) {
+            'preschool' => 'Pré-Escolar & Infantil',
+            'primary' => 'Ensino Primário',
+            'secondary' => 'Ensino Secundário',
+            default => 'Ensino Geral'
+        };
+    }
+
+    public function isPreschool(): bool
+    {
+        return $this->education_level === 'preschool';
     }
 
     public function isPrimary(): bool

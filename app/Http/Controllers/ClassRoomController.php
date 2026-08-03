@@ -43,16 +43,7 @@ class ClassRoomController extends Controller
         $teachers = Teacher::active()->get();
         $currentYear = current_school_year();
 
-        $gradeLevels = [
-            0 => 'Pré-Infantil',
-            1 => 'Pré-Escolar',
-            2 => '1ª Classe',
-            3 => '2ª Classe',
-            4 => '3ª Classe',
-            5 => '4ª Classe',
-            6 => '5ª Classe',
-            7 => '6ª Classe',
-        ];
+        $gradeLevels = $this->getGradeLevelsList();
 
         return view('classes.index', compact(
             'classes',
@@ -67,17 +58,7 @@ class ClassRoomController extends Controller
         $teachers = Teacher::active()->get();
         $subjects = Subject::active()->get();
         $currentYear = current_school_year();
-
-        $gradeLevels = [
-            0 => 'Pré-Infantil',
-            1 => 'Pré-Escolar',
-            2 => '1ª Classe',
-            3 => '2ª Classe',
-            4 => '3ª Classe',
-            5 => '4ª Classe',
-            6 => '5ª Classe',
-            7 => '6ª Classe',
-        ];
+        $gradeLevels = $this->getGradeLevelsList();
 
         return view('classes.create', compact(
             'teachers',
@@ -170,16 +151,7 @@ class ClassRoomController extends Controller
         // Obter IDs das disciplinas já associadas
         $currentSubjectIds = $class->classSubjects->pluck('subject_id')->toArray();
 
-        $gradeLevels = [
-            0 => 'Pré-Infantil',
-            1 => 'Pré-Escolar',
-            2 => '1ª Classe',
-            3 => '2ª Classe',
-            4 => '3ª Classe',
-            5 => '4ª Classe',
-            6 => '5ª Classe',
-            7 => '6ª Classe',
-        ];
+        $gradeLevels = $this->getGradeLevelsList();
 
         return view('classes.edit', compact(
             'class',
@@ -460,5 +432,25 @@ class ClassRoomController extends Controller
             ->orderByRaw('MONTH(birthdate), DAY(birthdate)')
             ->take(5)
             ->get();
+    }
+
+    private function getGradeLevelsList(): array
+    {
+        return [
+            0 => 'Pré-Infantil (Pré-Escolar & Infantil)',
+            1 => 'Pré-Escolar (Pré-Escolar & Infantil)',
+            2 => '1ª Classe (Ensino Primário)',
+            3 => '2ª Classe (Ensino Primário)',
+            4 => '3ª Classe (Ensino Primário)',
+            5 => '4ª Classe (Ensino Primário)',
+            6 => '5ª Classe (Ensino Primário)',
+            7 => '6ª Classe (Ensino Primário)',
+            8 => '7ª Classe (Ensino Secundário)',
+            9 => '8ª Classe (Ensino Secundário)',
+            10 => '9ª Classe (Ensino Secundário)',
+            11 => '10ª Classe (Ensino Secundário)',
+            12 => '11ª Classe (Ensino Secundário)',
+            13 => '12ª Classe (Ensino Secundário)',
+        ];
     }
 }

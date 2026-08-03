@@ -120,25 +120,11 @@
                     <p class="text-muted small mb-0">{{ $selectedClass->education_level_name }} • {{ $selectedClass->grade_level_name }} • {{ $term }}º Trimestre</p>
                 </div>
 
-                <!-- Formulário de Seleção da Disciplina para Lançamento Rápido -->
-                <form method="GET" action="{{ route('grades.batch-create') }}" class="d-flex align-items-center gap-2">
-                    <input type="hidden" name="class_id" value="{{ $selectedClass->id }}">
-                    <input type="hidden" name="term" value="{{ $term }}">
-                    <select name="subject_id" class="form-select form-select-sm">
-                        <option value="">Selecione a Disciplina...</option>
-                        @foreach($subjects as $sub)
-                            <option value="{{ $sub->id }}">{{ $sub->name }}</option>
-                        @endforeach
-                    </select>
-                    <select name="assessment_type" class="form-select form-select-sm">
-                        @foreach($assessmentTypes as $key => $label)
-                            <option value="{{ $key }}">{{ $key }}</option>
-                        @endforeach
-                    </select>
-                    <button type="submit" class="btn btn-warning btn-sm text-dark font-weight-bold text-nowrap">
-                        <i class="fas fa-edit me-1"></i> Lançar Notas nesta Disciplina
-                    </button>
-                </form>
+                @can('create_grades')
+                    <a href="{{ route('grades.batch-create', ['class_id' => $selectedClass->id, 'term' => $term]) }}" class="btn btn-success font-weight-bold text-nowrap shadow-sm">
+                        <i class="fas fa-edit me-1"></i> Lançar / Editar Notas da Turma
+                    </a>
+                @endcan
             </div>
 
             <div class="card-body p-0">
