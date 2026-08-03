@@ -137,7 +137,7 @@
                                                    min="0" 
                                                    max="20" 
                                                    step="0.1" 
-                                                   value="{{ old('grades.' . $student->id . '.grade', $existingGrade->grade ?? '') }}"
+                                                   value="{{ old('grades.' . $student->id . '.grade', isset($existingGrade->grade) ? number_format($existingGrade->grade, 1, '.', '') : '') }}"
                                                    placeholder="0 - 20"
                                                    style="font-size: 1.1rem;">
                                         </td>

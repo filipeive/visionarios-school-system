@@ -213,12 +213,21 @@ class GradeController extends Controller
                 $students = $selectedClassObj->students;
             }
 
-            // Buscar notas existentes para esta combinação
+            // Buscar notas existentes para esta combinação (suportando equivalências de tipos)
+            $typeQuery = [$assessmentType];
+            if (in_array($assessmentType, ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test'])) {
+                $typeQuery = array_merge($typeQuery, ['continuous', 'test', 'ACS1', 'ACS2', 'ACS3']);
+            } elseif (in_array($assessmentType, ['ACP', 'exam'])) {
+                $typeQuery = array_merge($typeQuery, ['exam', 'ACP']);
+            } elseif (in_array($assessmentType, ['ACF', 'final'])) {
+                $typeQuery = array_merge($typeQuery, ['final', 'ACF']);
+            }
+
             $existingGrades = Grade::whereIn('student_id', $students->pluck('id'))
                 ->where('subject_id', $subjectId)
                 ->where('term', $term)
                 ->where('year', $year)
-                ->where('assessment_type', $assessmentType)
+                ->whereIn('assessment_type', array_unique($typeQuery))
                 ->get()
                 ->keyBy('student_id');
         }
@@ -273,13 +282,22 @@ class GradeController extends Controller
             $updatedCount = 0;
 
             foreach ($request->grades as $gradeData) {
-                if (! empty($gradeData['grade'])) {
+                if (isset($gradeData['grade']) && $gradeData['grade'] !== '' && $gradeData['grade'] !== null) {
+                    $typeQuery = [$request->assessment_type];
+                    if (in_array($request->assessment_type, ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test'])) {
+                        $typeQuery = array_merge($typeQuery, ['continuous', 'test', 'ACS1', 'ACS2', 'ACS3']);
+                    } elseif (in_array($request->assessment_type, ['ACP', 'exam'])) {
+                        $typeQuery = array_merge($typeQuery, ['exam', 'ACP']);
+                    } elseif (in_array($request->assessment_type, ['ACF', 'final'])) {
+                        $typeQuery = array_merge($typeQuery, ['final', 'ACF']);
+                    }
+
                     // Verificar se já existe uma nota para este aluno
                     $existingGrade = Grade::where('student_id', $gradeData['student_id'])
                         ->where('subject_id', $request->subject_id)
                         ->where('term', $request->term)
                         ->where('year', $request->year)
-                        ->where('assessment_type', $request->assessment_type)
+                        ->whereIn('assessment_type', array_unique($typeQuery))
                         ->first();
 
                     if ($existingGrade) {

@@ -2,39 +2,41 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>Pauta Oficial - {{ $class->name }}</title>
+    <title>Pauta Oficial - {{ $class->name }} (Ano Lectivo {{ $year }})</title>
     <style>
-        body { font-family: 'Helvetica', 'Arial', sans-serif; font-size: 10px; margin: 15px; color: #333; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1B5E20; padding-bottom: 10px; }
-        .header h2 { margin: 0; font-size: 16px; color: #1B5E20; text-transform: uppercase; }
-        .header h3 { margin: 3px 0; font-size: 13px; font-weight: normal; }
-        .header p { margin: 2px 0; font-size: 10px; color: #666; }
-        .meta-info { width: 100%; margin-bottom: 15px; font-size: 10px; }
-        .meta-info td { padding: 3px; }
-        table.pauta { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        table.pauta th, table.pauta td { border: 1px solid #444; padding: 4px 2px; text-align: center; font-size: 9px; }
-        table.pauta th { background-color: #1B5E20; color: #fff; text-transform: uppercase; }
-        table.pauta th.sub-header { background-color: #f0f0f0; color: #111; font-weight: normal; }
+        body { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 9px; margin: 10px; color: #111; }
+        .header { text-align: center; margin-bottom: 15px; border-bottom: 2px solid #1a365d; padding-bottom: 8px; }
+        .header h2 { margin: 0; font-size: 14px; color: #1a365d; text-transform: uppercase; letter-spacing: 1px; }
+        .header h3 { margin: 2px 0; font-size: 11px; font-weight: normal; color: #2d3748; }
+        .header p { margin: 2px 0; font-size: 9px; color: #4a5568; }
+        .meta-info { width: 100%; margin-bottom: 12px; font-size: 9px; border-collapse: collapse; }
+        .meta-info td { padding: 4px 6px; border: 1px solid #cbd5e0; background-color: #f7fafc; }
+        table.pauta { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+        table.pauta th, table.pauta td { border: 1px solid #2d3748; padding: 4px 2px; text-align: center; font-size: 8.5px; }
+        table.pauta th { background-color: #1a365d; color: #fff; text-transform: uppercase; font-size: 8px; }
+        table.pauta th.sub-header { background-color: #edf2f7; color: #1a202c; font-weight: bold; }
         .text-left { text-align: left !important; padding-left: 5px !important; }
-        .approved { color: #2e7d32; font-weight: bold; }
-        .failed { color: #c62828; font-weight: bold; }
-        .footer-signatures { width: 100%; margin-top: 40px; text-align: center; }
-        .footer-signatures td { width: 33%; padding-top: 40px; border-top: 1px solid #000; font-size: 10px; }
+        .approved { color: #22543d; font-weight: bold; background-color: #c6f6d5; padding: 1px 4px; border-radius: 3px; }
+        .failed { color: #742a2a; font-weight: bold; background-color: #fed7d7; padding: 1px 4px; border-radius: 3px; }
+        .pending { color: #744210; font-weight: bold; background-color: #feebc8; padding: 1px 4px; border-radius: 3px; }
+        .footer-signatures { width: 100%; margin-top: 30px; text-align: center; }
+        .footer-signatures td { width: 33%; padding-top: 30px; font-size: 9px; }
+        .signature-line { border-top: 1px solid #2d3748; width: 80%; margin: 0 auto; padding-top: 4px; font-weight: bold; }
     </style>
 </head>
 <body>
     <div class="header">
         <h2>REPÚBLICA DE MOÇAMBIQUE</h2>
         <h3>MINISTÉRIO DA EDUCAÇÃO E DESENVOLVIMENTO HUMANO</h3>
-        <p><strong>SISTEMA INTEGRADO DE GESTÃO ESCOLAR - ZAMEDU</strong></p>
-        <h3 style="margin-top: 8px;">PAUTA DE {{ strtoupper($type) }} — ANO LECTIVO {{ $year }}</h3>
+        <h3>{{ strtoupper(\App\Models\Setting::get('school_name', 'ESCOLA SECUNDÁRIA ZAMEDU')) }}</h3>
+        <p><strong>PAUTA OFICIAL DE FREQUÊNCIA E AVALIAÇÃO — ANO LECTIVO {{ $year }}</strong></p>
     </div>
 
     <table class="meta-info">
         <tr>
-            <td><strong>Escola / Instituição:</strong> {{ setting('school_name', 'ZamEdu SIGE') }}</td>
             <td><strong>Nível de Ensino:</strong> {{ $class->education_level_name }}</td>
-            <td><strong>Turma:</strong> {{ $class->name }} ({{ $class->grade_level_name }})</td>
+            <td><strong>Turma / Classe:</strong> {{ $class->name }} ({{ $class->grade_level_name }})</td>
+            <td><strong>Tipo de Pauta:</strong> {{ strtoupper($type) }} {{ $type === 'trimestral' ? "({$term}º Trimestre)" : '' }}</td>
             <td><strong>Data de Emissão:</strong> {{ date('d/m/Y') }}</td>
         </tr>
     </table>
@@ -43,12 +45,12 @@
         <thead>
             <tr>
                 <th rowspan="2" style="width: 25px;">N.º</th>
-                <th rowspan="2" class="text-left" style="width: 180px;">Nome Completo do Aluno</th>
+                <th rowspan="2" class="text-left" style="width: 170px;">Nome Completo do Aluno</th>
                 @foreach($subjects as $subject)
-                    <th colspan="{{ $type === 'anual' ? 4 : 3 }}">{{ $subject->code ?? substr($subject->name, 0, 8) }}</th>
+                    <th colspan="{{ $type === 'anual' ? 4 : 3 }}">{{ $subject->code ?? strtoupper(substr($subject->name, 0, 7)) }}</th>
                 @endforeach
-                <th rowspan="2">Média</th>
-                <th rowspan="2">Resultado</th>
+                <th rowspan="2" style="width: 45px;">Média (MF)</th>
+                <th rowspan="2" style="width: 70px;">Resultado Final</th>
             </tr>
             <tr>
                 @foreach($subjects as $subject)
@@ -77,18 +79,18 @@
                     @foreach($subjects as $subject)
                         @php $subData = $item['subjects'][$subject->id] ?? []; @endphp
                         @if($type === 'trimestral')
-                            <td>{{ $subData['acs'] ?? '-' }}</td>
-                            <td>{{ $subData['acp'] ?? '-' }}</td>
-                            <td><strong>{{ $subData['mt'] ?? '-' }}</strong></td>
+                            <td>{{ isset($subData['acs']) ? number_format($subData['acs'], 1) : '-' }}</td>
+                            <td>{{ isset($subData['acp']) ? number_format($subData['acp'], 1) : '-' }}</td>
+                            <td><strong>{{ isset($subData['mt']) ? number_format($subData['mt'], 1) : '-' }}</strong></td>
                         @elseif($type === 'anual')
-                            <td>{{ $subData['mt1'] ?? '-' }}</td>
-                            <td>{{ $subData['mt2'] ?? '-' }}</td>
-                            <td>{{ $subData['mt3'] ?? '-' }}</td>
-                            <td><strong>{{ $subData['mf'] ?? '-' }}</strong></td>
+                            <td>{{ isset($subData['mt1']) ? number_format($subData['mt1'], 1) : '-' }}</td>
+                            <td>{{ isset($subData['mt2']) ? number_format($subData['mt2'], 1) : '-' }}</td>
+                            <td>{{ isset($subData['mt3']) ? number_format($subData['mt3'], 1) : '-' }}</td>
+                            <td><strong>{{ isset($subData['mf']) ? number_format($subData['mf'], 1) : '-' }}</strong></td>
                         @else
-                            <td>{{ $subData['mf'] ?? '-' }}</td>
-                            <td>{{ $subData['exam'] ?? '-' }}</td>
-                            <td><strong>{{ $subData['mfd'] ?? '-' }}</strong></td>
+                            <td>{{ isset($subData['mf']) ? number_format($subData['mf'], 1) : '-' }}</td>
+                            <td>{{ isset($subData['exam']) ? number_format($subData['exam'], 1) : '-' }}</td>
+                            <td><strong>{{ isset($subData['mfd']) ? number_format($subData['mfd'], 1) : '-' }}</strong></td>
                         @endif
                     @endforeach
                     <td><strong>{{ number_format($item['overall_average'], 1) }}</strong></td>
@@ -98,7 +100,7 @@
                         @elseif($item['final_status'] === 'Retido')
                             <span class="failed">RETIDO</span>
                         @else
-                            <span>EM CURSO</span>
+                            <span class="pending">EM CURSO</span>
                         @endif
                     </td>
                 </tr>
@@ -108,9 +110,24 @@
 
     <table class="footer-signatures">
         <tr>
-            <td>O Director da Escola<br><br>___________________________________</td>
-            <td>O Pedagógico / Conselho de Turma<br><br>___________________________________</td>
-            <td>O Chefe da Secretaria<br><br>___________________________________</td>
+            <td>
+                <div class="signature-line">
+                    O Director da Turma<br>
+                    <strong>{{ $class->teacher ? ($class->teacher->first_name . ' ' . $class->teacher->last_name) : 'O Director da Turma' }}</strong>
+                </div>
+            </td>
+            <td>
+                <div class="signature-line">
+                    O Director Pedagógico<br>
+                    <strong>{{ \App\Models\Setting::get('pedagogical_director_name', 'O Director Pedagógico') }}</strong>
+                </div>
+            </td>
+            <td>
+                <div class="signature-line">
+                    O Director da Escola<br>
+                    <strong>{{ \App\Models\Setting::get('director_name', 'O Director da Escola') }}</strong>
+                </div>
+            </td>
         </tr>
     </table>
 </body>

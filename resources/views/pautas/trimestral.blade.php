@@ -20,8 +20,13 @@
         </div>
 
         <div class="d-flex align-items-center gap-2">
-            <!-- Filtro de Trimestre -->
             <form method="GET" action="{{ route('pautas.trimestral', $class->id) }}" class="d-flex align-items-center gap-2">
+                <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="2026" {{ $year == 2026 ? 'selected' : '' }}>2026 (Ano Letivo Atual)</option>
+                    <option value="2025" {{ $year == 2025 ? 'selected' : '' }}>2025 (Histórico)</option>
+                    <option value="2024" {{ $year == 2024 ? 'selected' : '' }}>2024 (Histórico)</option>
+                    <option value="2023" {{ $year == 2023 ? 'selected' : '' }}>2023 (Histórico)</option>
+                </select>
                 <select name="term" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="1" {{ $term == 1 ? 'selected' : '' }}>1º Trimestre</option>
                     <option value="2" {{ $term == 2 ? 'selected' : '' }}>2º Trimestre</option>
