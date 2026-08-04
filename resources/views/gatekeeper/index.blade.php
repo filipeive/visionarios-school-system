@@ -312,6 +312,12 @@
                                 <a href="{{ route('gatekeeper.card', $searchedStudent) }}" class="action-btn btn-qr" style="background: #6610f2;">
                                     <i class="fas fa-id-card"></i> Cartão
                                 </a>
+                                {{-- Botao para ver detalhes do aluno --}}
+                                @if (auth()->user()?->hasRole(['admin', 'super_admin', 'secretary']) || auth()->user()?->can('view_students'))
+                                <a href="{{ route('students.show', $searchedStudent->id) }}" class="action-btn btn-qr" style="background: linear-gradient(135deg, #0f5132 0%, #20c997 100%); color: white;">
+                                    <i class="fas fa-eye"></i> Detalhes
+                                </a>
+                                @endif
                             </div>
                         </div>
                     @else
