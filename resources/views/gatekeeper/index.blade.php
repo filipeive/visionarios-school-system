@@ -306,10 +306,10 @@
                                         <i class="fas fa-sign-out-alt"></i> Saída
                                     </button>
                                 </form>
-                                <a href="{{ route('gatekeeper.qr', $searchedStudent) }}" target="_blank" class="action-btn btn-qr">
+                                <a href="{{ route('gatekeeper.qr', $searchedStudent) }}" class="action-btn btn-qr">
                                     <i class="fas fa-qrcode"></i> Ver QR
                                 </a>
-                                <a href="{{ route('gatekeeper.card', $searchedStudent) }}" target="_blank" class="action-btn btn-qr" style="background: #6610f2;">
+                                <a href="{{ route('gatekeeper.card', $searchedStudent) }}" class="action-btn btn-qr" style="background: #6610f2;">
                                     <i class="fas fa-id-card"></i> Cartão
                                 </a>
                             </div>
