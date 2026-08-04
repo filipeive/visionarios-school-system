@@ -90,7 +90,7 @@ class GateKeeperController extends Controller
                 [
                     'status' => 'present',
                     'notes' => 'Registado via QR na Portaria Digital às ' . now()->format('H:i') . ' (' . ($action === 'entry' ? 'Entrada' : 'Saída') . ')',
-                    'recorded_by' => auth()->id(),
+                    'marked_by' => auth()->id() ?? 1,
                 ]
             );
         }
@@ -116,7 +116,7 @@ class GateKeeperController extends Controller
                 [
                     'status' => 'present',
                     'notes' => 'Registado na Portaria Digital às ' . now()->format('H:i') . ' (' . ($action === 'entry' ? 'Entrada' : 'Saída') . ')',
-                    'recorded_by' => auth()->id(),
+                    'marked_by' => auth()->id() ?? 1,
                 ]
             );
         }
