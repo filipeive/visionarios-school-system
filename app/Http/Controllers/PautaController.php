@@ -172,15 +172,16 @@ class PautaController extends Controller
                     $mt2 = $this->calculateTermAverage($studentSubjectGrades, 2);
                     $mt3 = $this->calculateTermAverage($studentSubjectGrades, 3);
 
-                    $validTms = array_filter([$mt1, $mt2, $mt3], fn($val) => $val !== null);
-                    $mf = !empty($validTms) ? round(array_sum($validTms) / count($validTms), 1) : null;
+                    // A média final (MF) exige o lançamento dos 3 trimestres (MT1 + MT2 + MT3) / 3
+                    $hasAllTerms = ($mt1 !== null && $mt2 !== null && $mt3 !== null);
+                    $mf = $hasAllTerms ? round(($mt1 + $mt2 + $mt3) / 3, 1) : null;
 
                     $ne = $studentSubjectGrades->where('assessment_type', 'exam')->first()?->grade;
                     $nr = $studentSubjectGrades->where('assessment_type', 'ACF')->first()?->grade;
 
                     $effectiveExam = $nr !== null ? max($ne ?? 0, $nr) : $ne;
 
-                    if ($class->isSecondary() && in_array((int)$class->grade_level, [7, 10, 12]) && $effectiveExam !== null) {
+                    if ($class->isSecondary() && in_array((int)$class->grade_level, [7, 10, 12]) && $effectiveExam !== null && $mf !== null) {
                         $mfd = round(($mf * 0.6) + ($effectiveExam * 0.4), 1);
                     } else {
                         $mfd = $mf;
@@ -206,13 +207,28 @@ class PautaController extends Controller
 
             if (!empty($totalAverages)) {
                 $studentData['overall_average'] = round(array_sum($totalAverages) / count($totalAverages), 1);
-                
-                if ($studentData['overall_average'] >= 10 && $failedSubjectsCount <= 2) {
-                    $studentData['final_status'] = 'Aprovado';
-                    $classStats['approved']++;
+            }
+
+            if ($type === 'trimestral') {
+                if (!empty($totalAverages)) {
+                    $studentData['final_status'] = $studentData['overall_average'] >= 10 ? 'Aprovado' : 'Retido';
                 } else {
-                    $studentData['final_status'] = 'Retido';
-                    $classStats['failed']++;
+                    $studentData['final_status'] = 'Em Curso';
+                }
+            } else {
+                // Pauta Anual ou Final: Aprovado/Retido apenas quando todas as disciplinas e trimestres estiverem concluídos
+                $isYearComplete = (count($totalAverages) === count($subjects)) && !empty($totalAverages);
+
+                if ($isYearComplete) {
+                    if ($studentData['overall_average'] >= 10 && $failedSubjectsCount <= 2) {
+                        $studentData['final_status'] = 'Aprovado';
+                        $classStats['approved']++;
+                    } else {
+                        $studentData['final_status'] = 'Retido';
+                        $classStats['failed']++;
+                    }
+                } else {
+                    $studentData['final_status'] = 'Em Curso';
                 }
             }
 

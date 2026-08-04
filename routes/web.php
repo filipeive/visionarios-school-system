@@ -109,7 +109,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Portaria Digital (Controlo de Acesso)
     Route::get('/gatekeeper', [GateKeeperController::class, 'index'])->name('gatekeeper.index');
+    Route::post('/gatekeeper/scan', [GateKeeperController::class, 'scan'])->name('gatekeeper.scan');
     Route::post('/gatekeeper/{student}/log', [GateKeeperController::class, 'logAccess'])->name('gatekeeper.log');
+    Route::get('/gatekeeper/{student}/qr', [GateKeeperController::class, 'generateQr'])->name('gatekeeper.qr');
+    Route::get('/gatekeeper/{student}/card', [GateKeeperController::class, 'downloadCard'])->name('gatekeeper.card');
+
 
     /*
     |--------------------------------------------------------------------------
