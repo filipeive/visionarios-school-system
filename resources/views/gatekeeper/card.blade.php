@@ -229,9 +229,10 @@
     <!-- Top Action Toolbar -->
     <div class="d-flex justify-content-between align-items-center mb-4 no-print">
         <div>
-            <a href="{{ route('gatekeeper.index') }}" class="btn btn-outline-secondary btn-sm rounded-pill">
-                <i class="fas fa-arrow-left me-1"></i> Voltar à Portaria
-            </a>
+            <!-- Botão para fechar a janela da nova aba -->
+            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill" onclick="if (window.opener || window.history.length > 1) { window.close(); } else { window.location.href='{{ route('gatekeeper.index') }}'; }">
+                <i class="fas fa-times me-1"></i> Fechar / Voltar à Portaria
+            </button>
         </div>
         <div class="d-flex gap-2">
             <button onclick="window.print()" class="btn btn-success btn-sm rounded-pill px-4">
