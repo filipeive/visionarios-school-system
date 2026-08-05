@@ -8,7 +8,10 @@
 
 - **Design System Parametrizável:** Personalização de marca (nome da escola, logótipo, cores primárias/secundárias, escala de notas) sem alterações de código.
 - **Gestão Académica Integrada:** Matrículas, turmas, disciplinas, pautas de avaliação contínua (ACS, ACP, ACF), médias e boletins escolares.
-- **Gestão Financeira & Cobranças:** Emissão de propinas/mensalidades, cálculo automático de multas por atraso, integrações de pagamento (M-Pesa, eMola, Multicaixa) e relatórios financeiros.
+- **Gestão Financeira & Cobranças:** Emissão de propinas/mensalidades, cálculo automático de multas por atraso, integrações de pagamento (M-Pesa, eMola, Multicaixa), gestão de despesas e relatórios financeiros com resultado líquido.
+- **Turnos Escolares:** Suporte a turnos (manhã, tarde, noite) com horários de atraso configuráveis por turno.
+- **Configuração de Avaliações:** Parâmetros parametrizáveis para cálculo de médias (pesos MACS/ACP, mínimo de trimestres para média final).
+- **Portais Dedicados:** Portais otimizados para Professores (pautas, assiduidade, licenças) e Encarregados de Educação (propinas, desempenho, comunicados).
 - **Portais Dedicados:** Portais otimizados para Professores (pautas, assiduidade, licenças) e Encarregados de Educação (propinas, desempenho, comunicados).
 - **Sistema de Licenciamento SaaS:** Middleware de controlo de vigência de licença (`active`, `grace_period`, `suspended`) com período de carência configurável.
 - **PWA & Acessibilidade:** Instalação nativa standalone em mobile/desktop e conformidade WCAG 2.1 AA.

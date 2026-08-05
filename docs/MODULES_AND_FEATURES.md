@@ -13,11 +13,12 @@ Este documento contém a descrição exaustiva de todos os módulos funcionais d
 5. [Disciplinas & Matriz Curricular](#5-disciplinas--matriz-curricular)
 6. [Matrículas & Inscrições](#6-matrículas--inscrições)
 7. [Propinas, Pagamentos & Multas](#7-propinas-pagamentos--multas)
-8. [Lançamento de Notas, Pautas & Boletins](#8-lançamento-de-notas-pautas--boletins)
-9. [Assiduidade & Presenças](#9-assiduidade--presenças)
-10. [Comunicações & Notificações em Massa](#10-comunicações--notificações-em-massa)
-11. [Portais Dedicados (Pais e Professores)](#11-portais-dedicados-pais-e-professores)
-12. [Gestão de Licenças & Configurações da Escola](#12-gestão-de-licenças--configurações-da-escola)
+8. [Gestão de Despesas](#8-gestão-de-despesas)
+9. [Lançamento de Notas, Pautas & Boletins](#9-lançamento-de-notas-pautas--boletins)
+10. [Assiduidade & Presenças](#10-assiduidade--presenças)
+11. [Comunicações & Notificações em Massa](#11-comunicações--notificações-em-massa)
+12. [Portais Dedicados (Pais e Professores)](#12-portais-dedicados-pais-e-professores)
+13. [Gestão de Licenças & Configurações da Escola](#13-gestão-de-licenças--configurações-da-escola)
 
 ---
 
@@ -26,7 +27,8 @@ Este documento contém a descrição exaustiva de todos os módulos funcionais d
 - **Rota**: `/dashboard` (`DashboardController@index`)
 - **Público-alvo**: Administradores, Diretores, Secretaria, Pedagogia.
 - **Funcionalidades**:
-  - Cartões de Indicadores Chave (KPIs): Receita Mensal, Alunos Ativos, Taxa Global de Assiduidade, Média Geral Académica, Propinas em Atraso e Total de Professores.
+  - Cartões de Indicadores Chave (KPIs): Receita Mensal, Alunos Ativos, Taxa Global de Assiduidade, Média Geral Académica, Propinas em Atraso, Total de Professores e Despesas do Mês.
+  - Widget de Calendário com navegação mensal, pontos de eventos e lista de eventos upcoming.
   - Gráfico Interativo de Evolução da Receita (Chart.js UMD) nos últimos 12 meses.
   - Gráfico de Distribuição de Alunos por Turma.
   - Quadro de Honra com o Top 5 Alunos com maior média académica global.
@@ -62,7 +64,8 @@ Este documento contém a descrição exaustiva de todos os módulos funcionais d
 - **Rota**: `/classes` (`ClassRoomController`)
 - **Funcionalidades**:
   - Criação e gestão de turmas por ano lectivo e nível de ensino (ex: 1ª Classe a 12ª Classe).
-  - Associação de Diretor de Turma.
+  - Associação de Director de Turma.
+  - Definição de turno escolar (`morning`, `afternoon`, `night`) com horários de atraso configuráveis por turno.
   - Definição de horários de aula por dia da semana (`ClassSchedule`).
   - Alocação e transferência de alunos entre turmas.
 
@@ -95,20 +98,36 @@ Este documento contém a descrição exaustiva de todos os módulos funcionais d
   - Cálculo de multas e juros por mora configuráveis.
   - Geração de referências bancárias de pagamento (M-Pesa, eMola, Multicaixa).
   - Emissão de recibos e relatórios de liquidez financeira.
+  - Escopo de dados por role: professores veem apenas pagamentos das suas turmas; encarregados veem apenas pagamentos dos seus filhos.
 
 ---
 
-## 8. Lançamento de Notas, Pautas & Boletins
+## 8. Gestão de Despesas
+
+- **Rota**: `/expenses` (`ExpenseController`)
+- **Público-alvo**: Administradores, Secretaria.
+- **Funcionalidades**:
+  - Criação, edição, visualização e exclusão de despesas financeiras.
+  - Categorização de despesas por categoria financeira (`FinancialCategory`).
+  - Relatórios de despesas por período e categoria.
+  - Integração com relatórios financeiros para cálculo de resultado líquido (receita - despesas).
+  - Permissão granular: `manage_expenses`.
+
+---
+
+## 9. Lançamento de Notas, Pautas & Boletins
 
 - **Rota**: `/grades` (`GradeController`)
 - **Funcionalidades**:
   - Lançamento contínuo de notas (ACS - Avaliação Contínua e Sistemática, ACP - Avaliação Parcial, ACF - Avaliação Final).
   - Entrada de notas por lote para toda a turma (`/grades/batch-create`).
   - Emissão de pauta académica da turma e Boletim Informativo de Notas do aluno.
+  - Cálculo de médias com pesos configuráveis (MACS peso, ACP peso) e mínimo de trimestres para média final.
+  - Suporte a múltiplas escalas de avaliação (0-20, 0-10, percentagem).
 
 ---
 
-## 9. Assiduidade & Presenças
+## 10. Assiduidade & Presenças
 
 - **Rota**: `/attendances` (`AttendanceController`)
 - **Funcionalidades**:
@@ -117,7 +136,7 @@ Este documento contém a descrição exaustiva de todos os módulos funcionais d
 
 ---
 
-## 10. Comunicações & Notificações em Massa
+## 11. Comunicações & Notificações em Massa
 
 - **Rota**: `/communications` (`NotificationController`)
 - **Funcionalidades**:
@@ -126,7 +145,7 @@ Este documento contém a descrição exaustiva de todos os módulos funcionais d
 
 ---
 
-## 11. Portais Dedicados (Pais e Professores)
+## 12. Portais Dedicados (Pais e Professores)
 
 - **Portal do Encarregado (`/parent/dashboard`)**:
   - Acompanhamento do boletim de notas, faltas, mensalidades pendentes e pagamento via M-Pesa.
@@ -135,7 +154,7 @@ Este documento contém a descrição exaustiva de todos os módulos funcionais d
 
 ---
 
-## 12. Gestão de Licenças & Configurações da Escola
+## 13. Gestão de Licenças & Configurações da Escola
 
 - **Painel de Licenças (`/admin/license`)**:
   - Validação de chave SaaS, validade do contrato e estado de vigência (`active`, `grace_period`, `suspended`).

@@ -58,6 +58,7 @@ Este documento descreve a estrutura relacional de dados, os 30 modelos Eloquent,
 - `academic_year` (INT): Ano lectivo.
 - `teacher_id` (BIGINT, FK -> `teachers.id`, Nullable): Director de turma.
 - `capacity` (INT): Lotação máxima.
+- `shift` (ENUM: `morning`, `afternoon`, `night`, Nullable): Turno escolar.
 - `status` (ENUM: `active`, `inactive`).
 
 ### 5. `enrollments` (Matrículas)
@@ -91,7 +92,25 @@ Este documento descreve a estrutura relacional de dados, os 30 modelos Eloquent,
 - `acf` (DECIMAL 4,2, Nullable): Avaliação Final.
 - `final_grade` (DECIMAL 4,2, Nullable): Média final calculada.
 
-### 8. `licenses` (Licenciamento SaaS)
+### 8. `financial_categories` (Categorias Financeiras)
+- `id` (BIGINT, PK).
+- `name` (VARCHAR): Nome da categoria (ex: `Mensalidade`, `Material Escolar`).
+- `type` (ENUM: `income`, `expense`): Tipo de movimentação financeira.
+- `description` (TEXT, Nullable): Descrição da categoria.
+- `created_at`, `updated_at` (TIMESTAMP).
+
+### 9. `expenses` (Despesas)
+- `id` (BIGINT, PK).
+- `financial_category_id` (BIGINT, FK -> `financial_categories.id`).
+- `description` (TEXT): Descrição da despesa.
+- `amount` (DECIMAL 10,2): Valor da despesa.
+- `expense_date` (DATE): Data da despesa.
+- `paid_by` (VARCHAR, Nullable): Método de pagamento.
+- `reference` (VARCHAR, Nullable): Referência de pagamento.
+- `created_by` (BIGINT, FK -> `users.id`).
+- `created_at`, `updated_at` (TIMESTAMP).
+
+### 10. `licenses` (Licenciamento SaaS)
 - `id` (BIGINT, PK).
 - `client_name` (VARCHAR): Nome da escola contratante.
 - `license_key` (VARCHAR, UNIQUE): Chave cifrada da licença.
