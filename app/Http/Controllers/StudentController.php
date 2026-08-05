@@ -248,7 +248,18 @@ class StudentController extends Controller
                     $acs2 = $termGrades->where('assessment_type', 'ACS2')->first()?->grade;
                     $acs3 = $termGrades->where('assessment_type', 'ACS3')->first()?->grade;
                     
-                    $macs = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test', 'assignment', 'participation'])->avg('grade');
+                    $macsGrades = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test', 'assignment', 'participation']);
+                    $macsMethod = setting('macs_calculation_method', 'launched_only');
+                    if ($macsGrades->isNotEmpty()) {
+                        if ($macsMethod === 'fixed_count') {
+                            $fixedCount = max(1, (int) setting('default_acs_count', 3));
+                            $macs = $macsGrades->sum('grade') / $fixedCount;
+                        } else {
+                            $macs = $macsGrades->avg('grade');
+                        }
+                    } else {
+                        $macs = null;
+                    }
                     $acp = $termGrades->whereIn('assessment_type', ['ACP', 'exam', 'ACF'])->first()?->grade;
                     
                     $macsWeight = (float) setting('macs_weight', 2);
@@ -539,7 +550,18 @@ class StudentController extends Controller
                     $acs2 = $termGrades->where('assessment_type', 'ACS2')->first()?->grade;
                     $acs3 = $termGrades->where('assessment_type', 'ACS3')->first()?->grade;
                     
-                    $macs = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test', 'assignment', 'participation'])->avg('grade');
+                    $macsGrades = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test', 'assignment', 'participation']);
+                    $macsMethod = setting('macs_calculation_method', 'launched_only');
+                    if ($macsGrades->isNotEmpty()) {
+                        if ($macsMethod === 'fixed_count') {
+                            $fixedCount = max(1, (int) setting('default_acs_count', 3));
+                            $macs = $macsGrades->sum('grade') / $fixedCount;
+                        } else {
+                            $macs = $macsGrades->avg('grade');
+                        }
+                    } else {
+                        $macs = null;
+                    }
                     $acp = $termGrades->whereIn('assessment_type', ['ACP', 'exam', 'ACF'])->first()?->grade;
                     
                     if ($macs !== null && $acp !== null) {
@@ -630,11 +652,26 @@ class StudentController extends Controller
                 $acs2 = $termGrades->where('assessment_type', 'ACS2')->first()?->grade;
                 $acs3 = $termGrades->where('assessment_type', 'ACS3')->first()?->grade;
                 
-                $macs = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test', 'assignment', 'participation'])->avg('grade');
+                $macsGrades = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test', 'assignment', 'participation']);
+                $macsMethod = setting('macs_calculation_method', 'launched_only');
+                if ($macsGrades->isNotEmpty()) {
+                    if ($macsMethod === 'fixed_count') {
+                        $fixedCount = max(1, (int) setting('default_acs_count', 3));
+                        $macs = $macsGrades->sum('grade') / $fixedCount;
+                    } else {
+                        $macs = $macsGrades->avg('grade');
+                    }
+                } else {
+                    $macs = null;
+                }
                 $acp = $termGrades->whereIn('assessment_type', ['ACP', 'exam', 'ACF'])->first()?->grade;
                 
+                $macsWeight = (float) setting('macs_weight', 2);
+                $acpWeight = (float) setting('acp_weight_in_mt', 1);
+                $totalWeight = $macsWeight + $acpWeight;
+
                 if ($macs !== null && $acp !== null) {
-                    $mt = round(($macs * 0.4) + ($acp * 0.6), 1);
+                    $mt = round(($macsWeight * $macs + $acpWeight * $acp) / $totalWeight, 1);
                 } else {
                     $mt = $termGrades->avg('grade') !== null ? round($termGrades->avg('grade'), 1) : null;
                 }

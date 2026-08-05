@@ -166,13 +166,29 @@
                                             $subGrades = $studentGrades[$sub->id] ?? [];
                                             $acs1 = $subGrades['ACS1'] ?? $subGrades['test'] ?? null;
                                             $acs2 = $subGrades['ACS2'] ?? null;
-                                            $acsArray = array_filter([$acs1, $acs2], fn($v) => $v !== null);
-                                            $acsAvg = !empty($acsArray) ? array_sum($acsArray) / count($acsArray) : null;
+                                            $acs3 = $subGrades['ACS3'] ?? null;
+                                            $acsArray = array_filter([$acs1, $acs2, $acs3], fn($v) => $v !== null);
                                             
+                                            $macsMethod = setting('macs_calculation_method', 'launched_only');
+                                            $defaultAcsCount = max(1, (int) setting('default_acs_count', 3));
+                                            
+                                            if (!empty($acsArray)) {
+                                                if ($macsMethod === 'fixed_count') {
+                                                    $acsAvg = array_sum($acsArray) / $defaultAcsCount;
+                                                } else {
+                                                    $acsAvg = array_sum($acsArray) / count($acsArray);
+                                                }
+                                            } else {
+                                                $acsAvg = null;
+                                            }
+
                                             $acp = $subGrades['ACP'] ?? $subGrades['exam'] ?? null;
+                                            $macsW = (float) setting('macs_weight', 2);
+                                            $acpW = (float) setting('acp_weight_in_mt', 1);
+                                            $totW = $macsW + $acpW;
 
                                             if ($acsAvg !== null && $acp !== null) {
-                                                $mt = round(($acsAvg * 0.4) + ($acp * 0.6), 1);
+                                                $mt = round(($macsW * $acsAvg + $acpW * $acp) / $totW, 1);
                                             } elseif ($acsAvg !== null) {
                                                 $mt = round($acsAvg, 1);
                                             } else {

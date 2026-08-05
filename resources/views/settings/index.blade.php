@@ -602,43 +602,65 @@
                         <span class="badge bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-xs font-semibold">Regras Pedagógicas</span>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
                             <h4 class="text-xs font-bold uppercase text-slate-700 mb-3 flex items-center gap-2">
-                                <i class="fas fa-calculator text-indigo-600"></i> Método de Média Geral na Pauta
+                                <i class="fas fa-calculator text-indigo-600"></i> Média Geral na Pauta
                             </h4>
                             <div class="mb-4">
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Divisor da Média Geral na Pauta Trimestral</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Divisor da Média Geral</label>
                                 <select name="settings[average_method]" class="form-select rounded-xl border-slate-200 p-3 text-sm font-semibold">
                                     <option value="all_subjects" {{ setting('average_method', 'all_subjects') == 'all_subjects' ? 'selected' : '' }}>
-                                        Dividir pelo Total de Disciplinas da Turma (Recomendado — Ex: 9.6 / 5 disciplinas = 1.9)
+                                        Dividir pelo Total de Disciplinas da Turma (Ex: 9.6 / 5 = 1.9)
                                     </option>
                                     <option value="only_graded" {{ setting('average_method') == 'only_graded' ? 'selected' : '' }}>
-                                        Dividir Apenas pelas Disciplinas com Nota Lançada (Ex: 9.6 / 1 = 9.6)
+                                        Dividir Apenas pelas Disciplinas Lançadas (Ex: 9.6 / 1 = 9.6)
                                     </option>
                                 </select>
                                 <p class="text-[11px] text-slate-500 mt-2">
-                                    <i class="fas fa-info-circle me-1"></i> Indica ao sistema como calcular a Média Geral quando o aluno ainda não tem notas em todas as disciplinas da turma.
+                                    <i class="fas fa-info-circle me-1"></i> Como calcular a Média Geral quando faltam notas.
                                 </p>
                             </div>
                         </div>
 
                         <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
                             <h4 class="text-xs font-bold uppercase text-slate-700 mb-3 flex items-center gap-2">
-                                <i class="fas fa-file-signature text-indigo-600"></i> Configuração de Exames Finais (ACF)
+                                <i class="fas fa-list-ol text-indigo-600"></i> Cálculo da MACS (Média ACS)
                             </h4>
                             <div class="mb-4">
-                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Incluir Exame Final (ACF) na Média Final (MFD)?</label>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Método de Divisão da MACS</label>
+                                <select name="settings[macs_calculation_method]" class="form-select rounded-xl border-slate-200 p-3 text-sm font-semibold">
+                                    <option value="launched_only" {{ setting('macs_calculation_method', 'launched_only') == 'launched_only' ? 'selected' : '' }}>
+                                        Dinâmico — Dividir Apenas pelas ACS Lançadas (ex: 2 lançadas = divide por 2)
+                                    </option>
+                                    <option value="fixed_count" {{ setting('macs_calculation_method') == 'fixed_count' ? 'selected' : '' }}>
+                                        Fixo — Dividir Sempre pelo Total Padrão de ACS (ex: dividir por 3)
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Qtd Padrão de ACS por Trimestre</label>
+                                <input type="number" name="settings[default_acs_count]" class="form-control rounded-xl border-slate-200 p-3 text-sm"
+                                    value="{{ setting('default_acs_count', 3) }}" min="1" max="5">
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <h4 class="text-xs font-bold uppercase text-slate-700 mb-3 flex items-center gap-2">
+                                <i class="fas fa-file-signature text-indigo-600"></i> Exames Finais (ACF)
+                            </h4>
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Incluir ACF na Média Final (MFD)?</label>
                                 <select name="settings[include_acf_in_mfd]" class="form-select rounded-xl border-slate-200 p-3 text-sm">
                                     <option value="0" {{ setting('include_acf_in_mfd', '0') == '0' ? 'selected' : '' }}>Não (MFD = Média dos 3 Trimestres)</option>
-                                    <option value="1" {{ setting('include_acf_in_mfd') == '1' ? 'selected' : '' }}>Sim (Ponderar Nota do Exame no Resultado Final)</option>
+                                    <option value="1" {{ setting('include_acf_in_mfd') == '1' ? 'selected' : '' }}>Sim (Ponderar Nota de Exame na MFD)</option>
                                 </select>
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Classes com Exame Obrigatório</label>
                                 <input type="text" name="settings[exam_class_levels]" class="form-control rounded-xl border-slate-200 p-3 text-sm"
                                     value="{{ setting('exam_class_levels', '6,7,10,12') }}" placeholder="Ex: 6,7,10,12">
-                                <p class="text-[11px] text-slate-500 mt-1">Separe por vírgulas os números das classes que realizam exame de fim de ciclo.</p>
+                                <p class="text-[11px] text-slate-500 mt-1">Separadas por vírgula.</p>
                             </div>
                         </div>
                     </div>

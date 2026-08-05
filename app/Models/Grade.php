@@ -159,6 +159,12 @@ class Grade extends Model
             return null;
         }
 
+        $method = setting('macs_calculation_method', 'launched_only');
+        if ($method === 'fixed_count') {
+            $fixedCount = max(1, (int) setting('default_acs_count', 3));
+            return round($grades->sum('grade') / $fixedCount, 1);
+        }
+
         return round($grades->avg('grade'), 1);
     }
 
