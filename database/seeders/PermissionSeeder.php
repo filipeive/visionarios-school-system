@@ -87,6 +87,8 @@ class PermissionSeeder extends Seeder
         $createPermission('view_own_payments');
         $createPermission('generate_payment_references');
         $createPermission('process_payments');
+        $createPermission('manage_expenses');
+        $createPermission('view_financial_reports');
 
         // Gestão de Eventos
         $createPermission('view_events');
@@ -118,6 +120,7 @@ class PermissionSeeder extends Seeder
         $createPermission('manage_settings');
         $createPermission('backup_system');
         $createPermission('view_logs');
+        $createPermission('view_audit_logs');
         $createPermission('manage_school_year');
 
         // Licenças de Staff
@@ -125,6 +128,9 @@ class PermissionSeeder extends Seeder
         $createPermission('approve_leave_requests');
         $createPermission('create_leave_requests');
         $createPermission('view_leave_requests');
+
+        // Portaria / Segurança
+        $createPermission('view_gatekeeper_logs');
 
         // Observações e Registros
         $createPermission('manage_observations');
@@ -159,9 +165,10 @@ class PermissionSeeder extends Seeder
             'send_notifications', 'send_bulk_notifications', 'manage_communications',
             'view_reports', 'view_basic_reports', 'view_financial_reports', 'view_academic_reports', 'export_reports',
             'manage_users', 'create_users', 'edit_users', 'delete_users', 'view_users',
-            'manage_settings', 'view_logs', 'manage_school_year',
+            'manage_settings', 'view_logs', 'view_audit_logs', 'manage_school_year',
             'manage_leave_requests', 'approve_leave_requests', 'view_leave_requests',
             'manage_observations', 'create_observations', 'view_observations', 'manage_student_records',
+            'manage_expenses',
         ]);
 
         // 3. SECRETARIA
@@ -178,6 +185,7 @@ class PermissionSeeder extends Seeder
             'send_notifications', 'manage_communications',
             'view_basic_reports', 'view_financial_reports', 'export_reports',
             'view_leave_requests',
+            'manage_expenses',
         ]);
 
         // 4. SEÇÃO PEDAGÓGICA
@@ -219,6 +227,14 @@ class PermissionSeeder extends Seeder
             'view_events', 'view_basic_reports',
         ]);
 
+        // 7. SEGURANÇA / PORTARIA
+        $securityRole = $createRole('security');
+        $securityRole->syncPermissions([
+            'access_dashboard',
+            'view_gatekeeper_logs',
+            'view_events',
+        ]);
+
         // ========== CRIAR USUÁRIOS DE EXEMPLO SE NÃO EXISTIREM ==========
 
         $createUser = function ($data, $role) {
@@ -241,6 +257,7 @@ class PermissionSeeder extends Seeder
         $createUser(['name' => 'Coordenador Pedagógico', 'email' => 'pedagogia@visionarios.co.mz', 'password' => 'pedagogia123'], 'pedagogy');
         $createUser(['name' => 'Professor Exemplo', 'email' => 'professor@visionarios.co.mz', 'password' => 'professor123'], 'teacher');
         $createUser(['name' => 'Encarregado de Educação', 'email' => 'pai@visionarios.co.mz', 'password' => 'pai123'], 'parent');
+        $createUser(['name' => 'Segurança / Portaria', 'email' => 'seguranca@visionarios.co.mz', 'password' => 'seguranca123'], 'security');
 
         $this->command->info('Sistema de permissões e roles sincronizado com sucesso!');
     }
