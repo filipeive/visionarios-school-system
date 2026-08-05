@@ -12,9 +12,16 @@ class ClassRoom extends Model
 
     protected $table = 'classes';
 
+    const SHIFT_LABELS = [
+        'morning' => 'Manhã',
+        'afternoon' => 'Tarde',
+        'night' => 'Noite',
+    ];
+
     protected $fillable = [
         'name',
         'grade_level',
+        'shift',
         'teacher_id',
         'max_students',
         'current_students',
@@ -22,6 +29,15 @@ class ClassRoom extends Model
         'school_year',
         'is_active',
     ];
+
+    public function getShiftLabelAttribute(): string
+    {
+        return match($this->shift) {
+            'afternoon' => 'Tarde',
+            'night' => 'Noite',
+            default => 'Manhã',
+        };
+    }
 
     protected $casts = [
         'is_active' => 'boolean',

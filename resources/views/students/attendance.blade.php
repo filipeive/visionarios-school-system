@@ -188,6 +188,11 @@
                                 <td>
                                     @if($attendance->arrival_time)
                                         {{ $attendance->arrival_time->format('H:i') }}
+                                        @if(str_contains($attendance->notes ?? '', 'Portaria Digital'))
+                                            <span class="badge bg-success-subtle text-success rounded-pill ms-1" style="font-size:0.65rem;">
+                                                <i class="fas fa-shield-alt me-1"></i>Portaria
+                                            </span>
+                                        @endif
                                     @else
                                         <span class="text-muted">-</span>
                                     @endif

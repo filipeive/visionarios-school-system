@@ -28,17 +28,19 @@
                     <select name="class_id" class="form-select">
                         <option value="">Todas as turmas</option>
                         @foreach($classes as $class)
-                            <option value="{{ $class->id }}">{{ $class->name }}</option>
+                            <option value="{{ $class->id }}" {{ request('class_id') == $class->id ? 'selected' : '' }}>
+                                {{ $class->name }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
                 <div class="col-md-3">
                     <label class="form-label">Período</label>
                     <select name="period" class="form-select">
-                        <option value="today">Hoje</option>
-                        <option value="week">Esta Semana</option>
-                        <option value="month" selected>Este Mês</option>
-                        <option value="custom">Personalizado</option>
+                        <option value="today" {{ request('period') == 'today' ? 'selected' : '' }}>Hoje</option>
+                        <option value="week" {{ request('period') == 'week' ? 'selected' : '' }}>Esta Semana</option>
+                        <option value="month" {{ request('period', 'month') == 'month' ? 'selected' : '' }}>Este Mês</option>
+                        <option value="custom" {{ request('period') == 'custom' ? 'selected' : '' }}>Personalizado</option>
                     </select>
                 </div>
                 <div class="col-md-2">

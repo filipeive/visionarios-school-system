@@ -12,58 +12,59 @@ use Carbon\Carbon;
 class AttendanceController extends Controller
 {
     /**
-     * Display a listing of attendances
+     * Display attendance dashboard organized by classes
      */
     public function index(Request $request)
     {
         $this->authorize('view_attendances');
 
-        $query = Attendance::with(['student', 'class', 'markedBy']);
-
-        // Filters
-        if ($request->filled('search')) {
-            $search = $request->search;
-            $query->whereHas('student', function ($q) use ($search) {
-                $q->where('first_name', 'like', "%{$search}%")
-                    ->orWhere('last_name', 'like', "%{$search}%")
-                    ->orWhere('student_number', 'like', "%{$search}%");
-            });
-        }
-
-        if ($request->filled('class_id')) {
-            $query->where('class_id', $request->class_id);
-        }
-
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        if ($request->filled('date_from')) {
-            $query->whereDate('attendance_date', '>=', $request->date_from);
-        }
-
-        if ($request->filled('date_to')) {
-            $query->whereDate('attendance_date', '<=', $request->date_to);
-        }
-
-        $attendances = $query->latest('attendance_date')->paginate(25);
+        $selectedDate = $request->get('date', today()->format('Y-m-d'));
+        $date = Carbon::parse($selectedDate);
 
         $classes = ClassRoom::active()
             ->where('school_year', current_school_year())
+            ->withCount(['students as total_students'])
+            ->with(['attendances' => function ($q) use ($date) {
+                $q->whereDate('attendance_date', $date);
+            }])
             ->orderBy('name')
-            ->get();
+            ->get()
+            ->map(function ($class) use ($date) {
+                $totalStudents = $class->total_students;
+                $attendances = $class->attendances;
+                
+                $present = $attendances->where('status', 'present')->count();
+                $absent = $attendances->where('status', 'absent')->count();
+                $late = $attendances->where('status', 'late')->count();
+                $excused = $attendances->where('status', 'excused')->count();
+                $marked = $attendances->count();
+                
+                $attendanceRate = $totalStudents > 0 ? round(($present / $totalStudents) * 100, 1) : 0;
+                
+                return [
+                    'class' => $class,
+                    'total_students' => $totalStudents,
+                    'present' => $present,
+                    'absent' => $absent,
+                    'late' => $late,
+                    'excused' => $excused,
+                    'marked' => $marked,
+                    'unmarked' => $totalStudents - $marked,
+                    'attendance_rate' => $attendanceRate,
+                ];
+            });
 
-        $stats = [
-            'total' => Attendance::count(),
-            'today_present' => Attendance::whereDate('attendance_date', today())
-                ->where('status', 'present')
-                ->count(),
-            'today_absent' => Attendance::whereDate('attendance_date', today())
-                ->where('status', 'absent')
-                ->count(),
+        $globalStats = [
+            'total_classes' => $classes->count(),
+            'total_students' => $classes->sum('total_students'),
+            'total_present' => $classes->sum('present'),
+            'total_absent' => $classes->sum('absent'),
+            'total_late' => $classes->sum('late'),
+            'total_excused' => $classes->sum('excused'),
+            'total_unmarked' => $classes->sum('unmarked'),
         ];
 
-        return view('attendances.index', compact('attendances', 'classes', 'stats'));
+        return view('attendances.index', compact('classes', 'globalStats', 'selectedDate'));
     }
 
     /**
@@ -152,24 +153,54 @@ class AttendanceController extends Controller
     }
 
     /**
-     * Show attendance for a specific class
+     * Display attendance for a specific class
+     */
+    public function classAttendances(Request $request, ClassRoom $class)
+    {
+        $this->authorize('view_attendances');
+
+        $selectedDate = $request->get('date', today()->format('Y-m-d'));
+        $date = Carbon::parse($selectedDate);
+
+        $students = $class->students()
+            ->with(['attendances' => function ($q) use ($date) {
+                $q->whereDate('attendance_date', $date);
+            }])
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get()
+            ->map(function ($student) use ($date) {
+                $attendance = $student->attendances->first();
+                
+                return [
+                    'student' => $student,
+                    'attendance' => $attendance,
+                    'attendance_status' => $attendance?->status ?? null,
+                    'arrival_time' => $attendance?->arrival_time ?? null,
+                    'marked_by' => $attendance?->markedBy ?? null,
+                ];
+            });
+
+        return view('attendances.class-attendances', compact('class', 'students', 'selectedDate'));
+    }
+
+    /**
+     * Show form to mark attendance for a specific class
      */
     public function markByClass(Request $request, ClassRoom $class)
     {
         $this->authorize('mark_attendances');
 
-        $students = $class->students()
-            ->where('status', 'active')
-            ->orderBy('first_name')
-            ->orderBy('last_name')
-            ->get();
-
         $date = $request->get('date', today()->format('Y-m-d'));
 
-        // Verificar se já existem presenças para esta data
         $existingAttendances = Attendance::where('class_id', $class->id)
             ->whereDate('attendance_date', $date)
             ->pluck('status', 'student_id');
+
+        $students = $class->students()
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get();
 
         return view('attendances.mark-by-class', compact('class', 'students', 'date', 'existingAttendances'));
     }
@@ -224,8 +255,8 @@ class AttendanceController extends Controller
 
             DB::commit();
 
-            return redirect()->route('attendances.index')
-                ->with('success', "Presenças atualizadas! {$markedCount} alunos.");
+            return redirect()->route('attendances.class-attendances', $class)
+                ->with('success', "Frequências atualizadas! {$markedCount} alunos.");
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -354,7 +385,6 @@ class AttendanceController extends Controller
         $this->authorize('view_attendances');
 
         $students = $class->students()
-            ->where('status', 'active')
             ->with([
                 'attendances' => function ($q) {
                     $q->whereMonth('attendance_date', now()->month)

@@ -29,6 +29,17 @@
                     <span class="badge bg-primary">{{ $class->grade_level_name }}</span>
                 </div>
                 <div class="mb-3">
+                    <strong>Turno:</strong> 
+                    @php
+                        $shiftBadge = match($class->shift) {
+                            'afternoon' => 'bg-warning text-dark',
+                            'night' => 'bg-info',
+                            default => 'bg-primary',
+                        };
+                    @endphp
+                    <span class="badge {{ $shiftBadge }}">{{ $class->shift_label }}</span>
+                </div>
+                <div class="mb-3">
                     <strong>Ano Letivo:</strong> {{ $class->school_year }}
                 </div>
                 <div class="mb-3">
@@ -224,10 +235,18 @@
                         <div class="flex-grow-1">
                             <strong>{{ $student->first_name }} {{ $student->last_name }}</strong>
                             <div class="text-muted small">
-                                {{ $student->birthdate->format('d/m') }} 
+                                {{ $student->birthdate->format('d/m') }}
                                 ({{ $student->birthdate->diffInYears(now()) + 1 }} anos)
                             </div>
+                            @if($student->currentClass)
+                                <div class="text-muted small">
+                                    <i class="fas fa-chalkboard me-1"></i>{{ $student->currentClass->name }}
+                                </div>
+                            @endif
                         </div>
+                        <a href="{{ route('students.show', $student->id) }}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-user me-1"></i>Ver Perfil
+                        </a>
                     </div>
                 @endforeach
             </div>

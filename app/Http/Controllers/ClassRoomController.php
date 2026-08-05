@@ -74,6 +74,7 @@ class ClassRoomController extends Controller
         $request->validate([
             'name' => 'required|string|max:255|unique:classes,name',
             'grade_level' => 'required|integer|min:0|max:12',
+            'shift' => 'required|in:morning,afternoon,night',
             'teacher_id' => 'nullable|exists:teachers,id',
             'max_students' => 'required|integer|min:1|max:50',
             'classroom' => 'nullable|string|max:50',
@@ -88,6 +89,7 @@ class ClassRoomController extends Controller
             $class = ClassRoom::create([
                 'name' => $request->name,
                 'grade_level' => $request->grade_level,
+                'shift' => $request->shift,
                 'teacher_id' => $request->teacher_id,
                 'max_students' => $request->max_students,
                 'current_students' => 0,
@@ -173,6 +175,7 @@ class ClassRoomController extends Controller
                 Rule::unique('classes', 'name')->ignore($class->id),
             ],
             'grade_level' => 'required|integer|min:0|max:12',
+            'shift' => 'required|in:morning,afternoon,night',
             'teacher_id' => 'nullable|exists:teachers,id',
             'max_students' => 'required|integer|min:1|max:50',
             'classroom' => 'nullable|string|max:50',
@@ -187,6 +190,7 @@ class ClassRoomController extends Controller
             $class->update([
                 'name' => $request->name,
                 'grade_level' => $request->grade_level,
+                'shift' => $request->shift,
                 'teacher_id' => $request->teacher_id,
                 'max_students' => $request->max_students,
                 'classroom' => $request->classroom,

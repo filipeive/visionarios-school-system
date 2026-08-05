@@ -142,6 +142,7 @@
                         <thead>
                             <tr>
                                 <th>Turma</th>
+                                <th>Turno</th>
                                 <th>Nível</th>
                                 <th>Professor</th>
                                 <th>Ano Letivo</th>
@@ -166,6 +167,16 @@
                                                 <i class="fas fa-exclamation-triangle"></i>
                                             </span>
                                         @endif
+                                    </td>
+                                    <td>
+                                        @php
+                                            $shiftBadge = match($class->shift) {
+                                                'afternoon' => 'bg-warning text-dark',
+                                                'night' => 'bg-info',
+                                                default => 'bg-primary',
+                                            };
+                                        @endphp
+                                        <span class="badge {{ $shiftBadge }}">{{ $class->shift_label }}</span>
                                     </td>
                                     <td>
                                         <span class="badge bg-primary">{{ $class->grade_level_name }}</span>
@@ -241,7 +252,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="8" class="text-center py-4">
+                                    <td colspan="9" class="text-center py-4">
                                         <i class="fas fa-chalkboard fa-3x text-muted mb-3"></i>
                                         <p class="text-muted">Nenhuma turma encontrada.</p>
                                         @if(request()->anyFilled(['grade_level', 'teacher_id', 'school_year', 'is_active']))

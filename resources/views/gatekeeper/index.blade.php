@@ -314,7 +314,7 @@
                                 </a>
                                 {{-- Botao para ver detalhes do aluno --}}
                                 @if (auth()->user()?->hasRole(['admin', 'super_admin', 'secretary']) || auth()->user()?->can('view_students'))
-                                <a href="{{ route('students.show', $searchedStudent->id) }}" class="action-btn btn-qr" style="background: linear-gradient(135deg, #0f5132 0%, #20c997 100%); color: white;">
+                                <a href="{{ route('students.show', $searchedStudent->id) }}" class="action-btn btn-qr" style="background: #ff9900ff">
                                     <i class="fas fa-eye"></i> Detalhes
                                 </a>
                                 @endif

@@ -57,20 +57,38 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label for="teacher_id" class="form-label">Professor Responsável</label>
-                                <select class="form-select @error('teacher_id') is-invalid @enderror" 
-                                        id="teacher_id" name="teacher_id">
-                                    <option value="">Selecione o professor...</option>
-                                    @foreach($teachers as $teacher)
-                                        <option value="{{ $teacher->id }}" {{ old('teacher_id') == $teacher->id ? 'selected' : '' }}>
-                                            {{ $teacher->first_name }} {{ $teacher->last_name }}
+                                <label for="grade_level" class="form-label">Nível de Ensino *</label>
+                                <select class="form-select @error('grade_level') is-invalid @enderror" 
+                                        id="grade_level" name="grade_level" required>
+                                    <option value="">Selecione o nível...</option>
+                                    @foreach($gradeLevels as $key => $level)
+                                        <option value="{{ $key }}" {{ old('grade_level') == $key ? 'selected' : '' }}>
+                                            {{ $level }}
                                         </option>
                                     @endforeach
                                 </select>
-                                @error('teacher_id')
+                                @error('grade_level')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="shift" class="form-label">Turno *</label>
+                                <select class="form-select @error('shift') is-invalid @enderror" 
+                                        id="shift" name="shift" required>
+                                    <option value="">Selecione o turno...</option>
+                                    <option value="morning" {{ old('shift') == 'morning' ? 'selected' : '' }}>Manhã</option>
+                                    <option value="afternoon" {{ old('shift') == 'afternoon' ? 'selected' : '' }}>Tarde</option>
+                                    <option value="night" {{ old('shift') == 'night' ? 'selected' : '' }}>Noite</option>
+                                </select>
+                                @error('shift')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
                         </div>
                         
                         <div class="col-md-6">

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\Attendance;
+use App\Models\ClassRoom;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -13,6 +14,26 @@ use Illuminate\Support\Facades\Process;
 
 class GateKeeperController extends Controller
 {
+    /**
+     * Get the late time threshold for a given shift.
+     */
+    private function getShiftLateTime(string $shift): string
+    {
+        return match ($shift) {
+            'afternoon' => setting('shift_afternoon_late_time', '13:00'),
+            'night' => setting('shift_night_late_time', '18:00'),
+            default => setting('shift_morning_late_time', '07:30'),
+        };
+    }
+
+    /**
+     * Determine attendance status based on shift and current time.
+     */
+    private function determineAttendanceStatus(string $shift, string $currentTime): string
+    {
+        $lateThreshold = $this->getShiftLateTime($shift);
+        return $currentTime > $lateThreshold ? 'late' : 'present';
+    }
     /**
      * Portaria Digital main verification screen.
      */
@@ -81,6 +102,11 @@ class GateKeeperController extends Controller
 
         // Register attendance
         if ($student->currentEnrollment) {
+            $class = $student->currentEnrollment->class;
+            $shift = $class->shift ?? 'morning';
+            $status = $this->determineAttendanceStatus($shift, now()->format('H:i'));
+            $shiftLabel = ClassRoom::SHIFT_LABELS[$shift] ?? 'Manhã';
+
             Attendance::updateOrCreate(
                 [
                     'student_id' => $student->id,
@@ -88,8 +114,9 @@ class GateKeeperController extends Controller
                     'attendance_date' => now()->toDateString(),
                 ],
                 [
-                    'status' => 'present',
-                    'notes' => 'Registado via QR na Portaria Digital às ' . now()->format('H:i') . ' (' . ($action === 'entry' ? 'Entrada' : 'Saída') . ')',
+                    'status' => $status,
+                    'arrival_time' => now()->toTimeString(),
+                    'notes' => 'Registado via QR na Portaria Digital às ' . now()->format('H:i') . ' (' . ($action === 'entry' ? 'Entrada' : 'Saída') . ') (Turno da ' . $shiftLabel . ')',
                     'marked_by' => auth()->id() ?? 1,
                 ]
             );
@@ -107,6 +134,11 @@ class GateKeeperController extends Controller
         $action = $request->input('action', 'entry');
 
         if ($student->currentEnrollment) {
+            $class = $student->currentEnrollment->class;
+            $shift = $class->shift ?? 'morning';
+            $status = $this->determineAttendanceStatus($shift, now()->format('H:i'));
+            $shiftLabel = ClassRoom::SHIFT_LABELS[$shift] ?? 'Manhã';
+
             Attendance::updateOrCreate(
                 [
                     'student_id' => $student->id,
@@ -114,8 +146,9 @@ class GateKeeperController extends Controller
                     'attendance_date' => now()->toDateString(),
                 ],
                 [
-                    'status' => 'present',
-                    'notes' => 'Registado na Portaria Digital às ' . now()->format('H:i') . ' (' . ($action === 'entry' ? 'Entrada' : 'Saída') . ')',
+                    'status' => $status,
+                    'arrival_time' => now()->toTimeString(),
+                    'notes' => 'Registado na Portaria Digital às ' . now()->format('H:i') . ' (' . ($action === 'entry' ? 'Entrada' : 'Saída') . ') (Turno da ' . $shiftLabel . ')',
                     'marked_by' => auth()->id() ?? 1,
                 ]
             );

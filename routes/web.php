@@ -63,18 +63,8 @@ Route::prefix('public')->name('public.')->group(function () {
     Route::get('/pre-enrollment/success/{application}', function (App\Models\EnrollmentApplication $application) {
         return view('public.pre-enrollment-success', compact('application'));
     })->name('pre-enrollment.success');
-
-    // Verificação de pagamentos
-    Route::get('/payment-check', fn () => view('public.payment-check'))->name('payment-check');
-    Route::post('/payment-check', function (Illuminate\Http\Request $request) {
-        $payment = App\Models\Payment::where('reference_number', $request->reference)->first();
-
-        if (! $payment) {
-            return back()->with('error', 'Referência não encontrada.');
-        }
-
-        return view('public.payment-status', compact('payment'));
-    })->name('payment-check.verify');
+    // Verificação de pagamentos — removida exposição pública.
+    // Se for necessário consulta pública, implementar token temporário por e-mail/SMS.
 });
 
 /*
@@ -134,6 +124,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/{student}', 'show')->name('show');
             Route::get('/{student}/grades', 'grades')->name('grades');
+            Route::get('/{student}/grades/pdf', 'gradesPdf')->name('grades.pdf');
+            Route::post('/{student}/grades/share-email', 'shareGradesEmail')->name('grades.share-email');
             Route::get('/{student}/attendance', 'attendance')->name('attendance');
             Route::get('/{student}/payments', 'payments')->name('payments');
             Route::get('/{student}/support', [StudentSupportController::class, 'index'])
@@ -381,6 +373,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         });
     /*
     |--------------------------------------------------------------------------
+    | Gestão Financeira - Despesas
+    |--------------------------------------------------------------------------
+    */
+
+    Route::middleware('permission:manage_expenses')->prefix('expenses')->name('expenses.')->group(function () {
+        Route::get('/', [App\Http\Controllers\ExpenseController::class, 'index'])->name('index');
+        Route::get('/create', [App\Http\Controllers\ExpenseController::class, 'create'])->name('create');
+        Route::post('/', [App\Http\Controllers\ExpenseController::class, 'store'])->name('store');
+        Route::get('/{expense}', [App\Http\Controllers\ExpenseController::class, 'show'])->name('show');
+        Route::get('/{expense}/edit', [App\Http\Controllers\ExpenseController::class, 'edit'])->name('edit');
+        Route::put('/{expense}', [App\Http\Controllers\ExpenseController::class, 'update'])->name('update');
+        Route::delete('/{expense}', [App\Http\Controllers\ExpenseController::class, 'destroy'])->name('destroy');
+        Route::post('/{expense}/approve', [App\Http\Controllers\ExpenseController::class, 'approve'])->name('approve');
+    });
+
+    /*
+    |--------------------------------------------------------------------------
     | Gestão de Presenças
     |--------------------------------------------------------------------------
     */
@@ -405,31 +414,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // ========== GESTÃO DE PRESENÇAS ==========
     Route::middleware('permission:view_attendances')->prefix('attendances')->name('attendances.')->group(function () {
-        // Relatórios
+        Route::get('/', [AttendanceController::class, 'index'])->name('index');
+        Route::get('/class/{class}', [AttendanceController::class, 'classAttendances'])->name('class-attendances');
+        
         Route::get('/reports', [AttendanceController::class, 'reports'])->name('reports');
         Route::get('/class/{class}/report', [AttendanceController::class, 'classReport'])->name('class-report');
         Route::get('/student/{student}/report', [AttendanceController::class, 'studentReport'])->name('student-report');
 
-        // Marcar presenças
         Route::middleware('permission:mark_attendances')->group(function () {
-            Route::get('/mark', [AttendanceController::class, 'mark'])->name('mark');
-            Route::post('/mark', [AttendanceController::class, 'storeMark'])->name('store-mark');
             Route::get('/class/{class}/mark', [AttendanceController::class, 'markByClass'])->name('mark-by-class');
             Route::post('/class/{class}/mark', [AttendanceController::class, 'storeMarkByClass'])->name('store-mark-by-class');
         });
 
-        // Listagem
-        Route::get('/', [AttendanceController::class, 'index'])->name('index');
         Route::get('/{attendance}', [AttendanceController::class, 'show'])->name('show');
         Route::get('/{attendance}/edit', [AttendanceController::class, 'edit'])->name('edit');
 
-        // Marcar presenças (continuação)
         Route::middleware('permission:mark_attendances')->group(function () {
             Route::patch('/{attendance}', [AttendanceController::class, 'update'])->name('update');
             Route::delete('/{attendance}', [AttendanceController::class, 'destroy'])->name('destroy');
         });
 
-        // Exportação
         Route::middleware('permission:export_reports')->group(function () {
             Route::get('/export', [AttendanceController::class, 'export'])->name('export');
         });
