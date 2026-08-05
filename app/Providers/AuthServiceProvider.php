@@ -24,6 +24,7 @@ class AuthServiceProvider extends ServiceProvider
         Grade::class => GradePolicy::class,
         Payment::class => PaymentPolicy::class,
         Enrollment::class => EnrollmentPolicy::class,
+        \App\Models\Expense::class => \App\Policies\ExpensePolicy::class,
     ];
 
     /**
@@ -32,10 +33,15 @@ class AuthServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
-            if ($user && in_array($user->role, ['admin', 'super_admin'])) {
+            if ($user && $user->hasRole('super_admin')) {
                 return true;
             }
-            return $user?->hasRole(['admin', 'super_admin']) ? true : null;
+
+            if ($user && $user->hasRole('admin')) {
+                return true;
+            }
+
+            return null;
         });
     }
 }

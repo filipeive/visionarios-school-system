@@ -28,6 +28,8 @@ class PaymentController extends Controller
     {
         $query = Payment::with(['student', 'enrollment.class']);
 
+        $query = $this->scopePaymentsByUserRole($query);
+
         // Filtros
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -170,6 +172,8 @@ class PaymentController extends Controller
     {
         $payment->load(['student', 'enrollment.class']);
 
+        $this->scopePaymentsByUserRole(Payment::query())->where('id', $payment->id)->firstOrFail();
+
         // Se a requisição é AJAX/JSON, retorna JSON
         if (request()->wantsJson() || request()->ajax()) {
             return response()->json([
@@ -183,6 +187,7 @@ class PaymentController extends Controller
                 'status' => $payment->status,
                 'days_late' => $payment->days_late,
                 'suggested_penalty_percentage' => $payment->suggested_penalty_percentage,
+                'suggested_penalty_amount' => $payment->suggested_penalty_amount,
                 'student' => [
                     'full_name' => $payment->student->full_name,
                     'student_number' => $payment->student->student_number,
@@ -257,16 +262,20 @@ class PaymentController extends Controller
      */
     public function overdue(Request $request)
     {
-        $payments = Payment::with(['student', 'enrollment.class'])
+        $query = Payment::with(['student', 'enrollment.class'])
             ->where(function ($q) {
                 $q->where('status', 'overdue')
                     ->orWhere(function ($sq) {
                         $sq->where('status', 'pending')
                             ->where('due_date', '<', now());
                     });
-            })
-            ->orderBy('due_date', 'asc')
-            ->paginate(20);
+            });
+
+        $query = $this->scopePaymentsByUserRole($query);
+
+        $query->orderBy('due_date', 'asc');
+
+        $payments = $query->paginate(20);
 
         // Atualizar status para overdue
         Payment::where('status', 'pending')
@@ -283,6 +292,8 @@ class PaymentController extends Controller
     {
         $query = Payment::with(['student', 'enrollment.class'])
             ->whereIn('status', ['pending', 'overdue']);
+
+        $query = $this->scopePaymentsByUserRole($query);
 
         if ($request->filled('class_id')) {
             $query->whereHas('enrollment', fn($q) => $q->where('class_id', $request->class_id));
@@ -483,8 +494,12 @@ class PaymentController extends Controller
         $year = $request->get('year', current_school_year());
         $month = $request->get('month');
 
+        $baseQuery = Payment::query();
+        $baseQuery = $this->scopePaymentsByUserRole($baseQuery);
+
         // Receita mensal
-        $monthlyRevenue = Payment::selectRaw('MONTH(payment_date) as month, SUM(amount) as total')
+        $monthlyRevenue = $baseQuery->clone()
+            ->selectRaw('MONTH(payment_date) as month, SUM(amount) as total')
             ->where('status', 'paid')
             ->where('year', $year)
             ->groupBy(DB::raw('MONTH(payment_date)'))
@@ -492,7 +507,8 @@ class PaymentController extends Controller
             ->toArray();
 
         // Receita por tipo
-        $revenueByType = Payment::selectRaw('type, SUM(amount) as total')
+        $revenueByType = $baseQuery->clone()
+            ->selectRaw('type, SUM(amount) as total')
             ->where('status', 'paid')
             ->where('year', $year)
             ->groupBy('type')
@@ -500,7 +516,8 @@ class PaymentController extends Controller
             ->toArray();
 
         // Inadimplência por turma
-        $defaultersByClass = Payment::selectRaw('classes.name, COUNT(*) as count, SUM(payments.amount) as total')
+        $defaultersByClass = $baseQuery->clone()
+            ->selectRaw('classes.name, COUNT(*) as count, SUM(payments.amount) as total')
             ->join('enrollments', 'payments.enrollment_id', '=', 'enrollments.id')
             ->join('classes', 'enrollments.class_id', '=', 'classes.id')
             ->whereIn('payments.status', ['pending', 'overdue'])
@@ -509,9 +526,9 @@ class PaymentController extends Controller
             ->get();
 
         $stats = [
-            'total_year' => Payment::where('status', 'paid')->where('year', $year)->sum('amount'),
-            'total_pending' => Payment::whereIn('status', ['pending', 'overdue'])->sum('amount'),
-            'total_students_debt' => Payment::whereIn('status', ['pending', 'overdue'])
+            'total_year' => $baseQuery->clone()->where('status', 'paid')->where('year', $year)->sum('amount'),
+            'total_pending' => $baseQuery->clone()->whereIn('status', ['pending', 'overdue'])->sum('amount'),
+            'total_students_debt' => $baseQuery->clone()->whereIn('status', ['pending', 'overdue'])
                 ->distinct('student_id')->count('student_id'),
         ];
 
@@ -589,12 +606,15 @@ class PaymentController extends Controller
     public function withPenalties(Request $request)
     {
         $query = Payment::with(['student', 'enrollment.class'])
-            ->withPenalty()
-            ->orderBy('penalty', 'desc');
+            ->withPenalty();
+
+        $query = $this->scopePaymentsByUserRole($query);
 
         if ($request->filled('class_id')) {
             $query->whereHas('enrollment', fn($q) => $q->where('class_id', $request->class_id));
         }
+
+        $query->orderBy('penalty', 'desc');
 
         $payments = $query->paginate(20);
         $classes = \App\Models\ClassRoom::active()->orderBy('name')->get();
@@ -683,6 +703,37 @@ class PaymentController extends Controller
             'uniforme' => 'Uniforme',
             'outro' => 'Outro'
         ];
+    }
+
+    private function scopePaymentsByUserRole($query, ?\Illuminate\Contracts\Auth\Authenticatable $user = null): \Illuminate\Database\Eloquent\Builder
+    {
+        $user = $user ?? auth()->user();
+
+        if (!$user) {
+            return $query->whereRaw('0 = 1');
+        }
+
+        if ($user->hasRole('super_admin') || $user->hasRole('admin') || $user->hasRole('secretary')) {
+            return $query;
+        }
+
+        if ($user->hasRole('parent')) {
+            $studentIds = \App\Models\Student::whereHas('parents', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
+            })->pluck('id');
+
+            return $query->whereIn('student_id', $studentIds);
+        }
+
+        if ($user->hasRole('teacher')) {
+            $classIds = \App\Models\ClassRoom::where('teacher_id', $user->id)->pluck('id');
+
+            return $query->whereHas('enrollment', function ($q) use ($classIds) {
+                $q->whereIn('class_id', $classIds);
+            });
+        }
+
+        return $query->whereRaw('0 = 1');
     }
 
     // ========== WEBHOOKS ==========

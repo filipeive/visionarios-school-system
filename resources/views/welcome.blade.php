@@ -1080,7 +1080,7 @@
                         <li><a href="{{ route('login') }}"><i class="fas fa-right-to-bracket"></i>Entrar no Sistema</a></li>
                         <li><a href="{{ route('public.pre-enrollment') }}"><i class="fas fa-user-plus"></i>Pré-Matrícula</a></li>
                         <li><a href="{{ route('public.material-lists') }}"><i class="fas fa-book-open"></i>Listas de Material</a></li>
-                        <li><a href="{{ route('public.payment-check') }}"><i class="fas fa-receipt"></i>Verificar Pagamento</a></li>
+                        <li><a href="{{ route('login') }}"><i class="fas fa-receipt"></i>Verificar Pagamento</a></li>
                     </ul>
                 </div>
 
