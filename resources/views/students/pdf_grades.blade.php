@@ -4,48 +4,52 @@
     <meta charset="UTF-8">
     <title>Boletim Escolar — {{ $student->full_name }}</title>
     <style>
+        @page {
+            margin: 10mm 8mm 10mm 8mm;
+        }
         body {
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'DejaVu Sans', Helvetica, Arial, sans-serif;
             color: #333333;
-            font-size: 11px;
-            line-height: 1.4;
+            font-size: 10px;
+            line-height: 1.3;
             margin: 0;
             padding: 0;
         }
         .header-container {
             border-bottom: 2px solid #1b5e20;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            padding-bottom: 8px;
+            margin-bottom: 15px;
         }
         .school-name {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: bold;
             color: #1b5e20;
             text-transform: uppercase;
         }
         .school-subtitle {
-            font-size: 10px;
+            font-size: 9px;
             color: #666;
             margin-top: 2px;
         }
         .bulletin-title {
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
             text-transform: uppercase;
-            margin: 15px 0;
+            margin: 12px 0;
             color: #111;
             letter-spacing: 1px;
         }
         .student-info-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             background-color: #f9f9f9;
         }
         .student-info-table td {
-            padding: 6px 10px;
+            padding: 5px 8px;
             border: 1px solid #e2e8f0;
+            font-size: 10px;
         }
         .info-label {
             font-weight: bold;
@@ -58,15 +62,16 @@
         .grades-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
+            table-layout: fixed;
         }
         .grades-table th {
             background-color: #1b5e20;
             color: #ffffff;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 9px;
-            padding: 8px 6px;
+            font-size: 8px;
+            padding: 6px 4px;
             border: 1px solid #1b5e20;
             text-align: center;
         }
@@ -74,9 +79,10 @@
             text-align: left;
         }
         .grades-table td {
-            padding: 8px 6px;
+            padding: 5px 4px;
             border: 1px solid #cbd5e1;
             text-align: center;
+            font-size: 9px;
         }
         .grade-value {
             font-weight: bold;
@@ -89,9 +95,9 @@
         }
         .badge {
             display: inline-block;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 9px;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 8px;
             font-weight: bold;
         }
         .badge-success {
@@ -107,26 +113,27 @@
             color: #854d0e;
         }
         .signatures-container {
-            margin-top: 50px;
+            margin-top: 35px;
             width: 100%;
         }
         .signature-box {
             width: 45%;
             display: inline-block;
             text-align: center;
+            font-size: 9px;
         }
         .signature-line {
             border-top: 1px solid #000;
             width: 80%;
-            margin: 40px auto 5px;
+            margin: 30px auto 5px;
         }
         .footer-text {
             text-align: center;
-            font-size: 9px;
+            font-size: 8px;
             color: #718096;
-            margin-top: 40px;
+            margin-top: 30px;
             border-top: 1px solid #e2e8f0;
-            padding-top: 8px;
+            padding-top: 6px;
         }
     </style>
 </head>

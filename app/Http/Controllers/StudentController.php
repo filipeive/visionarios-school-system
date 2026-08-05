@@ -678,7 +678,11 @@ class StudentController extends Controller
             ];
         }
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('students.pdf_grades', compact('student', 'currentEnrollment', 'matrix', 'term'));
+        $paper = strtolower($request->get('paper', 'a4'));
+        $orientation = strtolower($request->get('orientation', 'portrait'));
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('students.pdf_grades', compact('student', 'currentEnrollment', 'matrix', 'term', 'paper', 'orientation'))
+            ->setPaper($paper, $orientation);
         $filename = "boletim_{$student->student_number}_" . ($term === 'annual' ? 'anual' : "t{$term}") . ".pdf";
         return $pdf->download($filename);
     }

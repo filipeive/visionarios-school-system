@@ -80,6 +80,7 @@ class PautaController extends Controller
         $type = $request->get('type', 'trimestral');
         $term = (int) $request->get('term', 1);
         $year = (int) $request->get('year', current_school_year());
+        $paperInput = strtolower($request->get('paper', 'auto'));
 
         $data = $this->buildPautaData($class, $term, $year, $type);
         $data['class'] = $class;
@@ -87,10 +88,22 @@ class PautaController extends Controller
         $data['term'] = $term;
         $data['year'] = $year;
 
-        $pdf = Pdf::loadView('pautas.pdf', $data)
-            ->setPaper('a4', 'landscape');
+        $subjectCount = count($data['subjects']);
 
-        $filename = "Pauta_{$type}_Turma_{$class->name}_{$year}.pdf";
+        if ($paperInput === 'a3') {
+            $paper = 'a3';
+        } elseif ($paperInput === 'a4') {
+            $paper = 'a4';
+        } else {
+            $paper = ($subjectCount > 6 && $type === 'trimestral') || ($subjectCount > 9) ? 'a3' : 'a4';
+        }
+
+        $data['paper'] = $paper;
+
+        $pdf = Pdf::loadView('pautas.pdf', $data)
+            ->setPaper($paper, 'landscape');
+
+        $filename = "Pauta_{$type}_Turma_{$class->name}_{$year}_{$paper}.pdf";
 
         return $pdf->download($filename);
     }
