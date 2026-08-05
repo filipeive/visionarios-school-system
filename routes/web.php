@@ -738,6 +738,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 ->group(function () {
                     Route::get('/', 'index')->name('index');
                     Route::patch('/', 'update')->name('update');
+                    Route::post('/permissions', 'updatePermissions')->name('permissions.update');
                 });
 
             // Gestão de Licença

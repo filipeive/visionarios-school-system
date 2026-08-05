@@ -232,22 +232,66 @@ class Grade extends Model
     }
 
     /**
-     * MF - Média Final (igual à MFD, usado para oboletim)
+     * MFD com ponderação de Exame Final (ACF) se ativado nas configurações
+     */
+    public static function calculateMFDWithExam(int $studentId, ?int $subjectId, int $classId, int $year): ?float
+    {
+        $mfd = self::calculateMFD($studentId, $subjectId, $classId, $year);
+        if ($mfd === null) {
+            return null;
+        }
+
+        $includeAcf = setting('include_acf_in_mfd', '0') == '1';
+        if (! $includeAcf) {
+            return $mfd;
+        }
+
+        $classRoom = ClassRoom::find($classId);
+        $examLevels = array_map('trim', explode(',', setting('exam_class_levels', '6,7,10,12')));
+
+        if ($classRoom && ! in_array((string)$classRoom->grade_level, $examLevels)) {
+            return $mfd;
+        }
+
+        $acfQuery = self::where('student_id', $studentId)
+            ->where('class_id', $classId)
+            ->where('year', $year)
+            ->where('assessment_type', self::TYPE_ACF);
+
+        if ($subjectId) {
+            $acfQuery->where('subject_id', $subjectId);
+        }
+
+        $acf = $acfQuery->avg('grade');
+
+        if ($acf === null) {
+            return $mfd;
+        }
+
+        $acfWeight = (int) setting('acf_weight_in_mfd', 1);
+        $termsWeight = (int) setting('terms_weight_in_mfd', 3);
+        $totalWeight = $acfWeight + $termsWeight;
+
+        return round(($termsWeight * $mfd + $acfWeight * $acf) / $totalWeight, 1);
+    }
+
+    /**
+     * MF - Média Final (ponderada com exame se aplicável)
      */
     public static function calculateMF(int $studentId, ?int $subjectId, int $classId, int $year): ?float
     {
-        return self::calculateMFD($studentId, $subjectId, $classId, $year);
+        return self::calculateMFDWithExam($studentId, $subjectId, $classId, $year);
     }
 
     /**
      * Verificar se o aluno está aprovado numa disciplina
-     * Aprovado se MFD >= 10
      */
     public static function isApproved(int $studentId, int $subjectId, int $classId, int $year): bool
     {
-        $mfd = self::calculateMFD($studentId, $subjectId, $classId, $year);
+        $mf = self::calculateMF($studentId, $subjectId, $classId, $year);
+        $passingGrade = (float) setting('passing_grade', 10);
 
-        return $mfd !== null && $mfd >= 10;
+        return $mf !== null && $mf >= $passingGrade;
     }
 
     /**

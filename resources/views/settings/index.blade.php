@@ -85,7 +85,21 @@
                     <button class="nav-link text-xs md:text-sm font-semibold rounded-xl px-4 py-3 flex items-center gap-2 {{ $activeTab === 'system' ? 'active bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200/60' }}"
                         id="system-tab" data-bs-toggle="pill" data-bs-target="#tab-system" type="button" role="tab">
                         <i class="fas fa-server text-sm"></i>
-                        <span>6. Sistema & Manutenção</span>
+                        <span>6. Sistema</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link text-xs md:text-sm font-semibold rounded-xl px-4 py-3 flex items-center gap-2 {{ $activeTab === 'avaliacao' ? 'active bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200/60' }}"
+                        id="avaliacao-tab" data-bs-toggle="pill" data-bs-target="#tab-avaliacao" type="button" role="tab">
+                        <i class="fas fa-calculator text-sm"></i>
+                        <span>7. Avaliação & Notas</span>
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link text-xs md:text-sm font-semibold rounded-xl px-4 py-3 flex items-center gap-2 {{ $activeTab === 'acesso' ? 'active bg-emerald-600 text-white shadow-sm' : 'text-slate-600 hover:bg-slate-200/60' }}"
+                        id="acesso-tab" data-bs-toggle="pill" data-bs-target="#tab-acesso" type="button" role="tab">
+                        <i class="fas fa-user-shield text-sm"></i>
+                        <span>8. Controle de Acesso (RBAC)</span>
                     </button>
                 </li>
             </ul>
@@ -578,9 +592,90 @@
                     </div>
                 </div>
 
+                <!-- TAB 7: AVALIAÇÃO & NOTAS -->
+                <div class="tab-pane fade {{ $activeTab === 'avaliacao' ? 'show active' : '' }}" id="tab-avaliacao" role="tabpanel">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800">Cálculo de Médias, Exames e Pesos Curriculares</h3>
+                            <p class="text-xs text-slate-500">Defina o método de cálculo da Média Geral, inclusão de exames (ACF) e pesos das avaliações.</p>
+                        </div>
+                        <span class="badge bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-xs font-semibold">Regras Pedagógicas</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <h4 class="text-xs font-bold uppercase text-slate-700 mb-3 flex items-center gap-2">
+                                <i class="fas fa-calculator text-indigo-600"></i> Método de Média Geral na Pauta
+                            </h4>
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Divisor da Média Geral na Pauta Trimestral</label>
+                                <select name="settings[average_method]" class="form-select rounded-xl border-slate-200 p-3 text-sm font-semibold">
+                                    <option value="all_subjects" {{ setting('average_method', 'all_subjects') == 'all_subjects' ? 'selected' : '' }}>
+                                        Dividir pelo Total de Disciplinas da Turma (Recomendado — Ex: 9.6 / 5 disciplinas = 1.9)
+                                    </option>
+                                    <option value="only_graded" {{ setting('average_method') == 'only_graded' ? 'selected' : '' }}>
+                                        Dividir Apenas pelas Disciplinas com Nota Lançada (Ex: 9.6 / 1 = 9.6)
+                                    </option>
+                                </select>
+                                <p class="text-[11px] text-slate-500 mt-2">
+                                    <i class="fas fa-info-circle me-1"></i> Indica ao sistema como calcular a Média Geral quando o aluno ainda não tem notas em todas as disciplinas da turma.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                            <h4 class="text-xs font-bold uppercase text-slate-700 mb-3 flex items-center gap-2">
+                                <i class="fas fa-file-signature text-indigo-600"></i> Configuração de Exames Finais (ACF)
+                            </h4>
+                            <div class="mb-4">
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Incluir Exame Final (ACF) na Média Final (MFD)?</label>
+                                <select name="settings[include_acf_in_mfd]" class="form-select rounded-xl border-slate-200 p-3 text-sm">
+                                    <option value="0" {{ setting('include_acf_in_mfd', '0') == '0' ? 'selected' : '' }}>Não (MFD = Média dos 3 Trimestres)</option>
+                                    <option value="1" {{ setting('include_acf_in_mfd') == '1' ? 'selected' : '' }}>Sim (Ponderar Nota do Exame no Resultado Final)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Classes com Exame Obrigatório</label>
+                                <input type="text" name="settings[exam_class_levels]" class="form-control rounded-xl border-slate-200 p-3 text-sm"
+                                    value="{{ setting('exam_class_levels', '6,7,10,12') }}" placeholder="Ex: 6,7,10,12">
+                                <p class="text-[11px] text-slate-500 mt-1">Separe por vírgulas os números das classes que realizam exame de fim de ciclo.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ponderações e Pesos -->
+                    <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200 mb-6">
+                        <h4 class="text-xs font-bold uppercase text-slate-700 mb-4 flex items-center gap-2">
+                            <i class="fas fa-balance-scale text-indigo-600"></i> Pesos e Ponderações das Avaliações
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="bg-white p-4 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Peso MACS no MT</label>
+                                <input type="number" name="settings[macs_weight]" class="form-control text-sm rounded-lg" value="{{ setting('macs_weight', 2) }}" min="1" max="10">
+                                <small class="text-[10px] text-slate-400">Avaliações Contínuas</small>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Peso ACP no MT</label>
+                                <input type="number" name="settings[acp_weight_in_mt]" class="form-control text-sm rounded-lg" value="{{ setting('acp_weight_in_mt', 1) }}" min="1" max="10">
+                                <small class="text-[10px] text-slate-400">Prova Trimestral</small>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Peso ACF na MFD</label>
+                                <input type="number" name="settings[acf_weight_in_mfd]" class="form-control text-sm rounded-lg" value="{{ setting('acf_weight_in_mfd', 1) }}" min="1" max="10">
+                                <small class="text-[10px] text-slate-400">Exame Final</small>
+                            </div>
+                            <div class="bg-white p-4 rounded-xl border border-slate-200">
+                                <label class="block text-xs font-bold text-slate-700 mb-1">Peso Trimestres na MFD</label>
+                                <input type="number" name="settings[terms_weight_in_mfd]" class="form-control text-sm rounded-lg" value="{{ setting('terms_weight_in_mfd', 3) }}" min="1" max="10">
+                                <small class="text-[10px] text-slate-400">Componente Anual</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- Botão Fixo de Gravação -->
+            <!-- Botão Fixo de Gravação das Definições Gerais -->
             <div class="border-t border-slate-100 bg-slate-50/80 p-4 md:p-6 flex items-center justify-between">
                 <span class="text-xs text-slate-500 font-medium">As alterações serão aplicadas imediatamente a todas as instâncias ativas.</span>
                 <button type="submit" class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-6 py-3 rounded-2xl shadow-lg shadow-emerald-600/20 transition hover:-translate-y-0.5">
@@ -589,6 +684,80 @@
                 </button>
             </div>
         </form>
+
+        <!-- TAB 8: CONTROLE DE ACESSO (RBAC MATRIX) -->
+        <div class="tab-pane fade {{ $activeTab === 'acesso' ? 'show active' : '' }}" id="tab-acesso" role="tabpanel">
+            <form action="{{ route('admin.settings.permissions.update') }}" method="POST">
+                @csrf
+                <div class="p-6 md:p-8">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-6">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800">Matriz de Permissões por Perfil de Utilizador (RBAC)</h3>
+                            <p class="text-xs text-slate-500">Defina quais perfis do sistema (Secretária, Professor, Pedagógico, etc.) têm permissão para aceder e gerir cada módulo.</p>
+                        </div>
+                        <span class="badge bg-amber-50 text-amber-700 px-3 py-1.5 rounded-full text-xs font-semibold">Segurança & Menus</span>
+                    </div>
+
+                    @if(isset($roles) && isset($permissions))
+                        <div class="overflow-x-auto rounded-2xl border border-slate-200 shadow-sm mb-6">
+                            <table class="w-full text-left border-collapse bg-white">
+                                <thead>
+                                    <tr class="bg-slate-900 text-white text-xs uppercase tracking-wider">
+                                        <th class="p-4 font-bold border-b border-slate-800 min-w-[260px]">Módulo / Permissão</th>
+                                        @foreach($roles as $role)
+                                            <th class="p-4 text-center font-bold border-b border-slate-800 text-amber-400">
+                                                {{ ucfirst(str_replace('_', ' ', $role->name)) }}
+                                            </th>
+                                        @endforeach
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-xs">
+                                    @foreach($permissions as $groupName => $groupPermissions)
+                                        <tr class="bg-slate-100/80 font-extrabold text-slate-700 uppercase tracking-wider">
+                                            <td colspan="{{ count($roles) + 1 }}" class="p-3 px-4 text-slate-900 bg-slate-200/60 border-y border-slate-300">
+                                                <i class="fas fa-folder-open text-emerald-600 me-2"></i> {{ $groupName }}
+                                            </td>
+                                        </tr>
+                                        @foreach($groupPermissions as $perm)
+                                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                                <td class="p-3 px-4 font-medium text-slate-800">
+                                                    <span class="block font-semibold text-slate-800">{{ $perm->name }}</span>
+                                                </td>
+                                                @foreach($roles as $role)
+                                                    <td class="p-3 text-center border-l border-slate-100">
+                                                        <label class="inline-flex items-center justify-center p-1 cursor-pointer">
+                                                            <input type="checkbox"
+                                                                name="role_permissions[{{ $role->id }}][{{ $perm->name }}]"
+                                                                value="1"
+                                                                class="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                                                                {{ $role->hasPermissionTo($perm->name) ? 'checked' : '' }}>
+                                                        </label>
+                                                    </td>
+                                                @endforeach
+                                            </tr>
+                                        @endforeach
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="p-8 text-center text-slate-500">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2 text-amber-500"></i>
+                            <p>Não foi possível carregar a matriz de permissões.</p>
+                        </div>
+                    @endif
+                </div>
+
+                <div class="border-t border-slate-100 bg-slate-50/80 p-4 md:p-6 flex items-center justify-between">
+                    <span class="text-xs text-slate-500 font-medium">As alterações nos acessos têm efeito imediato após o utilizador recarregar a página.</span>
+                    <button type="submit" class="inline-flex items-center gap-2 bg-amber-600 hover:bg-amber-700 text-white font-bold text-sm px-6 py-3 rounded-2xl shadow-lg shadow-amber-600/20 transition hover:-translate-y-0.5">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Guardar Matriz de Permissões (RBAC)</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
     </div>
 </div>
 @endsection

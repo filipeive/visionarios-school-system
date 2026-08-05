@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class SettingsController extends Controller
 {
@@ -41,7 +43,27 @@ class SettingsController extends Controller
             $logs = array_slice(array_reverse($lines), 0, 100);
         }
 
-        return view('settings.index', compact('settings', 'backups', 'logs'));
+        // Carregar Roles e Permissões para matriz de Controlo de Acesso (RBAC)
+        $roles = Role::where('name', '!=', 'super_admin')->with('permissions')->get();
+        $permissions = Permission::all()->groupBy(function ($permission) {
+            $name = $permission->name;
+            if (str_contains($name, 'student')) return 'Alunos & Estudantes';
+            if (str_contains($name, 'teacher')) return 'Professores & Docentes';
+            if (str_contains($name, 'class')) return 'Turmas & Salas';
+            if (str_contains($name, 'subject')) return 'Disciplinas & Currículo';
+            if (str_contains($name, 'enrollment')) return 'Matrículas & Inscrições';
+            if (str_contains($name, 'attendance')) return 'Presenças & Assiduidade';
+            if (str_contains($name, 'grade')) return 'Notas & Avaliação';
+            if (str_contains($name, 'payment') || str_contains($name, 'expense') || str_contains($name, 'financial')) return 'Finanças & Pagamentos';
+            if (str_contains($name, 'report')) return 'Relatórios & Estatísticas';
+            if (str_contains($name, 'user') || str_contains($name, 'setting') || str_contains($name, 'log')) return 'Administração & Sistema';
+            if (str_contains($name, 'communication') || str_contains($name, 'notification')) return 'Comunicação';
+            if (str_contains($name, 'leave')) return 'Licenças de Staff';
+            if (str_contains($name, 'gatekeeper')) return 'Portaria & Segurança';
+            return 'Outras Funcionalidades';
+        });
+
+        return view('settings.index', compact('settings', 'backups', 'logs', 'roles', 'permissions'));
     }
 
     /**
@@ -155,5 +177,28 @@ class SettingsController extends Controller
     public function logs()
     {
         return redirect()->route('admin.settings.index', ['tab' => 'system']);
+    }
+
+    /**
+     * Atualizar matriz de permissões por perfil (RBAC).
+     */
+    public function updatePermissions(Request $request)
+    {
+        $request->validate([
+            'role_permissions' => 'nullable|array',
+        ]);
+
+        $roles = Role::where('name', '!=', 'super_admin')->get();
+        $permissionsInput = $request->input('role_permissions', []);
+
+        foreach ($roles as $role) {
+            $rolePermissions = isset($permissionsInput[$role->id]) ? array_keys($permissionsInput[$role->id]) : [];
+            $role->syncPermissions($rolePermissions);
+        }
+
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+
+        return redirect()->route('admin.settings.index', ['tab' => 'acesso'])
+            ->with('success', 'Matriz de permissões e controlo de acesso atualizada com sucesso!');
     }
 }

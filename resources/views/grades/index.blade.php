@@ -192,9 +192,19 @@
 
                                     <td class="fw-bold bg-light text-primary">
                                         @php
-                                            $overall = !empty($allMts) ? round(array_sum($allMts) / count($allMts), 1) : 0;
+                                            $totalSubjects = count($subjects);
+                                            $gradedCount = count($allMts);
+                                            $avgMethod = setting('average_method', 'all_subjects');
+                                            if ($avgMethod === 'all_subjects') {
+                                                $overall = $gradedCount > 0 ? round(array_sum($allMts) / $totalSubjects, 1) : 0;
+                                            } else {
+                                                $overall = $gradedCount > 0 ? round(array_sum($allMts) / $gradedCount, 1) : 0;
+                                            }
                                         @endphp
                                         {{ $overall > 0 ? number_format($overall, 1) : '-' }}
+                                        @if($gradedCount > 0 && $gradedCount < $totalSubjects)
+                                            <br><small class="text-muted fw-normal" style="font-size:0.65rem;">({{ $gradedCount }}/{{ $totalSubjects }})</small>
+                                        @endif
                                     </td>
                                 </tr>
                             @empty
