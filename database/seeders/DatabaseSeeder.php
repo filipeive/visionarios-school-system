@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             SuperAdminSeeder::class,
             SettingSeeder::class,
+            FinancialCategorySeeder::class,
         ]);
 
         // Dados Demo (Apenas em desenvolvimento/demonstração)
