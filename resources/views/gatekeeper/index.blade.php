@@ -53,6 +53,54 @@
         0%, 100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.5); }
         50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
     }
+
+    /* Trail Timeline */
+    .trail-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    .trail-timeline::before {
+        content: '';
+        position: absolute;
+        left: 9px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, var(--primary), #e2e8f0);
+    }
+    .trail-item {
+        position: relative;
+        padding-bottom: 1.25rem;
+        padding-left: 1rem;
+    }
+    .trail-item:last-child { padding-bottom: 0; }
+    .trail-dot {
+        position: absolute;
+        left: -1.65rem;
+        top: 2px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.6rem;
+        color: white;
+        border: 2px solid white;
+        box-shadow: 0 0 0 2px rgba(0,0,0,0.05);
+    }
+    .trail-dot.entry { background: #10b981; }
+    .trail-dot.exit { background: #ef4444; }
+    .trail-date-separator {
+        font-weight: 700;
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        color: var(--primary);
+        letter-spacing: 0.05em;
+        padding: 0.5rem 0 0.25rem 0;
+        border-bottom: 1px dashed #e2e8f0;
+        margin-bottom: 0.75rem;
+    }
 </style>
 @endpush
 
@@ -60,10 +108,6 @@
 <div class="row">
     <div class="col-12">
         <!-- Stat KPI Cards -->
-        @php
-            $entriesCount = $todayLogs->filter(fn($l) => str_contains($l->notes ?? '', 'Entrada'))->count();
-            $exitsCount = $todayLogs->filter(fn($l) => str_contains($l->notes ?? '', 'Saída'))->count();
-        @endphp
         <div class="row g-3 mb-4">
             <div class="col-md-3">
                 <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-primary">
@@ -72,8 +116,8 @@
                             <i class="fas fa-clock-rotate-left fa-lg"></i>
                         </div>
                         <div>
-                            <div class="text-muted small text-uppercase font-weight-bold">Passagens Hoje</div>
-                            <h4 class="mb-0 text-primary font-weight-bold">{{ $todayLogs->count() }}</h4>
+                            <div class="text-muted small text-uppercase font-weight-bold">Passagens</div>
+                            <h4 class="mb-0 text-primary font-weight-bold">{{ $stats['total'] }}</h4>
                         </div>
                     </div>
                 </div>
@@ -86,7 +130,7 @@
                         </div>
                         <div>
                             <div class="text-muted small text-uppercase font-weight-bold">Entradas</div>
-                            <h4 class="mb-0 text-success font-weight-bold">{{ $entriesCount }}</h4>
+                            <h4 class="mb-0 text-success font-weight-bold">{{ $stats['entries'] }}</h4>
                         </div>
                     </div>
                 </div>
@@ -99,7 +143,7 @@
                         </div>
                         <div>
                             <div class="text-muted small text-uppercase font-weight-bold">Saídas</div>
-                            <h4 class="mb-0 text-danger font-weight-bold">{{ $exitsCount }}</h4>
+                            <h4 class="mb-0 text-danger font-weight-bold">{{ $stats['exits'] }}</h4>
                         </div>
                     </div>
                 </div>
@@ -123,7 +167,7 @@
 
         <div class="row g-4">
             <!-- Coluna Esquerda: Leitor / Identificação -->
-            <div class="col-lg-6">
+            <div class="col-lg-5">
                 <div class="school-card mb-4">
                     <div class="school-card-header d-flex justify-content-between align-items-center">
                         <div>
@@ -230,8 +274,8 @@
                                     </div>
                                 </div>
 
-                                <!-- Ações -->
-                                <div class="d-flex flex-wrap gap-2">
+                                <!-- Ações de Entrada / Saída -->
+                                <div class="d-flex flex-wrap gap-2 mb-3">
                                     <form action="{{ route('gatekeeper.log', $searchedStudent) }}" method="POST" class="d-inline">
                                         @csrf
                                         <input type="hidden" name="action" value="entry">
@@ -255,7 +299,41 @@
                                         </a>
                                     @endif
                                 </div>
+
+                                <!-- Botão para Ver Rastreio Completo -->
+                                <button type="button" class="btn btn-outline-primary w-100 rounded-xl"
+                                    data-bs-toggle="modal" data-bs-target="#trailModal"
+                                    onclick="loadTrail({{ $searchedStudent->id }})">
+                                    <i class="fas fa-route me-2"></i> Ver Rastreio Completo (Trail)
+                                </button>
                             </div>
+
+                            <!-- Mini Trail (Hoje) -->
+                            @if($studentTrail && $studentTrail->count() > 0)
+                                <div class="mt-3">
+                                    <h6 class="fw-bold text-slate-700 text-xs text-uppercase mb-2">
+                                        <i class="fas fa-timeline me-1"></i> Movimentações Recentes
+                                    </h6>
+                                    <div class="trail-timeline">
+                                        @foreach($studentTrail->take(6) as $trail)
+                                            <div class="trail-item">
+                                                <div class="trail-dot {{ $trail->action }}">
+                                                    <i class="fas fa-{{ $trail->isEntry() ? 'arrow-right' : 'arrow-left' }}"></i>
+                                                </div>
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <span class="fw-bold text-{{ $trail->isEntry() ? 'success' : 'danger' }}">{{ $trail->action_label }}</span>
+                                                        <span class="text-muted text-xs ms-2">{{ $trail->method_label }}</span>
+                                                    </div>
+                                                    <small class="text-muted fw-bold font-monospace">
+                                                        {{ $trail->logged_at->format('d/m H:i') }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                         @else
                             <div class="text-center py-5 text-muted">
                                 <i class="fas fa-shield-halved fa-3x mb-3 text-slate-300"></i>
@@ -268,40 +346,70 @@
             </div>
 
             <!-- Coluna Direita: Histórico do Dia -->
-            <div class="col-lg-6">
+            <div class="col-lg-7">
+                <!-- Filtro de Data -->
+                <div class="school-card mb-3">
+                    <div class="school-card-body py-2">
+                        <form action="{{ route('gatekeeper.index') }}" method="GET" class="d-flex align-items-center gap-3">
+                            @if(request('search'))
+                                <input type="hidden" name="search" value="{{ request('search') }}">
+                            @endif
+                            <label class="form-label mb-0 text-xs font-bold text-slate-700 text-uppercase text-nowrap">
+                                <i class="fas fa-calendar-day me-1"></i> Data:
+                            </label>
+                            <input type="date" name="date" class="form-control form-control-sm rounded-xl border-slate-200" style="max-width: 180px;"
+                                value="{{ $filterDate }}" onchange="this.form.submit()">
+                            @if($filterDate !== now()->toDateString())
+                                <a href="{{ route('gatekeeper.index', request('search') ? ['search' => request('search')] : []) }}" class="btn btn-sm btn-outline-primary rounded-xl text-nowrap">
+                                    <i class="fas fa-calendar-check me-1"></i> Hoje
+                                </a>
+                            @endif
+                        </form>
+                    </div>
+                </div>
+
                 <div class="school-table-container">
                     <div class="school-table-header">
                         <h3 class="school-table-title">
                             <i class="fas fa-history text-primary me-2"></i>
-                            Histórico de Acessos Hoje
+                            Registo de Acessos
+                            @if($filterDate === now()->toDateString())
+                                <span class="badge bg-success ms-2" style="font-size: 0.5em;"><span class="live-indicator"></span> Hoje</span>
+                            @else
+                                <span class="badge bg-secondary ms-2" style="font-size: 0.5em;">{{ \Carbon\Carbon::parse($filterDate)->format('d/m/Y') }}</span>
+                            @endif
                         </h3>
-                        <span class="badge bg-primary" style="font-size: 0.55em;">{{ $todayLogs->count() }} passagens</span>
+                        <span class="badge bg-primary" style="font-size: 0.55em;">{{ $todayLogs->total() }} registos</span>
                     </div>
 
                     <div class="table-responsive">
                         <table class="table table-school">
                             <thead>
                                 <tr>
-                                    <th>Hora</th>
+                                    <th style="width: 70px;">Hora</th>
                                     <th>Aluno</th>
                                     <th>Turma</th>
                                     <th>Tipo</th>
                                     <th>Método</th>
+                                    <th>Operador</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($todayLogs as $log)
-                                    @php
-                                        $isEntry = str_contains($log->notes ?? '', 'Entrada');
-                                        $isQr = str_contains($log->notes ?? '', 'QR');
-                                    @endphp
                                     <tr>
                                         <td>
-                                            <strong class="text-primary">{{ $log->updated_at->format('H:i') }}</strong>
+                                            <strong class="text-primary font-monospace">{{ $log->logged_at->format('H:i') }}</strong>
                                         </td>
                                         <td>
-                                            <div class="fw-bold text-slate-800">{{ $log->student->full_name ?? 'N/A' }}</div>
-                                            <small class="text-muted"><code>{{ $log->student->student_number ?? '' }}</code></small>
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-{{ $log->isEntry() ? 'success' : 'danger' }}-subtle text-{{ $log->isEntry() ? 'success' : 'danger' }} fw-bold me-2 d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; font-size: 11px;">
+                                                    {{ strtoupper(substr($log->student->first_name ?? 'N', 0, 1) . substr($log->student->last_name ?? 'A', 0, 1)) }}
+                                                </div>
+                                                <div>
+                                                    <div class="fw-bold text-slate-800" style="font-size: 0.85rem;">{{ $log->student->full_name ?? 'N/A' }}</div>
+                                                    <small class="text-muted"><code>{{ $log->student->student_number ?? '' }}</code></small>
+                                                </div>
+                                            </div>
                                         </td>
                                         <td>
                                             <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
@@ -309,7 +417,7 @@
                                             </span>
                                         </td>
                                         <td>
-                                            @if($isEntry)
+                                            @if($log->isEntry())
                                                 <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
                                                     <i class="fas fa-arrow-right-to-bracket me-1"></i> Entrada
                                                 </span>
@@ -320,9 +428,13 @@
                                             @endif
                                         </td>
                                         <td>
-                                            @if($isQr)
+                                            @if($log->method === 'qr')
                                                 <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1">
                                                     <i class="fas fa-qrcode me-1"></i> QR
+                                                </span>
+                                            @elseif($log->method === 'barcode' || $log->method === 'usb')
+                                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1">
+                                                    <i class="fas fa-barcode me-1"></i> USB
                                                 </span>
                                             @else
                                                 <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">
@@ -330,19 +442,28 @@
                                                 </span>
                                             @endif
                                         </td>
+                                        <td>
+                                            <small class="text-muted">{{ $log->loggedBy->name ?? 'Sistema' }}</small>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center py-5 text-muted">
+                                        <td colspan="6" class="text-center py-5 text-muted">
                                             <i class="fas fa-history fa-3x mb-3 text-slate-300"></i>
-                                            <h5>Nenhuma passagem hoje</h5>
-                                            <p class="text-xs mb-0">Nenhum registo de entrada ou saída efetuado até o momento.</p>
+                                            <h5>Nenhuma passagem registada</h5>
+                                            <p class="text-xs mb-0">Nenhum registo de entrada ou saída para esta data.</p>
                                         </td>
                                     </tr>
                                 @endforelse
                             </tbody>
                         </table>
                     </div>
+
+                    @if($todayLogs->hasPages())
+                        <div class="p-3 border-top">
+                            {{ $todayLogs->appends(request()->query())->links() }}
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -354,6 +475,35 @@
     <div class="display-1 text-success mb-3"><i class="fas fa-check-circle"></i></div>
     <h3 class="fw-bold text-white mb-2">QR Code Lido com Sucesso!</h3>
     <p class="text-light" id="scanOverlayText">A processar registo...</p>
+</div>
+
+<!-- Trail Modal (Rastreio Completo) -->
+<div class="modal fade" id="trailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-light py-3 border-bottom">
+                <h5 class="modal-title fw-bold text-slate-800">
+                    <i class="fas fa-route me-2 text-primary"></i>
+                    Rastreio Completo — <span id="trailStudentName">Aluno</span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="trailModalBody">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="text-muted mt-2">A carregar rastreio...</p>
+                </div>
+            </div>
+            <div class="modal-footer bg-light py-2 px-4 d-flex justify-content-between">
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-xl trail-days-btn" data-days="7" onclick="reloadTrail(7)">7 dias</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-xl trail-days-btn" data-days="15" onclick="reloadTrail(15)">15 dias</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-xl trail-days-btn" data-days="30" onclick="reloadTrail(30)">30 dias</button>
+                </div>
+                <button type="button" class="btn btn-outline-secondary btn-sm rounded-xl" data-bs-dismiss="modal">Fechar</button>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
 
@@ -386,6 +536,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 let html5QrCode = null;
 let cameraRunning = false;
+let currentTrailStudentId = null;
 
 function switchMode(mode) {
     document.getElementById('btnModeBarcode').classList.toggle('btn-primary-school', mode === 'barcode');
@@ -448,6 +599,91 @@ function showScanOverlay(data) {
         overlay.classList.add('show');
         setTimeout(() => overlay.classList.remove('show'), 2500);
     }
+}
+
+// ── Trail Modal Logic ──────────────────────────────────────
+function loadTrail(studentId, days = 7) {
+    currentTrailStudentId = studentId;
+    const body = document.getElementById('trailModalBody');
+    body.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="text-muted mt-2">A carregar rastreio...</p></div>';
+
+    fetch(`/gatekeeper/${studentId}/history?days=${days}`)
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('trailStudentName').textContent = data.student.full_name + ' (' + data.student.student_number + ')';
+            renderTrail(data.logs);
+        })
+        .catch(err => {
+            body.innerHTML = '<div class="text-center py-4 text-danger"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><p>Erro ao carregar rastreio.</p></div>';
+        });
+}
+
+function reloadTrail(days) {
+    if (currentTrailStudentId) {
+        document.querySelectorAll('.trail-days-btn').forEach(b => b.classList.remove('active'));
+        document.querySelector(`.trail-days-btn[data-days="${days}"]`)?.classList.add('active');
+        loadTrail(currentTrailStudentId, days);
+    }
+}
+
+function renderTrail(logs) {
+    const body = document.getElementById('trailModalBody');
+
+    if (!logs || logs.length === 0) {
+        body.innerHTML = '<div class="text-center py-4 text-muted"><i class="fas fa-route fa-3x mb-3 text-slate-300"></i><h5>Sem movimentações</h5><p class="text-xs">Nenhum registo de entrada ou saída encontrado para o período seleccionado.</p></div>';
+        return;
+    }
+
+    let html = '<div class="trail-timeline">';
+    let lastDate = '';
+
+    logs.forEach(log => {
+        // Date separator
+        if (log.date !== lastDate) {
+            html += `<div class="trail-date-separator"><i class="fas fa-calendar-day me-1"></i> ${log.date}</div>`;
+            lastDate = log.date;
+        }
+
+        const isEntry = log.action === 'entry';
+        const dotClass = isEntry ? 'entry' : 'exit';
+        const icon = isEntry ? 'fa-arrow-right' : 'fa-arrow-left';
+        const color = isEntry ? 'success' : 'danger';
+        const badgeClass = isEntry
+            ? 'bg-success-subtle text-success border border-success-subtle'
+            : 'bg-danger-subtle text-danger border border-danger-subtle';
+
+        html += `
+            <div class="trail-item">
+                <div class="trail-dot ${dotClass}"><i class="fas ${icon}"></i></div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="badge ${badgeClass} rounded-pill px-2 py-1 me-2">${log.label}</span>
+                        <span class="text-muted text-xs">${log.method}</span>
+                        <span class="text-muted text-xs ms-2">• Turma: ${log.class}</span>
+                        <span class="text-muted text-xs ms-2">• Por: ${log.logged_by}</span>
+                    </div>
+                    <span class="fw-bold font-monospace text-${color}" style="font-size: 0.85rem;">${log.time}</span>
+                </div>
+            </div>
+        `;
+    });
+
+    html += '</div>';
+
+    // Summary
+    const entries = logs.filter(l => l.action === 'entry').length;
+    const exits = logs.filter(l => l.action === 'exit').length;
+    html += `
+        <div class="mt-3 p-2 bg-light rounded-xl border text-center">
+            <small class="text-muted">
+                <strong class="text-success">${entries}</strong> entradas •
+                <strong class="text-danger">${exits}</strong> saídas •
+                <strong class="text-primary">${logs.length}</strong> movimentações totais
+            </small>
+        </div>
+    `;
+
+    body.innerHTML = html;
 }
 </script>
 @endpush

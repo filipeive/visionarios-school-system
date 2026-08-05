@@ -103,6 +103,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/gatekeeper/{student}/log', [GateKeeperController::class, 'logAccess'])->name('gatekeeper.log');
     Route::get('/gatekeeper/{student}/qr', [GateKeeperController::class, 'generateQr'])->name('gatekeeper.qr');
     Route::get('/gatekeeper/{student}/card', [GateKeeperController::class, 'downloadCard'])->name('gatekeeper.card');
+    Route::get('/gatekeeper/{student}/history', [GateKeeperController::class, 'history'])->name('gatekeeper.history');
 
 
     /*

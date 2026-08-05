@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Student;
 use App\Models\Attendance;
+use App\Models\GateLog;
 use App\Models\ClassRoom;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,54 @@ class GateKeeperController extends Controller
         $lateThreshold = $this->getShiftLateTime($shift);
         return $currentTime > $lateThreshold ? 'late' : 'present';
     }
+
+    /**
+     * Create a GateLog entry for a student.
+     */
+    private function createGateLog(Student $student, string $action, string $method = 'manual'): GateLog
+    {
+        return GateLog::create([
+            'student_id' => $student->id,
+            'class_id'   => $student->currentEnrollment?->class_id,
+            'action'     => $action,
+            'logged_at'  => now(),
+            'method'     => $method,
+            'logged_by'  => auth()->id() ?? 1,
+            'notes'      => null,
+        ]);
+    }
+
+    /**
+     * Also sync the Attendance record (so presence tracking still works).
+     */
+    private function syncAttendance(Student $student, string $action, string $method): void
+    {
+        if (!$student->currentEnrollment) {
+            return;
+        }
+
+        $class      = $student->currentEnrollment->class;
+        $shift      = $class->shift ?? 'morning';
+        $status     = $this->determineAttendanceStatus($shift, now()->format('H:i'));
+        $shiftLabel = ClassRoom::SHIFT_LABELS[$shift] ?? 'Manhã';
+        $methodLabel = $method === 'qr' ? 'via QR' : 'na Portaria Digital';
+        $actionLabel = $action === 'entry' ? 'Entrada' : 'Saída';
+
+        Attendance::updateOrCreate(
+            [
+                'student_id'      => $student->id,
+                'class_id'        => $student->currentEnrollment->class_id,
+                'attendance_date' => now()->toDateString(),
+            ],
+            [
+                'status'       => $status,
+                'arrival_time' => now()->toTimeString(),
+                'notes'        => "Registado {$methodLabel} às " . now()->format('H:i') . " ({$actionLabel}) (Turno da {$shiftLabel})",
+                'marked_by'    => auth()->id() ?? 1,
+            ]
+        );
+    }
+
     /**
      * Portaria Digital main verification screen.
      */
@@ -53,14 +102,32 @@ class GateKeeperController extends Controller
                 ->first();
         }
 
-        // Histórico recente de presenças/passagens registadas hoje
-        $todayLogs = Attendance::with(['student', 'class'])
-            ->whereDate('attendance_date', now()->today())
-            ->latest()
-            ->take(30)
-            ->get();
+        // Date filter — default to today
+        $filterDate = $request->input('date', now()->toDateString());
 
-        return view('gatekeeper.index', compact('searchedStudent', 'todayLogs'));
+        // Load gate logs for the selected date
+        $todayLogs = GateLog::with(['student', 'class', 'loggedBy'])
+            ->whereDate('logged_at', $filterDate)
+            ->orderByDesc('logged_at')
+            ->paginate(50);
+
+        // Stats for today
+        $stats = [
+            'total'   => GateLog::whereDate('logged_at', $filterDate)->count(),
+            'entries' => GateLog::whereDate('logged_at', $filterDate)->where('action', 'entry')->count(),
+            'exits'   => GateLog::whereDate('logged_at', $filterDate)->where('action', 'exit')->count(),
+        ];
+
+        // Student trail for modal (if searched)
+        $studentTrail = null;
+        if ($searchedStudent) {
+            $studentTrail = GateLog::where('student_id', $searchedStudent->id)
+                ->orderByDesc('logged_at')
+                ->take(30)
+                ->get();
+        }
+
+        return view('gatekeeper.index', compact('searchedStudent', 'todayLogs', 'stats', 'filterDate', 'studentTrail'));
     }
 
     /**
@@ -92,35 +159,19 @@ class GateKeeperController extends Controller
                 ->with('error', "QR Code inválido ou aluno não encontrado: {$studentNumber}");
         }
 
-        // Determine entry vs exit: if there's already an "entry" log today, this is an exit
-        $todayEntry = Attendance::where('student_id', $student->id)
-            ->whereDate('attendance_date', now()->toDateString())
-            ->latest()
+        // Determine entry vs exit: if the last gate_log today is 'entry', this is 'exit'
+        $lastLog = GateLog::where('student_id', $student->id)
+            ->whereDate('logged_at', now()->toDateString())
+            ->latest('logged_at')
             ->first();
 
-        $action = ($todayEntry && str_contains($todayEntry->notes ?? '', 'Entrada')) ? 'exit' : 'entry';
+        $action = ($lastLog && $lastLog->action === 'entry') ? 'exit' : 'entry';
 
-        // Register attendance
-        if ($student->currentEnrollment) {
-            $class = $student->currentEnrollment->class;
-            $shift = $class->shift ?? 'morning';
-            $status = $this->determineAttendanceStatus($shift, now()->format('H:i'));
-            $shiftLabel = ClassRoom::SHIFT_LABELS[$shift] ?? 'Manhã';
+        // Create gate log (always INSERT, never overwrite)
+        $this->createGateLog($student, $action, 'qr');
 
-            Attendance::updateOrCreate(
-                [
-                    'student_id' => $student->id,
-                    'class_id' => $student->currentEnrollment->class_id,
-                    'attendance_date' => now()->toDateString(),
-                ],
-                [
-                    'status' => $status,
-                    'arrival_time' => now()->toTimeString(),
-                    'notes' => 'Registado via QR na Portaria Digital às ' . now()->format('H:i') . ' (' . ($action === 'entry' ? 'Entrada' : 'Saída') . ') (Turno da ' . $shiftLabel . ')',
-                    'marked_by' => auth()->id() ?? 1,
-                ]
-            );
-        }
+        // Sync attendance record (for presence tracking)
+        $this->syncAttendance($student, $action, 'qr');
 
         return redirect()->route('gatekeeper.index', ['search' => $student->student_number])
             ->with('success', '📱 QR Scan: ' . ($action === 'entry' ? 'Entrada' : 'Saída') . ' de ' . $student->full_name . ' registada com sucesso!');
@@ -133,29 +184,50 @@ class GateKeeperController extends Controller
     {
         $action = $request->input('action', 'entry');
 
-        if ($student->currentEnrollment) {
-            $class = $student->currentEnrollment->class;
-            $shift = $class->shift ?? 'morning';
-            $status = $this->determineAttendanceStatus($shift, now()->format('H:i'));
-            $shiftLabel = ClassRoom::SHIFT_LABELS[$shift] ?? 'Manhã';
+        // Create gate log (always INSERT)
+        $this->createGateLog($student, $action, 'manual');
 
-            Attendance::updateOrCreate(
-                [
-                    'student_id' => $student->id,
-                    'class_id' => $student->currentEnrollment->class_id,
-                    'attendance_date' => now()->toDateString(),
-                ],
-                [
-                    'status' => $status,
-                    'arrival_time' => now()->toTimeString(),
-                    'notes' => 'Registado na Portaria Digital às ' . now()->format('H:i') . ' (' . ($action === 'entry' ? 'Entrada' : 'Saída') . ') (Turno da ' . $shiftLabel . ')',
-                    'marked_by' => auth()->id() ?? 1,
-                ]
-            );
-        }
+        // Sync attendance record
+        $this->syncAttendance($student, $action, 'manual');
 
         return redirect()->route('gatekeeper.index', ['search' => $student->student_number])
             ->with('success', 'Passagem (' . ($action === 'entry' ? 'Entrada' : 'Saída') . ') de ' . $student->full_name . ' registada com sucesso!');
+    }
+
+    /**
+     * Return JSON history trail for a student (used by AJAX modal).
+     */
+    public function history(Request $request, Student $student)
+    {
+        $days = $request->input('days', 7);
+
+        $logs = GateLog::with(['class', 'loggedBy'])
+            ->where('student_id', $student->id)
+            ->where('logged_at', '>=', now()->subDays($days))
+            ->orderByDesc('logged_at')
+            ->get()
+            ->map(function ($log) {
+                return [
+                    'id'         => $log->id,
+                    'action'     => $log->action,
+                    'label'      => $log->action_label,
+                    'logged_at'  => $log->logged_at->format('d/m/Y H:i:s'),
+                    'date'       => $log->logged_at->format('d/m/Y'),
+                    'time'       => $log->logged_at->format('H:i'),
+                    'method'     => $log->method_label,
+                    'class'      => $log->class?->name ?? 'N/A',
+                    'logged_by'  => $log->loggedBy?->name ?? 'Sistema',
+                ];
+            });
+
+        return response()->json([
+            'student' => [
+                'id'             => $student->id,
+                'full_name'      => $student->full_name,
+                'student_number' => $student->student_number,
+            ],
+            'logs' => $logs,
+        ]);
     }
 
     /**
