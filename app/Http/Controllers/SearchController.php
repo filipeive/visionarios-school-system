@@ -221,6 +221,43 @@ class SearchController extends Controller
             $results = array_merge($results, $classes->toArray());
         }
 
+        // 4. Pagamentos
+        if (auth()->user()->can('view_payments')) {
+            $payments = Payment::where('reference_number', 'like', "%{$query}%")
+                ->orWhereHas('student', function($q) use ($query) {
+                    $q->where('first_name', 'like', "%{$query}%")
+                      ->orWhere('last_name', 'like', "%{$query}%");
+                })
+                ->with('student')
+                ->latest()
+                ->limit(4)
+                ->get()
+                ->map(fn($p) => [
+                    'type' => 'payment',
+                    'title' => 'Pagamento: ' . $p->reference_number,
+                    'subtitle' => ($p->student ? $p->student->full_name . ' · ' : '') . number_format($p->amount, 2, ',', '.') . ' MT',
+                    'url' => route('payments.show', $p->id),
+                    'icon' => 'fas fa-money-bill-wave'
+                ]);
+            $results = array_merge($results, $payments->toArray());
+        }
+
+        // 5. Despesas
+        if (auth()->user()->can('manage_expenses')) {
+            $expenses = \App\Models\Expense::where('description', 'like', "%{$query}%")
+                ->latest()
+                ->limit(4)
+                ->get()
+                ->map(fn($ex) => [
+                    'type' => 'expense',
+                    'title' => 'Despesa: ' . $ex->description,
+                    'subtitle' => number_format($ex->amount, 2, ',', '.') . ' MT',
+                    'url' => route('expenses.show', $ex->id),
+                    'icon' => 'fas fa-receipt'
+                ]);
+            $results = array_merge($results, $expenses->toArray());
+        }
+
         return response()->json($results);
     }
 }

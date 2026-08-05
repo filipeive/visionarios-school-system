@@ -2654,11 +2654,23 @@
         }
 
         let cpDebounce = null;
-        document.getElementById('commandPaletteInput')?.addEventListener('input', function(e) {
-            clearTimeout(cpDebounce);
-            cpDebounce = setTimeout(() => {
-                fetchCommandResults(e.target.value);
-            }, 200);
+        document.addEventListener('input', function(e) {
+            if (e.target && e.target.id === 'commandPaletteInput') {
+                clearTimeout(cpDebounce);
+                const query = e.target.value;
+                cpDebounce = setTimeout(() => {
+                    fetchCommandResults(query);
+                }, 150);
+            }
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if (e.target && e.target.id === 'commandPaletteInput' && e.key === 'Enter') {
+                const query = e.target.value.trim();
+                if (query.length > 0) {
+                    window.location.href = `/search?q=${encodeURIComponent(query)}`;
+                }
+            }
         });
 
         function fetchCommandResults(query) {
@@ -2669,7 +2681,12 @@
                 .then(res => res.json())
                 .then(data => {
                     if (!data || data.length === 0) {
-                        container.innerHTML = '<div class="text-center py-4 text-muted">Nenhum resultado encontrado.</div>';
+                        container.innerHTML = `
+                            <div class="text-center py-4 text-muted">
+                                <p class="mb-2">Nenhum resultado direto encontrado.</p>
+                                ${query ? `<a href="/search?q=${encodeURIComponent(query)}" class="btn btn-sm btn-primary-school">Pesquisa Geral completa</a>` : ''}
+                            </div>
+                        `;
                         return;
                     }
                     let html = '<div class="list-group list-group-flush rounded-3">';
@@ -2677,7 +2694,7 @@
                         html += `
                             <a href="${item.url}" class="list-group-item list-group-item-action d-flex align-items-center justify-content-between p-2.5 border-0 rounded-3 mb-1">
                                 <div class="d-flex align-items-center gap-3">
-                                    <div class="rounded-circle bg-emerald-50 text-emerald-700 p-2 d-flex align-items-center justify-content-center" style="width:36px; height:36px;">
+                                    <div class="rounded-circle bg-primary-subtle text-primary p-2 d-flex align-items-center justify-content-center" style="width:36px; height:36px;">
                                         <i class="${item.icon}"></i>
                                     </div>
                                     <div>
@@ -2689,11 +2706,18 @@
                             </a>
                         `;
                     });
+                    if (query && query.length >= 2) {
+                        html += `
+                            <a href="/search?q=${encodeURIComponent(query)}" class="list-group-item list-group-item-action text-center text-primary fw-bold p-2.5 border-0 rounded-3 mt-2 bg-primary-subtle">
+                                <i class="fas fa-search me-1"></i> Ver todos os resultados para "${query}" &rarr;
+                            </a>
+                        `;
+                    }
                     html += '</div>';
                     container.innerHTML = html;
                 })
                 .catch(() => {
-                    container.innerHTML = '<div class="text-center py-4 text-rose-500 text-xs">Erro ao carregar dados.</div>';
+                    container.innerHTML = '<div class="text-center py-4 text-rose-500 text-xs">Erro ao carregar dados da pesquisa.</div>';
                 });
         }
 

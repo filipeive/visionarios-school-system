@@ -1,7 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Gestao de Pagamentos')
-@section('page-title', 'Pagamentos')
+@section('title', 'Gestão de Pagamentos')
+@section('page-title', 'Pagamentos & Propinas')
+@section('page-title-icon', 'fas fa-money-bill-wave')
 
 @section('breadcrumbs')
     <li class="breadcrumb-item active">Pagamentos</li>
@@ -13,263 +14,314 @@
         $countWithPenalties = \App\Models\Payment::where('penalty', '>', 0)->count();
     @endphp
 
-    <div class="payments-index space-y-6" x-data="paymentsIndex()">
-        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Total Recebido</p>
-                <p class="mt-2 text-3xl font-bold text-emerald-700">{{ number_format($stats['paid'], 2, ',', '.') }} MT</p>
-                <p class="mt-2 text-sm text-emerald-700">Pagos</p>
-            </article>
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Pendente</p>
-                <p class="mt-2 text-3xl font-bold text-amber-700">{{ number_format($stats['pending'], 2, ',', '.') }} MT</p>
-                <p class="mt-2 text-sm text-amber-700">{{ $stats['count_pending'] }} pagamentos</p>
-            </article>
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Em Atraso</p>
-                <p class="mt-2 text-3xl font-bold text-rose-700">{{ number_format($stats['overdue'], 2, ',', '.') }} MT</p>
-                <p class="mt-2 text-sm text-rose-700">{{ $stats['count_overdue'] }} em atraso</p>
-            </article>
-            <article class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-                <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Multas Aplicadas</p>
-                <p class="mt-2 text-3xl font-bold text-slate-900">{{ number_format($totalPenalties, 2, ',', '.') }} MT</p>
-                <p class="mt-2 text-sm text-slate-600">Total em multas</p>
-            </article>
-        </section>
+<div class="payments-index row" x-data="paymentsIndex()">
+    <div class="col-12">
+        <!-- Stat KPI Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-success">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-success-subtle text-success rounded-circle p-3 me-3">
+                            <i class="fas fa-arrow-trend-up fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Total Recebido</div>
+                            <h4 class="mb-0 text-success font-weight-bold">{{ number_format($stats['paid'], 2, ',', '.') }} <small class="text-xs text-muted">MT</small></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-warning">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-warning-subtle text-warning rounded-circle p-3 me-3">
+                            <i class="fas fa-clock fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Pendente</div>
+                            <h4 class="mb-0 text-warning font-weight-bold">{{ number_format($stats['pending'], 2, ',', '.') }} <small class="text-xs text-muted">MT</small></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-danger">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-danger-subtle text-danger rounded-circle p-3 me-3">
+                            <i class="fas fa-exclamation-triangle fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Em Atraso</div>
+                            <h4 class="mb-0 text-danger font-weight-bold">{{ number_format($stats['overdue'], 2, ',', '.') }} <small class="text-xs text-muted">MT</small></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-0 shadow-sm bg-white p-3 border-start border-4 border-info">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0 bg-info-subtle text-info rounded-circle p-3 me-3">
+                            <i class="fas fa-scale-balanced fa-lg"></i>
+                        </div>
+                        <div>
+                            <div class="text-muted small text-uppercase font-weight-bold">Multas Aplicadas</div>
+                            <h4 class="mb-0 text-info font-weight-bold">{{ number_format($totalPenalties, 2, ',', '.') }} <small class="text-xs text-muted">MT</small></h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-        <section class="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-            <form method="GET" action="{{ route('payments.index') }}" class="grid gap-3 md:grid-cols-12 md:items-end">
-                <div class="md:col-span-3">
-                    <label class="mb-1 block text-xs font-semibold text-slate-600">Pesquisar</label>
-                    <input type="text" name="search" value="{{ request('search') }}"
-                        class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500"
-                        placeholder="Nome, matricula ou referencia...">
-                </div>
-                <div class="md:col-span-2">
-                    <label class="mb-1 block text-xs font-semibold text-slate-600">Status</label>
-                    <select name="status" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500">
-                        <option value="">Todos</option>
-                        <option value="pending" @selected(request('status') == 'pending')>Pendente</option>
-                        <option value="paid" @selected(request('status') == 'paid')>Pago</option>
-                        <option value="overdue" @selected(request('status') == 'overdue')>Em Atraso</option>
-                        <option value="cancelled" @selected(request('status') == 'cancelled')>Cancelado</option>
-                    </select>
-                </div>
-                <div class="md:col-span-2">
-                    <label class="mb-1 block text-xs font-semibold text-slate-600">Tipo</label>
-                    <select name="type" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500">
-                        <option value="">Todos</option>
-                        <option value="matricula" @selected(request('type') == 'matricula')>Matricula</option>
-                        <option value="mensalidade" @selected(request('type') == 'mensalidade')>Mensalidade</option>
-                        <option value="material" @selected(request('type') == 'material')>Material</option>
-                        <option value="uniforme" @selected(request('type') == 'uniforme')>Uniforme</option>
-                        <option value="outro" @selected(request('type') == 'outro')>Outro</option>
-                    </select>
-                </div>
-                <div class="md:col-span-2">
-                    <label class="mb-1 block text-xs font-semibold text-slate-600">Mes</label>
-                    <select name="month" class="w-full rounded-lg border-slate-300 text-sm focus:border-sky-500 focus:ring-sky-500">
-                        <option value="">Todos</option>
-                        @foreach($months as $num => $name)
-                            <option value="{{ $num }}" @selected(request('month') == $num)>{{ $name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="md:col-span-3 flex gap-2">
-                    <button type="submit" class="flex-1 rounded-lg bg-sky-700 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-800">
-                        <i class="fas fa-search mr-1"></i> Filtrar
-                    </button>
-                    <a href="{{ route('payments.index') }}" class="inline-flex items-center rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 no-underline hover:bg-slate-50">
-                        <i class="fas fa-times mr-1"></i> Limpar
+        <!-- Filtros Harmonizados -->
+        <div class="school-card mb-4">
+            <div class="school-card-body">
+                <form method="GET" action="{{ route('payments.index') }}" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label text-xs font-bold text-slate-700 uppercase tracking-wider">Pesquisar</label>
+                        <input type="text" name="search" value="{{ request('search') }}"
+                            class="form-control rounded-xl border-slate-200"
+                            placeholder="Nome, matrícula ou referência...">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label text-xs font-bold text-slate-700 uppercase tracking-wider">Status</label>
+                        <select name="status" class="form-select rounded-xl border-slate-200">
+                            <option value="">Todos</option>
+                            <option value="pending" @selected(request('status') == 'pending')>Pendente</option>
+                            <option value="paid" @selected(request('status') == 'paid')>Pago</option>
+                            <option value="overdue" @selected(request('status') == 'overdue')>Em Atraso</option>
+                            <option value="cancelled" @selected(request('status') == 'cancelled')>Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label text-xs font-bold text-slate-700 uppercase tracking-wider">Tipo</label>
+                        <select name="type" class="form-select rounded-xl border-slate-200">
+                            <option value="">Todos</option>
+                            <option value="matricula" @selected(request('type') == 'matricula')>Matrícula</option>
+                            <option value="mensalidade" @selected(request('type') == 'mensalidade')>Mensalidade</option>
+                            <option value="material" @selected(request('type') == 'material')>Material</option>
+                            <option value="uniforme" @selected(request('type') == 'uniforme')>Uniforme</option>
+                            <option value="outro" @selected(request('type') == 'outro')>Outro</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label text-xs font-bold text-slate-700 uppercase tracking-wider">Mês</label>
+                        <select name="month" class="form-select rounded-xl border-slate-200">
+                            <option value="">Todos</option>
+                            @foreach($months as $num => $name)
+                                <option value="{{ $num }}" @selected(request('month') == $num)>{{ $name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary-school flex-grow rounded-xl">
+                            <i class="fas fa-filter me-1"></i> Filtrar
+                        </button>
+                        @if(request()->anyFilled(['search', 'status', 'type', 'month']))
+                            <a href="{{ route('payments.index') }}" class="btn btn-outline-secondary rounded-xl" title="Limpar Filtros">
+                                <i class="fas fa-times"></i>
+                            </a>
+                        @endif
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tabela Principal de Pagamentos -->
+        <div class="school-table-container">
+            <div class="school-table-header">
+                <h3 class="school-table-title">
+                    <i class="fas fa-list text-primary me-2"></i>
+                    Lista de Pagamentos
+                    <span class="badge bg-primary ms-2" style="font-size: 0.55em;">{{ $payments->total() }}</span>
+                </h3>
+                <div class="d-flex flex-wrap gap-2">
+                    @can('create_payments')
+                        <a href="{{ route('payments.create') }}" class="btn btn-secondary-school">
+                            <i class="fas fa-plus me-1"></i> Novo Pagamento
+                        </a>
+                    @endcan
+                    <a href="{{ route('payments.overdue') }}" class="btn btn-outline-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Em Atraso ({{ $stats['count_overdue'] }})
+                    </a>
+                    <a href="{{ route('payments.references') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-receipt me-1"></i> Referências
                     </a>
                 </div>
-            </form>
-        </section>
-
-        <section class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex flex-wrap gap-2">
-                @can('create_payments')
-                    <a href="{{ route('payments.create') }}" class="inline-flex items-center rounded-lg bg-sky-700 px-3 py-2 text-sm font-semibold text-white no-underline hover:bg-sky-800">
-                        <i class="fas fa-plus mr-1"></i> Novo Pagamento
-                    </a>
-                @endcan
-                <a href="{{ route('payments.overdue') }}" class="inline-flex items-center rounded-lg bg-amber-500 px-3 py-2 text-sm font-semibold text-white no-underline hover:bg-amber-600">
-                    <i class="fas fa-exclamation-triangle mr-1"></i> Em Atraso ({{ $stats['count_overdue'] }})
-                </a>
-                <a href="{{ route('payments.with-penalties') }}" class="inline-flex items-center rounded-lg bg-rose-600 px-3 py-2 text-sm font-semibold text-white no-underline hover:bg-rose-700">
-                    <i class="fas fa-balance-scale mr-1"></i> Com Multas
-                    @if($countWithPenalties > 0)<span class="ml-1 rounded-full bg-white px-2 py-0.5 text-xs text-rose-700">{{ $countWithPenalties }}</span>@endif
-                </a>
-                <a href="{{ route('payments.reports') }}" class="inline-flex items-center rounded-lg bg-emerald-600 px-3 py-2 text-sm font-semibold text-white no-underline hover:bg-emerald-700">
-                    <i class="fas fa-chart-bar mr-1"></i> Relatorios
-                </a>
             </div>
-            <a href="{{ route('payments.references') }}" class="inline-flex items-center rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 no-underline hover:bg-slate-50">
-                <i class="fas fa-receipt mr-1"></i> Gerar Referencias
-            </a>
-        </section>
 
-        <section class="rounded-xl border border-slate-200 bg-white shadow-sm">
-            <div class="flex items-center justify-between border-b border-slate-200 px-5 py-4">
-                <h3 class="text-sm font-semibold text-slate-900">Lista de Pagamentos</h3>
-                <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">{{ $payments->total() }} registros</span>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-slate-50 text-slate-600">
+            <div class="table-responsive">
+                <table class="table table-school">
+                    <thead>
                         <tr>
-                            <th class="px-3 py-2 text-left font-semibold">Referencia</th>
-                            <th class="px-3 py-2 text-left font-semibold">Aluno</th>
-                            <th class="px-3 py-2 text-left font-semibold">Turma</th>
-                            <th class="px-3 py-2 text-left font-semibold">Tipo</th>
-                            <th class="px-3 py-2 text-left font-semibold">Mes/Ano</th>
-                            <th class="px-3 py-2 text-right font-semibold">Valor</th>
-                            <th class="px-3 py-2 text-left font-semibold">Vencimento</th>
-                            <th class="px-3 py-2 text-left font-semibold">Status</th>
-                            <th class="px-3 py-2 text-center font-semibold">Acoes</th>
+                            <th>Referência</th>
+                            <th>Aluno</th>
+                            <th>Turma</th>
+                            <th>Tipo</th>
+                            <th>Mês/Ano</th>
+                            <th class="text-end">Valor</th>
+                            <th>Vencimento</th>
+                            <th>Status</th>
+                            <th class="text-end">Ações</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-100">
+                    <tbody>
                         @forelse($payments as $payment)
-                            <tr class="{{ $payment->penalty > 0 ? 'bg-amber-50/40' : '' }} {{ $payment->is_blocked ? 'bg-rose-50/50' : '' }}">
-                                <td class="px-3 py-2">
-                                    <p class="font-mono text-xs font-semibold text-slate-800">{{ $payment->reference_number }}</p>
+                            <tr class="{{ $payment->penalty > 0 ? 'bg-warning-subtle' : '' }}">
+                                <td>
+                                    <code>{{ $payment->reference_number }}</code>
                                     @if($payment->penalty > 0)
-                                        <p class="text-xs text-rose-700">Multa: {{ $payment->penalty_percentage }}%</p>
+                                        <br><small class="text-danger fw-bold">Multa: {{ $payment->penalty_percentage }}%</small>
                                     @endif
                                 </td>
-                                <td class="px-3 py-2">
-                                    <div class="flex items-center gap-2">
+                                <td>
+                                    <div class="d-flex align-items-center">
                                         @if($payment->student->photo_url)
-                                            <img src="{{ $payment->student->photo_url }}" class="h-8 w-8 rounded-full object-cover" alt="{{ $payment->student->full_name }}">
+                                            <img src="{{ $payment->student->photo_url }}" class="rounded-circle me-2" style="width: 34px; height: 34px; object-fit: cover;" alt="{{ $payment->student->full_name }}">
                                         @else
-                                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs text-slate-500">
+                                            <div class="rounded-circle bg-primary-subtle text-primary fw-bold me-2 d-flex align-items-center justify-content-center" style="width: 34px; height: 34px; font-size: 13px;">
                                                 {{ strtoupper(substr($payment->student->full_name, 0, 1)) }}
                                             </div>
                                         @endif
                                         <div>
-                                            <p class="text-sm font-semibold text-slate-900">{{ $payment->student->full_name }}</p>
-                                            <p class="text-xs text-slate-500">{{ $payment->student->student_number }}</p>
+                                            <div class="fw-bold text-slate-800">{{ $payment->student->full_name }}</div>
+                                            <small class="text-muted"><code>{{ $payment->student->student_number }}</code></small>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-3 py-2 text-slate-700">{{ $payment->enrollment?->class?->name ?? 'N/A' }}</td>
-                                <td class="px-3 py-2">
-                                    @php
-                                        $typeClass = $payment->type === 'matricula' ? 'bg-sky-100 text-sky-700' : ($payment->type === 'mensalidade' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700');
-                                    @endphp
-                                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $typeClass }}">{{ ucfirst($payment->type) }}</span>
+                                <td>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle">
+                                        {{ $payment->enrollment?->class?->name ?? 'N/A' }}
+                                    </span>
                                 </td>
-                                <td class="px-3 py-2 text-slate-700">
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        {{ ucfirst($payment->type) }}
+                                    </span>
+                                </td>
+                                <td>
                                     @if($payment->month)
                                         {{ $payment->month_name }}/{{ $payment->year }}
                                     @else
                                         {{ $payment->year }}
                                     @endif
                                     @if($payment->days_late > 0)
-                                        <p class="text-xs text-rose-700">{{ $payment->days_late }} dias atrasado</p>
+                                        <br><small class="text-danger font-bold">{{ $payment->days_late }} dias atrasado</small>
                                     @endif
                                 </td>
-                                <td class="px-3 py-2 text-right">
-                                    <p class="font-semibold text-slate-900">{{ number_format($payment->total_amount, 2, ',', '.') }} MT</p>
+                                <td class="text-end">
+                                    <strong class="text-slate-900 fs-6">{{ number_format($payment->total_amount, 2, ',', '.') }} MT</strong>
                                     @if($payment->discount > 0)
-                                        <p class="text-xs text-emerald-700">-{{ number_format($payment->discount, 2, ',', '.') }} MT</p>
+                                        <br><small class="text-success">-{{ number_format($payment->discount, 2, ',', '.') }} MT</small>
                                     @endif
                                     @if($payment->penalty > 0)
-                                        <p class="text-xs text-rose-700">+{{ number_format($payment->penalty, 2, ',', '.') }} MT</p>
+                                        <br><small class="text-danger">+{{ number_format($payment->penalty, 2, ',', '.') }} MT</small>
                                     @endif
                                 </td>
-                                <td class="px-3 py-2 {{ $payment->due_date && $payment->due_date < now() && $payment->status != 'paid' ? 'font-semibold text-rose-700' : 'text-slate-700' }}">{{ $payment->due_date?->format('d/m/Y') ?? 'N/A' }}</td>
-                                <td class="px-3 py-2">
-                                    @php
-                                        $statusClass = $payment->status === 'paid' ? 'bg-emerald-100 text-emerald-700' : ($payment->status === 'overdue' ? 'bg-rose-100 text-rose-700' : ($payment->status === 'cancelled' ? 'bg-slate-100 text-slate-700' : 'bg-amber-100 text-amber-700'));
-                                    @endphp
-                                    <span class="rounded-full px-2.5 py-1 text-xs font-semibold {{ $statusClass }}">{{ ucfirst($payment->status) }}</span>
-                                    @if($payment->is_blocked)
-                                        <p class="mt-1 inline-block rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-semibold text-white">BLOQUEADO</p>
+                                <td>
+                                    <span class="{{ $payment->due_date && $payment->due_date < now() && $payment->status != 'paid' ? 'fw-bold text-danger' : 'text-muted' }}">
+                                        {{ $payment->due_date?->format('d/m/Y') ?? 'N/A' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    @if($payment->status === 'paid')
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
+                                            <i class="fas fa-check me-1"></i> Pago
+                                        </span>
+                                    @elseif($payment->status === 'overdue')
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1">
+                                            <i class="fas fa-exclamation-circle me-1"></i> Atrasado
+                                        </span>
+                                    @elseif($payment->status === 'cancelled')
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-1">
+                                            Cancelado
+                                        </span>
+                                    @else
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-3 py-1">
+                                            <i class="fas fa-clock me-1"></i> Pendente
+                                        </span>
                                     @endif
                                 </td>
-                                <td class="px-3 py-2 text-center">
-                                    <div class="inline-flex flex-wrap justify-center gap-1">
-                                        <a href="{{ route('payments.show', $payment) }}" class="inline-flex items-center rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 no-underline hover:bg-slate-50">
-                                            <i class="fas fa-eye mr-1"></i> Ver
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ route('payments.show', $payment) }}" class="btn btn-outline-primary" title="Ver Detalhes">
+                                            <i class="fas fa-eye"></i>
                                         </a>
-
                                         @if($payment->status == 'pending' || $payment->status == 'overdue')
                                             @can('process_payments')
-                                                <button type="button" class="rounded-lg bg-emerald-600 px-2 py-1 text-xs font-semibold text-white hover:bg-emerald-700"
-                                                    @click="openProcessModal({{ $payment->id }})"><i class="fas fa-check mr-1"></i>Processar</button>
+                                                <button type="button" class="btn btn-outline-success" title="Processar Pagamento"
+                                                    @click="openProcessModal({{ $payment->id }})"><i class="fas fa-check"></i></button>
                                                 @if($payment->penalty == 0 && $payment->days_late >= 15)
-                                                    <button type="button" class="rounded-lg bg-amber-500 px-2 py-1 text-xs font-semibold text-white hover:bg-amber-600"
-                                                        @click="openPenaltyModal({{ $payment->id }})"><i class="fas fa-balance-scale mr-1"></i>Multa</button>
+                                                    <button type="button" class="btn btn-outline-warning" title="Aplicar Multa"
+                                                        @click="openPenaltyModal({{ $payment->id }})"><i class="fas fa-scale-balanced"></i></button>
                                                 @endif
                                             @endcan
                                         @endif
 
                                         @if($payment->penalty > 0)
                                             @can('process_payments')
-                                                <button type="button" class="rounded-lg border border-rose-300 px-2 py-1 text-xs text-rose-700 hover:bg-rose-50"
-                                                    @click="openRemovePenaltyModal({{ $payment->id }})"><i class="fas fa-times mr-1"></i>Remover Multa</button>
+                                                <button type="button" class="btn btn-outline-danger" title="Remover Multa"
+                                                    @click="openRemovePenaltyModal({{ $payment->id }})"><i class="fas fa-times"></i></button>
                                             @endcan
                                         @endif
 
-                                        <a href="{{ route('payments.download-reference', $payment) }}" target="_blank" class="inline-flex items-center rounded-lg border border-slate-300 px-2 py-1 text-xs text-slate-700 no-underline hover:bg-slate-50">
-                                            <i class="fas fa-print mr-1"></i> Imprimir
+                                        <a href="{{ route('payments.download-reference', $payment) }}" target="_blank" class="btn btn-outline-secondary" title="Imprimir Referência">
+                                            <i class="fas fa-print"></i>
                                         </a>
                                     </div>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="9" class="px-3 py-8 text-center text-sm text-slate-500">
-                                    Nenhum pagamento encontrado.
-                                    <div class="mt-3">
-                                        <a href="{{ route('payments.create') }}" class="inline-flex items-center rounded-lg bg-sky-700 px-3 py-2 text-xs font-semibold text-white no-underline hover:bg-sky-800">
-                                            <i class="fas fa-plus mr-1"></i> Criar Primeiro Pagamento
-                                        </a>
-                                    </div>
+                                <td colspan="9" class="text-center py-5 text-muted">
+                                    <i class="fas fa-money-bill-wave fa-3x mb-3 text-slate-300"></i>
+                                    <h5>Nenhum pagamento encontrado</h5>
+                                    <p class="text-xs">Tente ajustar os filtros de pesquisa.</p>
                                 </td>
                             </tr>
                         @endforelse
                     </tbody>
                 </table>
             </div>
-            @if($payments->hasPages())
-                <div class="border-t border-slate-200 px-5 py-4">{{ $payments->links() }}</div>
-            @endif
-        </section>
 
+            @if($payments->hasPages())
+                <div class="p-3 border-top">
+                    {{ $payments->links() }}
+                </div>
+            @endif
+        </div>
+
+        <!-- Modais em Alpine.js -->
         <div x-show="processModal.open" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" style="display: none;">
             <div class="w-full max-w-md rounded-xl bg-white p-5 shadow-xl" @click.outside="processModal.open = false">
                 <h4 class="text-base font-semibold text-slate-900">Processar Pagamento</h4>
                 <form :action="processModal.action" method="POST" class="mt-4 space-y-3">
                     @csrf
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-600">Metodo de Pagamento *</label>
-                        <select name="payment_method" class="w-full rounded-lg border-slate-300 text-sm" required>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Método de Pagamento *</label>
+                        <select name="payment_method" class="form-select rounded-xl text-sm" required>
                             <option value="">Selecione...</option>
                             <option value="cash">Dinheiro</option>
                             <option value="mpesa">M-Pesa</option>
                             <option value="emola">e-Mola</option>
-                            <option value="bank">Transferencia Bancaria</option>
+                            <option value="bank">Transferência Bancária</option>
                             <option value="multicaixa">Multicaixa</option>
                         </select>
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-600">ID da Transacao</label>
-                        <input type="text" name="transaction_id" class="w-full rounded-lg border-slate-300 text-sm" placeholder="Ex: MP123456789">
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">ID da Transação</label>
+                        <input type="text" name="transaction_id" class="form-control rounded-xl text-sm" placeholder="Ex: MP123456789">
                     </div>
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-600">Data do Pagamento *</label>
-                        <input type="date" name="payment_date" class="w-full rounded-lg border-slate-300 text-sm" value="{{ date('Y-m-d') }}" required>
+                        <input type="date" name="payment_date" class="form-control rounded-xl text-sm" value="{{ date('Y-m-d') }}" required>
                     </div>
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-600">Observacoes</label>
-                        <textarea name="notes" class="w-full rounded-lg border-slate-300 text-sm" rows="2"></textarea>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Observações</label>
+                        <textarea name="notes" class="form-control rounded-xl text-sm" rows="2"></textarea>
                     </div>
-                    <div class="flex justify-end gap-2 pt-2">
-                        <button type="button" @click="processModal.open = false" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">Cancelar</button>
-                        <button type="submit" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white">Confirmar</button>
+                    <div class="d-flex justify-content-end gap-2 pt-2">
+                        <button type="button" @click="processModal.open = false" class="btn btn-outline-secondary btn-sm rounded-xl">Cancelar</button>
+                        <button type="submit" class="btn btn-success btn-sm rounded-xl font-semibold">Confirmar Pagamento</button>
                     </div>
                 </form>
             </div>
@@ -278,12 +330,12 @@
         <div x-show="penaltyModal.open" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" style="display: none;">
             <div class="w-full max-w-md rounded-xl bg-white p-5 shadow-xl" @click.outside="penaltyModal.open = false">
                 <h4 class="text-base font-semibold text-slate-900">Aplicar Multa</h4>
-                <div class="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-700" x-html="penaltyModal.info"></div>
-                <form :action="penaltyModal.action" method="POST" class="mt-4 space-y-3">
+                <div class="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-700 mb-3" x-html="penaltyModal.info"></div>
+                <form :action="penaltyModal.action" method="POST" class="space-y-3">
                     @csrf
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-600">Porcentagem da Multa *</label>
-                        <select x-model="penaltyModal.option" class="w-full rounded-lg border-slate-300 text-sm" required>
+                        <select x-model="penaltyModal.option" class="form-select rounded-xl text-sm" required>
                             <option value="">Selecione...</option>
                             <option value="10">10% (15-29 dias)</option>
                             <option value="25">25% (30-59 dias)</option>
@@ -294,16 +346,16 @@
                     </div>
                     <div x-show="penaltyModal.option === 'custom'" style="display:none;">
                         <label class="mb-1 block text-xs font-semibold text-slate-600">Porcentagem Personalizada</label>
-                        <input type="number" x-model="penaltyModal.custom" min="0" max="100" step="0.01" class="w-full rounded-lg border-slate-300 text-sm" placeholder="Digite a porcentagem...">
+                        <input type="number" x-model="penaltyModal.custom" min="0" max="100" step="0.01" class="form-control rounded-xl text-sm" placeholder="Digite a porcentagem...">
                     </div>
                     <input type="hidden" name="penalty_percentage" :value="resolvedPenaltyPercentage()">
                     <div>
                         <label class="mb-1 block text-xs font-semibold text-slate-600">Motivo da Multa *</label>
-                        <textarea name="reason" rows="3" required class="w-full rounded-lg border-slate-300 text-sm" placeholder="Explique o motivo..."></textarea>
+                        <textarea name="reason" rows="3" required class="form-control rounded-xl text-sm" placeholder="Explique o motivo..."></textarea>
                     </div>
-                    <div class="flex justify-end gap-2 pt-2">
-                        <button type="button" @click="penaltyModal.open = false" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">Cancelar</button>
-                        <button type="submit" @click="validatePenaltySubmit($event)" class="rounded-lg bg-amber-500 px-4 py-2 text-sm font-semibold text-white">Aplicar Multa</button>
+                    <div class="d-flex justify-content-end gap-2 pt-2">
+                        <button type="button" @click="penaltyModal.open = false" class="btn btn-outline-secondary btn-sm rounded-xl">Cancelar</button>
+                        <button type="submit" @click="validatePenaltySubmit($event)" class="btn btn-warning btn-sm rounded-xl font-semibold">Aplicar Multa</button>
                     </div>
                 </form>
             </div>
@@ -312,41 +364,23 @@
         <div x-show="removePenaltyModal.open" x-transition class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4" style="display: none;">
             <div class="w-full max-w-md rounded-xl bg-white p-5 shadow-xl" @click.outside="removePenaltyModal.open = false">
                 <h4 class="text-base font-semibold text-slate-900">Remover Multa</h4>
-                <div class="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-700" x-html="removePenaltyModal.info"></div>
-                <form :action="removePenaltyModal.action" method="POST" class="mt-4 space-y-3">
+                <div class="mt-3 rounded-lg bg-slate-50 p-3 text-sm text-slate-700 mb-3" x-html="removePenaltyModal.info"></div>
+                <form :action="removePenaltyModal.action" method="POST" class="space-y-3">
                     @csrf
                     <div>
-                        <label class="mb-1 block text-xs font-semibold text-slate-600">Motivo da Remocao *</label>
-                        <textarea name="reason" rows="3" required class="w-full rounded-lg border-slate-300 text-sm" placeholder="Explique o motivo..."></textarea>
+                        <label class="mb-1 block text-xs font-semibold text-slate-600">Motivo da Remoção *</label>
+                        <textarea name="reason" rows="3" required class="form-control rounded-xl text-sm" placeholder="Explique o motivo..."></textarea>
                     </div>
-                    <div class="flex justify-end gap-2 pt-2">
-                        <button type="button" @click="removePenaltyModal.open = false" class="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700">Cancelar</button>
-                        <button type="submit" class="rounded-lg bg-rose-600 px-4 py-2 text-sm font-semibold text-white">Remover Multa</button>
+                    <div class="d-flex justify-content-end gap-2 pt-2">
+                        <button type="button" @click="removePenaltyModal.open = false" class="btn btn-outline-secondary btn-sm rounded-xl">Cancelar</button>
+                        <button type="submit" class="btn btn-danger btn-sm rounded-xl font-semibold">Remover Multa</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+</div>
 @endsection
-
-@push('styles')
-    <style>
-        [data-bs-theme="dark"] .payments-index .bg-white { background-color: var(--card-bg) !important; }
-        [data-bs-theme="dark"] .payments-index .bg-slate-50 { background-color: rgba(148, 163, 184, 0.08) !important; }
-        [data-bs-theme="dark"] .payments-index .border-slate-100,
-        [data-bs-theme="dark"] .payments-index .border-slate-200,
-        [data-bs-theme="dark"] .payments-index .border-slate-300 { border-color: var(--border-color) !important; }
-        [data-bs-theme="dark"] .payments-index .text-slate-900,
-        [data-bs-theme="dark"] .payments-index .text-slate-800,
-        [data-bs-theme="dark"] .payments-index .text-slate-700,
-        [data-bs-theme="dark"] .payments-index .text-slate-600,
-        [data-bs-theme="dark"] .payments-index .text-slate-500 { color: var(--text-secondary) !important; }
-
-        .payments-index a {
-            text-decoration: none !important;
-        }
-    </style>
-@endpush
 
 @push('scripts')
 <script>
@@ -383,11 +417,11 @@
                 try {
                     const data = await this.fetchPayment(paymentId);
                     this.penaltyModal.info = `
-                        <strong>Referencia:</strong> ${data.reference_number || 'N/A'}<br>
+                        <strong>Referência:</strong> ${data.reference_number || 'N/A'}<br>
                         <strong>Aluno:</strong> ${data.student?.full_name || 'N/A'}<br>
                         <strong>Valor Original:</strong> ${this.formatMoney(data.amount)} MT<br>
-                        <strong>Dias em Atraso:</strong> <span class="text-rose-700">${data.days_late || 0} dias</span><br>
-                        <strong>Multa Sugerida:</strong> <span class="text-amber-700">${data.suggested_penalty_percentage || 0}%</span>
+                        <strong>Dias em Atraso:</strong> <span class="text-danger font-bold">${data.days_late || 0} dias</span><br>
+                        <strong>Multa Sugerida:</strong> <span class="text-warning font-bold">${data.suggested_penalty_percentage || 0}%</span>
                     `;
                     this.penaltyModal.action = `/payments/${paymentId}/apply-penalty`;
                     this.penaltyModal.option = String(data.suggested_penalty_percentage || '');
@@ -402,10 +436,10 @@
                 try {
                     const data = await this.fetchPayment(paymentId);
                     this.removePenaltyModal.info = `
-                        <strong>Referencia:</strong> ${data.reference_number || 'N/A'}<br>
+                        <strong>Referência:</strong> ${data.reference_number || 'N/A'}<br>
                         <strong>Aluno:</strong> ${data.student?.full_name || 'N/A'}<br>
                         <strong>Valor Original:</strong> ${this.formatMoney(data.amount)} MT<br>
-                        <strong>Multa Atual:</strong> <span class="text-rose-700">${data.penalty_percentage || 0}% (${this.formatMoney(data.penalty)} MT)</span><br>
+                        <strong>Multa Atual:</strong> <span class="text-danger font-bold">${data.penalty_percentage || 0}% (${this.formatMoney(data.penalty)} MT)</span><br>
                         <strong>Total com Multa:</strong> ${this.formatMoney(data.total_amount)} MT
                     `;
                     this.removePenaltyModal.action = `/payments/${paymentId}/remove-penalty`;
@@ -423,7 +457,7 @@
                 const value = this.resolvedPenaltyPercentage();
                 if (!value || parseFloat(value) < 0 || parseFloat(value) > 100) {
                     event.preventDefault();
-                    window.VisionariosSchool?.showToast?.('Informe uma porcentagem valida de multa.', 'warning');
+                    window.ZamEdu?.showToast?.('Informe uma porcentagem válida de multa.', 'warning');
                 }
             }
         };
