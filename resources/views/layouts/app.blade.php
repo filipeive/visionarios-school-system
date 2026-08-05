@@ -1708,35 +1708,80 @@
                                 <span class="nav-text">Propinas & Recibos</span>
                             </a>
                         </li>
-              @php $finance = config('menu.finance'); @endphp
-@php $isAdmin = auth()->check() && auth()->user()->hasRole('admin'); @endphp
-@if($isAdmin || auth()->user()->canAny($finance['permission']))
-    <div class="nav-section">
-        <div class="nav-section-title">{{ $finance['title'] }}</div>
-        <ul class="nav-list">
-            @foreach ($finance['items'] as $item)
-                @if($isAdmin || auth()->user()->can($item['permission']))
-                    <li class="nav-item">
-                        <a href="{{ route($item['route']) }}"
-                           class="nav-link {{ request()->routeIs($item['active']) ? 'active' : '' }}{{ isset($item['exclude_route']) && request()->routeIs($item['exclude_route']) ? '' : '' }}">
-                            <span class="nav-icon"><i class="{{ $item['icon'] }}"></i></span>
-                            <span class="nav-text">{{ $item['label'] }}</span>
-                            @if (isset($item['badge']))
-                                @php
-                                    $badgeCount = $item['badge']['model']::where($item['badge']['where'][0], $item['badge']['where'][1])->{$item['badge']['field']}();
-                                @endphp
-                                @if ($badgeCount > 0)
-                                    <span class="nav-badge badge-danger">{{ $badgeCount }}</span>
-                                @endif
-                            @endif
-                        </a>
-                    </li>
-                @endif
-            @endforeach
-        </ul>
-    </div>
-@endif
-@endif
+                    </ul>
+                </div>
+            @endif
+
+            <!-- 9. GESTÃO FINANCEIRA -->
+            @php
+                $isAdmin = auth()->check() && (
+                    auth()->user()->hasRole('admin') ||
+                    auth()->user()->hasRole('super_admin') ||
+                    auth()->user()->hasRole('superadmin') ||
+                    auth()->user()->role === 'admin' ||
+                    auth()->user()->role === 'superadmin' ||
+                    auth()->user()->role === 'super_admin'
+                );
+            @endphp
+            @if ($isAdmin || auth()->user()->canAny(['manage_payments', 'view_payments', 'manage_expenses', 'view_financial_reports', 'generate_payment_references']))
+                <div class="nav-section">
+                    <div class="nav-section-title">Gestão Financeira</div>
+                    <ul class="nav-list">
+                        @if ($isAdmin || auth()->user()->can('manage_expenses'))
+                            <li class="nav-item">
+                                <a href="{{ route('expenses.index') }}"
+                                    class="nav-link {{ request()->routeIs('expenses.*') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-receipt"></i></span>
+                                    <span class="nav-text">Despesas</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        @if ($isAdmin || auth()->user()->canAny(['manage_payments', 'view_payments']))
+                            <li class="nav-item">
+                                <a href="{{ route('payments.index') }}"
+                                    class="nav-link {{ request()->routeIs('payments.index') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-money-bill-wave"></i></span>
+                                    <span class="nav-text">Mensalidades & Propinas</span>
+                                    @php
+                                        $overduePayments = \App\Models\Payment::where('status', 'overdue')->count();
+                                    @endphp
+                                    @if ($overduePayments > 0)
+                                        <span class="nav-badge badge-danger">{{ $overduePayments }}</span>
+                                    @endif
+                                </a>
+                            </li>
+                        @endif
+
+                        @if ($isAdmin || auth()->user()->can('generate_payment_references'))
+                            <li class="nav-item">
+                                <a href="{{ route('payments.pending') }}"
+                                    class="nav-link {{ request()->routeIs('payments.pending') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-clock"></i></span>
+                                    <span class="nav-text">Pagamentos Pendentes</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a href="{{ route('payments.overdue') }}"
+                                    class="nav-link {{ request()->routeIs('payments.overdue') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                                    <span class="nav-text">Mensalidades em Atraso</span>
+                                </a>
+                            </li>
+                        @endif
+
+                        @if ($isAdmin || auth()->user()->can('view_financial_reports'))
+                            <li class="nav-item">
+                                <a href="{{ route('reports.financial') }}"
+                                    class="nav-link {{ request()->routeIs('reports.financial') ? 'active' : '' }}">
+                                    <span class="nav-icon"><i class="fas fa-chart-line"></i></span>
+                                    <span class="nav-text">Relatório Financeiro</span>
+                                </a>
+                            </li>
+                        @endif
+                    </ul>
+                </div>
+            @endif
 
             <!-- 10 & 11. COMUNICAÇÃO & RELATÓRIOS -->
             @canany(['manage_events', 'send_notifications', 'view_reports', 'export_reports'])
