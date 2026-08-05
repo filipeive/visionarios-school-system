@@ -134,6 +134,43 @@
                     </div>
                 </div>
 
+                <!-- Monthly Expenses List -->
+                <div class="rounded-xl border border-slate-200 bg-white shadow-sm">
+                    <div class="border-b border-slate-200 px-5 py-4">
+                        <h3 class="text-base font-bold text-slate-900 font-heading">
+                            <i class="fas fa-receipt text-rose-700 me-2"></i> Despesas por Mês
+                        </h3>
+                    </div>
+                    <div class="divide-y divide-slate-100">
+                        @forelse($monthlyExpenses as $expense)
+                            <div class="flex items-center justify-between p-4 hover:bg-slate-50 transition">
+                                <span class="text-sm font-semibold text-slate-700">
+                                    {{ Carbon\Carbon::parse($expense->month . '-01')->format('F Y') }}
+                                </span>
+                                <span class="text-sm font-black text-rose-700">
+                                    {{ number_format($expense->total, 2, ',', '.') }} MT
+                                </span>
+                            </div>
+                        @empty
+                            <div class="p-4 text-center text-sm text-slate-500">Sem despesas registadas.</div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <!-- Net Result Card -->
+                <div class="rounded-xl border {{ $netResult >= 0 ? 'border-emerald-200 bg-emerald-50/70' : 'border-rose-200 bg-rose-50/70' }} p-5 shadow-sm">
+                    <div class="flex items-center gap-2 {{ $netResult >= 0 ? 'text-emerald-900' : 'text-rose-900' }} font-bold text-base mb-2">
+                        <i class="fas fa-scale-balanced {{ $netResult >= 0 ? 'text-emerald-600' : 'text-rose-600' }}"></i> Resultado Líquido
+                    </div>
+                    <p class="text-xs {{ $netResult >= 0 ? 'text-emerald-800' : 'text-rose-800' }} mb-4 leading-relaxed">
+                        Receita: <strong>{{ number_format($totalPaidAmount, 2, ',', '.') }} MT</strong><br>
+                        Despesas: <strong>{{ number_format($totalExpenses, 2, ',', '.') }} MT</strong>
+                    </p>
+                    <p class="text-lg font-black {{ $netResult >= 0 ? 'text-emerald-700' : 'text-rose-700' }}">
+                        {{ number_format($netResult, 2, ',', '.') }} MT
+                    </p>
+                </div>
+
                 <!-- Inadimplência Card -->
                 <div class="rounded-xl border border-amber-200 bg-amber-50/70 p-5 shadow-sm">
                     <div class="flex items-center gap-2 text-amber-900 font-bold text-base mb-2">

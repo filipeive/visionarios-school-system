@@ -240,42 +240,243 @@
 
                         <!-- TAB 2: PAUTAS & NOTAS -->
                         <div class="tab-pane fade" id="academico" role="tabpanel">
-                            <div class="table-responsive">
-                                <table class="table table-hover align-middle text-sm">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Disciplina</th>
-                                            <th>Avaliação</th>
-                                            <th>Trimestre</th>
-                                            <th>Nota</th>
-                                            <th>Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @forelse($student->grades as $grade)
+                            <!-- Action Toolbar for Grades -->
+                            <div class="d-flex flex-wrap gap-2 mb-4 justify-content-between align-items-center">
+                                <div class="btn-group" role="group">
+                                    <button type="button" class="btn btn-outline-success btn-sm term-btn active" data-term="1" onclick="switchTerm('1')">1º Trimestre</button>
+                                    <button type="button" class="btn btn-outline-success btn-sm term-btn" data-term="2" onclick="switchTerm('2')">2º Trimestre</button>
+                                    <button type="button" class="btn btn-outline-success btn-sm term-btn" data-term="3" onclick="switchTerm('3')">3º Trimestre</button>
+                                    <button type="button" class="btn btn-outline-success btn-sm term-btn" data-term="annual" onclick="switchTerm('annual')">Ficha Anual</button>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <a href="{{ route('students.grades.pdf', ['student' => $student->id, 'term' => 1]) }}" id="pdfDownloadBtn" class="btn btn-success btn-sm rounded-pill px-3">
+                                        <i class="fas fa-file-pdf me-1"></i> PDF
+                                    </a>
+                                    <button type="button" class="btn btn-outline-success btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#shareMailModal">
+                                        <i class="fas fa-envelope me-1"></i> E-mail
+                                    </button>
+                                    <a href="#" id="whatsappShareBtn" target="_blank" class="btn btn-outline-success btn-sm rounded-pill px-3" style="border-color: #25D366; color: #25D366;">
+                                        <i class="fab fa-whatsapp me-1"></i> WhatsApp
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- ── 1º TRIMESTRE TABLE ── -->
+                            <div class="term-table-wrapper" id="termTable-1">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle text-sm mb-0">
+                                        <thead class="table-light">
                                             <tr>
-                                                <td class="fw-bold">{{ $grade->subject->name ?? 'Geral' }}</td>
-                                                <td>{{ $grade->assessment_type }}</td>
-                                                <td>{{ $grade->term }}º Trimestre</td>
-                                                <td class="fw-black text-{{ $grade->grade >= 10 ? 'emerald' : 'rose' }}-600">
-                                                    {{ number_format($grade->grade, 1) }}
-                                                </td>
-                                                <td>
-                                                    <span class="badge bg-{{ $grade->grade >= 10 ? 'success' : 'danger' }} rounded-pill">
-                                                        {{ $grade->grade_status }}
-                                                    </span>
-                                                </td>
+                                                <th>Disciplina</th>
+                                                <th class="text-center">ACS 1</th>
+                                                <th class="text-center">ACS 2</th>
+                                                <th class="text-center">ACS 3</th>
+                                                <th class="text-center">Média ACS</th>
+                                                <th class="text-center">ACP</th>
+                                                <th class="text-center">Média Trim (MT)</th>
+                                                <th class="text-center">Aproveitamento</th>
                                             </tr>
-                                        @empty
+                                        </thead>
+                                        <tbody>
+                                            @forelse($matrix as $subjectId => $data)
+                                                @php $tData = $data['terms'][1]; @endphp
+                                                <tr>
+                                                    <td class="fw-bold">{{ $data['subject']->name }}</td>
+                                                    <td class="text-center">{{ $tData['acs1'] !== null ? number_format($tData['acs1'], 1) : '-' }}</td>
+                                                    <td class="text-center">{{ $tData['acs2'] !== null ? number_format($tData['acs2'], 1) : '-' }}</td>
+                                                    <td class="text-center">{{ $tData['acs3'] !== null ? number_format($tData['acs3'], 1) : '-' }}</td>
+                                                    <td class="text-center fw-bold">{{ $tData['macs'] !== null ? number_format($tData['macs'], 1) : '-' }}</td>
+                                                    <td class="text-center">{{ $tData['acp'] !== null ? number_format($tData['acp'], 1) : '-' }}</td>
+                                                    <td class="text-center">
+                                                        @if($tData['mt'] !== null)
+                                                            <span class="badge bg-{{ $tData['mt'] >= 10 ? 'success' : 'danger' }}">
+                                                                {{ number_format($tData['mt'], 1) }}
+                                                            </span>
+                                                        @else
+                                                            <span class="text-muted">-</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if($tData['mt'] !== null)
+                                                            <span class="text-{{ $tData['mt'] >= 10 ? 'success' : 'danger' }} fw-bold">{{ $tData['mt'] >= 10 ? 'Positiva' : 'Negativa' }}</span>
+                                                        @else
+                                                            <span class="text-muted">-</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="8" class="text-center py-4 text-muted">Sem disciplinas ou notas disponíveis.</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- ── 2º TRIMESTRE TABLE ── -->
+                            <div class="term-table-wrapper" id="termTable-2" style="display:none;">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle text-sm mb-0">
+                                        <thead class="table-light">
                                             <tr>
-                                                <td colspan="5" class="text-center py-4 text-muted">
-                                                    <i class="fas fa-medal fa-2x mb-2 text-slate-300"></i>
-                                                    <p class="mb-0">Nenhuma nota lançada para este aluno ainda.</p>
-                                                </td>
+                                                <th>Disciplina</th>
+                                                <th class="text-center">ACS 1</th>
+                                                <th class="text-center">ACS 2</th>
+                                                <th class="text-center">ACS 3</th>
+                                                <th class="text-center">Média ACS</th>
+                                                <th class="text-center">ACP</th>
+                                                <th class="text-center">Média Trim (MT)</th>
+                                                <th class="text-center">Aproveitamento</th>
                                             </tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
+                                        </thead>
+                                        <tbody>
+                                            @forelse($matrix as $subjectId => $data)
+                                                @php $tData = $data['terms'][2]; @endphp
+                                                <tr>
+                                                    <td class="fw-bold">{{ $data['subject']->name }}</td>
+                                                    <td class="text-center">{{ $tData['acs1'] !== null ? number_format($tData['acs1'], 1) : '-' }}</td>
+                                                    <td class="text-center">{{ $tData['acs2'] !== null ? number_format($tData['acs2'], 1) : '-' }}</td>
+                                                    <td class="text-center">{{ $tData['acs3'] !== null ? number_format($tData['acs3'], 1) : '-' }}</td>
+                                                    <td class="text-center fw-bold">{{ $tData['macs'] !== null ? number_format($tData['macs'], 1) : '-' }}</td>
+                                                    <td class="text-center">{{ $tData['acp'] !== null ? number_format($tData['acp'], 1) : '-' }}</td>
+                                                    <td class="text-center">
+                                                        @if($tData['mt'] !== null)
+                                                            <span class="badge bg-{{ $tData['mt'] >= 10 ? 'success' : 'danger' }}">
+                                                                {{ number_format($tData['mt'], 1) }}
+                                                            </span>
+                                                        @else
+                                                            <span class="text-muted">-</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if($tData['mt'] !== null)
+                                                            <span class="text-{{ $tData['mt'] >= 10 ? 'success' : 'danger' }} fw-bold">{{ $tData['mt'] >= 10 ? 'Positiva' : 'Negativa' }}</span>
+                                                        @else
+                                                            <span class="text-muted">-</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="8" class="text-center py-4 text-muted">Sem disciplinas ou notas disponíveis.</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- ── 3º TRIMESTRE TABLE ── -->
+                            <div class="term-table-wrapper" id="termTable-3" style="display:none;">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle text-sm mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Disciplina</th>
+                                                <th class="text-center">ACS 1</th>
+                                                <th class="text-center">ACS 2</th>
+                                                <th class="text-center">ACS 3</th>
+                                                <th class="text-center">Média ACS</th>
+                                                <th class="text-center">ACP</th>
+                                                <th class="text-center">Média Trim (MT)</th>
+                                                <th class="text-center">Aproveitamento</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse($matrix as $subjectId => $data)
+                                                @php $tData = $data['terms'][3]; @endphp
+                                                <tr>
+                                                    <td class="fw-bold">{{ $data['subject']->name }}</td>
+                                                    <td class="text-center">{{ $tData['acs1'] !== null ? number_format($tData['acs1'], 1) : '-' }}</td>
+                                                    <td class="text-center">{{ $tData['acs2'] !== null ? number_format($tData['acs2'], 1) : '-' }}</td>
+                                                    <td class="text-center">{{ $tData['acs3'] !== null ? number_format($tData['acs3'], 1) : '-' }}</td>
+                                                    <td class="text-center fw-bold">{{ $tData['macs'] !== null ? number_format($tData['macs'], 1) : '-' }}</td>
+                                                    <td class="text-center">{{ $tData['acp'] !== null ? number_format($tData['acp'], 1) : '-' }}</td>
+                                                    <td class="text-center">
+                                                        @if($tData['mt'] !== null)
+                                                            <span class="badge bg-{{ $tData['mt'] >= 10 ? 'success' : 'danger' }}">
+                                                                {{ number_format($tData['mt'], 1) }}
+                                                            </span>
+                                                        @else
+                                                            <span class="text-muted">-</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if($tData['mt'] !== null)
+                                                            <span class="text-{{ $tData['mt'] >= 10 ? 'success' : 'danger' }} fw-bold">{{ $tData['mt'] >= 10 ? 'Positiva' : 'Negativa' }}</span>
+                                                        @else
+                                                            <span class="text-muted">-</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="8" class="text-center py-4 text-muted">Sem disciplinas ou notas disponíveis.</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- ── ANUAL TABLE ── -->
+                            <div class="term-table-wrapper" id="termTable-annual" style="display:none;">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle text-sm mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Disciplina</th>
+                                                <th class="text-center">MT1</th>
+                                                <th class="text-center">MT2</th>
+                                                <th class="text-center">MT3</th>
+                                                <th class="text-center">Média Anual (MF)</th>
+                                                <th class="text-center">Exame</th>
+                                                <th class="text-center">Média Geral (MGD)</th>
+                                                <th class="text-center">Situação Final</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @forelse($matrix as $subjectId => $data)
+                                                @php
+                                                    $annual = $data['annual'];
+                                                    $isPositive = $annual['mfd'] !== null && $annual['mfd'] >= 10;
+                                                @endphp
+                                                <tr>
+                                                    <td class="fw-bold">{{ $data['subject']->name }}</td>
+                                                    <td class="text-center">{{ $annual['mt1'] !== null ? number_format($annual['mt1'], 1) : '-' }}</td>
+                                                    <td class="text-center">{{ $annual['mt2'] !== null ? number_format($annual['mt2'], 1) : '-' }}</td>
+                                                    <td class="text-center">{{ $annual['mt3'] !== null ? number_format($annual['mt3'], 1) : '-' }}</td>
+                                                    <td class="text-center fw-bold">{{ $annual['mf'] !== null ? number_format($annual['mf'], 1) : '-' }}</td>
+                                                    <td class="text-center">{{ $annual['exam'] !== null ? number_format($annual['exam'], 1) : '-' }}</td>
+                                                    <td class="text-center">
+                                                        @if($annual['mfd'] !== null)
+                                                            <span class="badge bg-{{ $isPositive ? 'success' : 'danger' }}">
+                                                                {{ number_format($annual['mfd'], 1) }}
+                                                            </span>
+                                                        @else
+                                                            <span class="text-muted">-</span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="text-center">
+                                                        @if($annual['status'] === 'Aprovado')
+                                                            <span class="badge bg-success-subtle text-success rounded-pill px-3 py-1 font-bold">Aprovado</span>
+                                                        @elseif($annual['status'] === 'Reprovado')
+                                                            <span class="badge bg-danger-subtle text-danger rounded-pill px-3 py-1 font-bold">Reprovado</span>
+                                                        @else
+                                                            <span class="badge bg-warning-subtle text-warning rounded-pill px-3 py-1 font-bold">Em Curso</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                            @empty
+                                                <tr>
+                                                    <td colspan="8" class="text-center py-4 text-muted">Sem disciplinas ou notas disponíveis.</td>
+                                                </tr>
+                                            @endforelse
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
 
@@ -385,6 +586,35 @@
         </div>
     </div>
 </div>
+
+<!-- Share via Mail Modal -->
+<div class="modal fade" id="shareMailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius:1rem;">
+            <div class="modal-header bg-success text-white" style="border-radius:1rem 1rem 0 0;">
+                <h5 class="modal-title fw-bold"><i class="fas fa-envelope-open-text me-2"></i> Enviar Boletim por E-mail</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ route('students.grades.share-email', $student) }}" method="POST">
+                @csrf
+                <input type="hidden" name="term" id="modalTermInput" value="1">
+                <div class="modal-body p-4">
+                    <p class="text-xs text-muted mb-3">O boletim oficial será gerado em formato PDF e anexado diretamente ao e-mail enviado ao encarregado.</p>
+                    <div class="mb-3">
+                        <label class="form-label text-slate-700 fw-bold">E-mail do Encarregado</label>
+                        <input type="email" name="email" class="form-control" value="{{ $student->parent->email ?? '' }}" placeholder="exemplo@email.com" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 p-3" style="border-radius:0 0 1rem 1rem;">
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success btn-sm rounded-pill px-3">
+                        <i class="fas fa-paper-plane me-1"></i> Enviar Agora
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 @endsection
 
 @push('scripts')
@@ -436,6 +666,64 @@ document.addEventListener('DOMContentLoaded', function() {
             plugins: { legend: { position: 'bottom' } }
         }
     });
+
+    // 3. Term Switching & WhatsApp Share (Tab Académico)
+    let currentActiveTerm = '1';
+
+    window.switchTerm = function(term) {
+        currentActiveTerm = term;
+
+        document.querySelectorAll('.term-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.term === term);
+        });
+
+        document.querySelectorAll('.term-table-wrapper').forEach(wrapper => {
+            wrapper.style.display = wrapper.id === `termTable-${term}` ? 'block' : 'none';
+        });
+
+        const pdfBtn = document.getElementById('pdfDownloadBtn');
+        if (pdfBtn) {
+            let url = new URL(pdfBtn.href);
+            url.searchParams.set('term', term);
+            pdfBtn.href = url.toString();
+        }
+
+        const modalTermInput = document.getElementById('modalTermInput');
+        if (modalTermInput) {
+            modalTermInput.value = term;
+        }
+
+        updateWhatsAppShareLink();
+    };
+
+    function updateWhatsAppShareLink() {
+        const shareBtn = document.getElementById('whatsappShareBtn');
+        if (!shareBtn) return;
+
+        const parentPhone = "{{ $student->parent->phone ?? '' }}".replace(/\s+/g, '');
+        const studentName = "{{ $student->full_name }}";
+        const termLabel = currentActiveTerm === 'annual' ? 'Ano Lectivo' : `${currentActiveTerm}º Trimestre`;
+
+        let message = `Olá! Segue o aproveitamento escolar de *${studentName}* relativo ao *${termLabel}*:\n\n`;
+
+        const activeTable = document.querySelector(`#termTable-${currentActiveTerm} tbody`);
+        if (activeTable) {
+            const rows = activeTable.querySelectorAll('tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length >= 2) {
+                    const subjectName = cells[0].textContent.trim();
+                    const grade = cells[6] ? cells[6].textContent.trim() : '-';
+                    message += `• *${subjectName}*: Média ${grade}\n`;
+                }
+            });
+        }
+
+        message += `\nPara ver detalhes completos, consulte o portal do encarregado.`;
+        shareBtn.href = `https://api.whatsapp.com/send?phone=${parentPhone}&text=${encodeURIComponent(message)}`;
+    }
+
+    updateWhatsAppShareLink();
 });
 </script>
 @endpush

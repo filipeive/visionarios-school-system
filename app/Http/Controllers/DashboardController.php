@@ -40,6 +40,94 @@ class DashboardController extends Controller
         }
     }
 
+    private function getGreetingData(): array
+    {
+        $hour = now()->hour;
+        $greeting = match (true) {
+            $hour < 12 => 'Bom dia',
+            $hour < 18 => 'Boa tarde',
+            default => 'Boa noite',
+        };
+
+        return [
+            'greeting' => $greeting . ', ' . auth()->user()->name,
+            'greeting_period' => match (true) {
+                $hour < 12 => 'morning',
+                $hour < 18 => 'afternoon',
+                default => 'evening',
+            },
+            'current_date' => now()->translatedFormat('l, d \d\e F'),
+            'school_name' => setting('school_name', 'ZamEdu'),
+            'school_year' => current_school_year(),
+        ];
+    }
+
+    private function getBirthdaysThisWeek()
+    {
+        $startOfWeek = now()->startOfWeek();
+        $endOfWeek = now()->endOfWeek();
+
+        return Student::active()
+            ->whereNotNull('birthdate')
+            ->get()
+            ->filter(function ($student) use ($startOfWeek, $endOfWeek) {
+                if (!$student->birthdate) {
+                    return false;
+                }
+                $birthdayThisYear = $student->birthdate->copy()->setYear($startOfWeek->year);
+                return $birthdayThisYear->between($startOfWeek, $endOfWeek);
+            })
+            ->take(5)
+            ->values();
+    }
+
+    private function getMonthBirthdays(int $month, int $year)
+    {
+        return Student::active()
+            ->whereNotNull('birthdate')
+            ->get()
+            ->filter(function ($student) use ($month, $year) {
+                if (!$student->birthdate) {
+                    return false;
+                }
+                return $student->birthdate->month === $month && $student->birthdate->year <= $year;
+            })
+            ->groupBy(fn($student) => $student->birthdate->day)
+            ->map(fn($students, $day) => [
+                'day' => $day,
+                'students' => $students->take(3)->values(),
+            ]);
+    }
+
+    private function getMonthEvents(int $month, int $year)
+    {
+        return Event::whereMonth('event_date', $month)
+            ->whereYear('event_date', $year)
+            ->orderBy('event_date')
+            ->orderBy('start_time')
+            ->get()
+            ->groupBy(fn($event) => $event->event_date->day)
+            ->map(fn($events, $day) => [
+                'day' => $day,
+                'events' => $events->take(3)->values(),
+            ]);
+    }
+
+    private function getTodayActivities(): array
+    {
+        $today = today();
+
+        return [
+            'payments_count' => Payment::paid()->whereDate('payment_date', $today)->count(),
+            'payments_total' => Payment::paid()->whereDate('payment_date', $today)->sum('amount'),
+            'expenses_count' => \App\Models\Expense::whereDate('expense_date', $today)->count(),
+            'expenses_total' => \App\Models\Expense::whereDate('expense_date', $today)->sum('amount'),
+            'enrollments_count' => Enrollment::whereDate('created_at', $today)->count(),
+            'attendances_count' => Attendance::whereDate('attendance_date', $today)->count(),
+            'new_students_count' => Student::whereDate('created_at', $today)->count(),
+        ];
+    }
+
     private function adminDashboard()
     {
         $cacheKey = 'admin_dashboard_analytics_v1_' . current_school_year();
@@ -69,6 +157,11 @@ class DashboardController extends Controller
             $pendingPayments = Payment::pending()->count();
             $overduePayments = Payment::overdue()->count();
             $overdueAmount = Payment::overdue()->sum('amount');
+
+            $totalExpenses = \App\Models\Expense::sum('amount');
+            $thisMonthExpenses = \App\Models\Expense::whereMonth('expense_date', now()->month)
+                ->whereYear('expense_date', now()->year)
+                ->sum('amount');
 
             // 2. Taxa de Assiduidade Global
             $totalAttendances = Attendance::count();
@@ -160,6 +253,8 @@ class DashboardController extends Controller
                 'pending_payments' => $pendingPayments,
                 'overdue_payments' => $overduePayments,
                 'overdue_amount' => $overdueAmount,
+                'total_expenses' => $totalExpenses,
+                'this_month_expenses' => $thisMonthExpenses,
                 'todays_events' => Event::today()->count(),
                 'total_enrollments' => Enrollment::active()->where('school_year', $year)->count(),
                 'pending_enrollments' => Enrollment::where('status', 'pending')->count(),
@@ -187,9 +282,18 @@ class DashboardController extends Controller
         $revenueData = $this->getRevenueData();
         $studentsDistribution = $this->getStudentsDistribution();
 
+        $greetingData = $this->getGreetingData();
+        $birthdaysThisWeek = $this->getBirthdaysThisWeek();
+        $todayActivities = $this->getTodayActivities();
+
+        $calendarMonth = request('calendar_month', now()->month);
+        $calendarYear = request('calendar_year', now()->year);
+        $monthEvents = $this->getMonthEvents($calendarMonth, $calendarYear);
+        $monthBirthdays = $this->getMonthBirthdays($calendarMonth, $calendarYear);
+
         return view('dashboard.admin', array_merge(
             $data,
-            compact('recentActivities', 'upcomingEvents', 'revenueData', 'studentsDistribution')
+            compact('greetingData', 'birthdaysThisWeek', 'todayActivities', 'recentActivities', 'upcomingEvents', 'revenueData', 'studentsDistribution', 'calendarMonth', 'calendarYear', 'monthEvents', 'monthBirthdays')
         ));
     }
 
@@ -232,11 +336,18 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
+        $greetingData = $this->getGreetingData();
+        $todayActivities = $this->getTodayActivities();
+        $birthdaysThisWeek = $this->getBirthdaysThisWeek();
+
         return view('dashboard.secretary', compact(
+            'greetingData',
             'stats',
             'recentPayments',
             'overduePayments',
-            'pendingEnrollments'
+            'pendingEnrollments',
+            'todayActivities',
+            'birthdaysThisWeek'
         ));
     }
 
@@ -262,12 +373,19 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
+        $greetingData = $this->getGreetingData();
+        $todayActivities = $this->getTodayActivities();
+        $birthdaysThisWeek = $this->getBirthdaysThisWeek();
+
         return view('dashboard.pedagogy', compact(
+            'greetingData',
             'stats',
             'classPerformance',
             'attendanceStats',
             'teacherStats',
-            'upcomingExams'
+            'upcomingExams',
+            'todayActivities',
+            'birthdaysThisWeek'
         ));
     }
 
@@ -321,13 +439,18 @@ class DashboardController extends Controller
             ->with(['currentEnrollment.class']) // 🔥 carrega a matrícula e a classe juntas
             ->get();
 
+        $calendarMonth = request('calendar_month', now()->month);
+        $calendarYear = request('calendar_year', now()->year);
+
         return view('dashboard.teacher', compact(
             'stats',
             'myClasses',
             'todaysSchedule',
             'recentGrades',
             'myStudents',
-            'teacher'
+            'teacher',
+            'calendarMonth',
+            'calendarYear'
         ));
     }
 

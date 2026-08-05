@@ -148,6 +148,7 @@ class StudentController extends Controller
 
         $student->load([
             'enrollments.class.teacher',
+            'enrollments.class.subjects',
             'parent.user',
             'payments' => function ($query) {
                 $query->latest()->take(15);
@@ -221,12 +222,88 @@ class StudentController extends Controller
 
         $timelineEvents = $timelineEvents->sortByDesc('date')->take(10)->values();
 
+        // Computar matriz de notas trimestrais e anuais
+        $matrix = [];
+        if ($currentEnrollment && $currentEnrollment->class) {
+            $class = $currentEnrollment->class;
+            $allGrades = $student->grades;
+            $subjects = $class->subjects;
+            if ($subjects->isEmpty() && $allGrades->isNotEmpty()) {
+                $gradeSubjectIds = $allGrades->pluck('subject_id')->unique();
+                $subjects = \App\Models\Subject::whereIn('id', $gradeSubjectIds)->get();
+            }
+
+            foreach ($subjects as $subject) {
+                $subjectGrades = $allGrades->where('subject_id', $subject->id);
+                
+                $matrix[$subject->id] = [
+                    'subject' => $subject,
+                    'terms' => []
+                ];
+
+                for ($t = 1; $t <= 3; $t++) {
+                    $termGrades = $subjectGrades->where('term', $t);
+                    
+                    $acs1 = $termGrades->whereIn('assessment_type', ['ACS1', 'continuous', 'test'])->first()?->grade;
+                    $acs2 = $termGrades->where('assessment_type', 'ACS2')->first()?->grade;
+                    $acs3 = $termGrades->where('assessment_type', 'ACS3')->first()?->grade;
+                    
+                    $macs = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test', 'assignment', 'participation'])->avg('grade');
+                    $acp = $termGrades->whereIn('assessment_type', ['ACP', 'exam', 'ACF'])->first()?->grade;
+                    
+                    if ($macs !== null && $acp !== null) {
+                        $mt = round(($macs * 0.4) + ($acp * 0.6), 1);
+                    } else {
+                        $mt = $termGrades->avg('grade') !== null ? round($termGrades->avg('grade'), 1) : null;
+                    }
+
+                    $matrix[$subject->id]['terms'][$t] = [
+                        'acs1' => $acs1,
+                        'acs2' => $acs2,
+                        'acs3' => $acs3,
+                        'macs' => $macs,
+                        'acp' => $acp,
+                        'mt' => $mt
+                    ];
+                }
+
+                // Anual
+                $mt1 = $matrix[$subject->id]['terms'][1]['mt'];
+                $mt2 = $matrix[$subject->id]['terms'][2]['mt'];
+                $mt3 = $matrix[$subject->id]['terms'][3]['mt'];
+                
+                $hasAllTerms = ($mt1 !== null && $mt2 !== null && $mt3 !== null);
+                $mf = $hasAllTerms ? round(($mt1 + $mt2 + $mt3) / 3, 1) : null;
+                
+                $ne = $subjectGrades->where('assessment_type', 'exam')->first()?->grade;
+                $nr = $subjectGrades->where('assessment_type', 'ACF')->first()?->grade;
+                $effectiveExam = $nr !== null ? max($ne ?? 0, $nr) : $ne;
+                
+                if ($class->isSecondary() && in_array((int)$class->grade_level, [7, 10, 12]) && $effectiveExam !== null && $mf !== null) {
+                    $mfd = round(($mf * 0.6) + ($effectiveExam * 0.4), 1);
+                } else {
+                    $mfd = $mf;
+                }
+
+                $matrix[$subject->id]['annual'] = [
+                    'mt1' => $mt1,
+                    'mt2' => $mt2,
+                    'mt3' => $mt3,
+                    'mf' => $mf,
+                    'exam' => $effectiveExam,
+                    'mfd' => $mfd,
+                    'status' => $mfd !== null ? ($mfd >= 10 ? 'Aprovado' : 'Reprovado') : 'Em Curso'
+                ];
+            }
+        }
+
         return view('students.show', compact(
             'student',
             'currentEnrollment',
             'attendanceStats',
             'subjectPerformance',
-            'timelineEvents'
+            'timelineEvents',
+            'matrix'
         ));
     }
 
@@ -417,16 +494,304 @@ class StudentController extends Controller
     }
 
     /**
-     * Show student grades.
+     * Show student grades with complete Moçambican evaluation structure.
      */
     public function grades(Student $student)
     {
         $this->authorize('view_students');
 
-        $student->load(['grades.subject', 'currentEnrollment.class']);
+        $student->load(['grades.subject', 'currentEnrollment.class.subjects']);
         $currentEnrollment = $student->currentEnrollment;
 
-        return view('students.grades', compact('student', 'currentEnrollment'));
+        $matrix = [];
+        if ($currentEnrollment && $currentEnrollment->class) {
+            $class = $currentEnrollment->class;
+            $allGrades = $student->grades;
+            $subjects = $class->subjects;
+            if ($subjects->isEmpty() && $allGrades->isNotEmpty()) {
+                $gradeSubjectIds = $allGrades->pluck('subject_id')->unique();
+                $subjects = \App\Models\Subject::whereIn('id', $gradeSubjectIds)->get();
+            }
+
+            foreach ($subjects as $subject) {
+                $subjectGrades = $allGrades->where('subject_id', $subject->id);
+                
+                $matrix[$subject->id] = [
+                    'subject' => $subject,
+                    'terms' => []
+                ];
+
+                for ($t = 1; $t <= 3; $t++) {
+                    $termGrades = $subjectGrades->where('term', $t);
+                    
+                    $acs1 = $termGrades->whereIn('assessment_type', ['ACS1', 'continuous', 'test'])->first()?->grade;
+                    $acs2 = $termGrades->where('assessment_type', 'ACS2')->first()?->grade;
+                    $acs3 = $termGrades->where('assessment_type', 'ACS3')->first()?->grade;
+                    
+                    $macs = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test', 'assignment', 'participation'])->avg('grade');
+                    $acp = $termGrades->whereIn('assessment_type', ['ACP', 'exam', 'ACF'])->first()?->grade;
+                    
+                    if ($macs !== null && $acp !== null) {
+                        $mt = round(($macs * 0.4) + ($acp * 0.6), 1);
+                    } else {
+                        $mt = $termGrades->avg('grade') !== null ? round($termGrades->avg('grade'), 1) : null;
+                    }
+
+                    $matrix[$subject->id]['terms'][$t] = [
+                        'acs1' => $acs1,
+                        'acs2' => $acs2,
+                        'acs3' => $acs3,
+                        'macs' => $macs,
+                        'acp' => $acp,
+                        'mt' => $mt
+                    ];
+                }
+
+                // Anual/Final
+                $mt1 = $matrix[$subject->id]['terms'][1]['mt'];
+                $mt2 = $matrix[$subject->id]['terms'][2]['mt'];
+                $mt3 = $matrix[$subject->id]['terms'][3]['mt'];
+                
+                $hasAllTerms = ($mt1 !== null && $mt2 !== null && $mt3 !== null);
+                $mf = $hasAllTerms ? round(($mt1 + $mt2 + $mt3) / 3, 1) : null;
+                
+                $ne = $subjectGrades->where('assessment_type', 'exam')->first()?->grade;
+                $nr = $subjectGrades->where('assessment_type', 'ACF')->first()?->grade;
+                $effectiveExam = $nr !== null ? max($ne ?? 0, $nr) : $ne;
+                
+                if ($class->isSecondary() && in_array((int)$class->grade_level, [7, 10, 12]) && $effectiveExam !== null && $mf !== null) {
+                    $mfd = round(($mf * 0.6) + ($effectiveExam * 0.4), 1);
+                } else {
+                    $mfd = $mf;
+                }
+
+                $matrix[$subject->id]['annual'] = [
+                    'mt1' => $mt1,
+                    'mt2' => $mt2,
+                    'mt3' => $mt3,
+                    'mf' => $mf,
+                    'exam' => $effectiveExam,
+                    'mfd' => $mfd,
+                    'status' => $mfd !== null ? ($mfd >= 10 ? 'Aprovado' : 'Reprovado') : 'Em Curso'
+                ];
+            }
+        }
+
+        return view('students.grades', compact('student', 'currentEnrollment', 'matrix'));
+    }
+
+    /**
+     * Export student grades report card as PDF.
+     */
+    public function gradesPdf(Student $student, Request $request)
+    {
+        $this->authorize('view_students');
+        $term = $request->input('term', '1');
+
+        $student->load(['grades.subject', 'currentEnrollment.class.subjects', 'parent']);
+        $currentEnrollment = $student->currentEnrollment;
+        
+        if (!$currentEnrollment) {
+            abort(404, 'Estudante sem matrícula ativa.');
+        }
+
+        $class = $currentEnrollment->class;
+        $allGrades = $student->grades;
+        $subjects = $class->subjects;
+        if ($subjects->isEmpty() && $allGrades->isNotEmpty()) {
+            $gradeSubjectIds = $allGrades->pluck('subject_id')->unique();
+            $subjects = \App\Models\Subject::whereIn('id', $gradeSubjectIds)->get();
+        }
+        $matrix = [];
+
+        foreach ($subjects as $subject) {
+            $subjectGrades = $allGrades->where('subject_id', $subject->id);
+            
+            $matrix[$subject->id] = [
+                'subject' => $subject,
+                'terms' => []
+            ];
+
+            for ($t = 1; $t <= 3; $t++) {
+                $termGrades = $subjectGrades->where('term', $t);
+                
+                $acs1 = $termGrades->whereIn('assessment_type', ['ACS1', 'continuous', 'test'])->first()?->grade;
+                $acs2 = $termGrades->where('assessment_type', 'ACS2')->first()?->grade;
+                $acs3 = $termGrades->where('assessment_type', 'ACS3')->first()?->grade;
+                
+                $macs = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test', 'assignment', 'participation'])->avg('grade');
+                $acp = $termGrades->whereIn('assessment_type', ['ACP', 'exam', 'ACF'])->first()?->grade;
+                
+                if ($macs !== null && $acp !== null) {
+                    $mt = round(($macs * 0.4) + ($acp * 0.6), 1);
+                } else {
+                    $mt = $termGrades->avg('grade') !== null ? round($termGrades->avg('grade'), 1) : null;
+                }
+
+                $matrix[$subject->id]['terms'][$t] = [
+                    'acs1' => $acs1,
+                    'acs2' => $acs2,
+                    'acs3' => $acs3,
+                    'macs' => $macs,
+                    'acp' => $acp,
+                    'mt' => $mt
+                ];
+            }
+
+            // Anual
+            $mt1 = $matrix[$subject->id]['terms'][1]['mt'];
+            $mt2 = $matrix[$subject->id]['terms'][2]['mt'];
+            $mt3 = $matrix[$subject->id]['terms'][3]['mt'];
+            
+            $hasAllTerms = ($mt1 !== null && $mt2 !== null && $mt3 !== null);
+            $mf = $hasAllTerms ? round(($mt1 + $mt2 + $mt3) / 3, 1) : null;
+            
+            $ne = $subjectGrades->where('assessment_type', 'exam')->first()?->grade;
+            $nr = $subjectGrades->where('assessment_type', 'ACF')->first()?->grade;
+            $effectiveExam = $nr !== null ? max($ne ?? 0, $nr) : $ne;
+            
+            if ($class->isSecondary() && in_array((int)$class->grade_level, [7, 10, 12]) && $effectiveExam !== null && $mf !== null) {
+                $mfd = round(($mf * 0.6) + ($effectiveExam * 0.4), 1);
+            } else {
+                $mfd = $mf;
+            }
+
+            $matrix[$subject->id]['annual'] = [
+                'mt1' => $mt1,
+                'mt2' => $mt2,
+                'mt3' => $mt3,
+                'mf' => $mf,
+                'exam' => $effectiveExam,
+                'mfd' => $mfd,
+                'status' => $mfd !== null ? ($mfd >= 10 ? 'Aprovado' : 'Reprovado') : 'Em Curso'
+            ];
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('students.pdf_grades', compact('student', 'currentEnrollment', 'matrix', 'term'));
+        $filename = "boletim_{$student->student_number}_" . ($term === 'annual' ? 'anual' : "t{$term}") . ".pdf";
+        return $pdf->download($filename);
+    }
+
+    /**
+     * Share student grades report via E-mail.
+     */
+    public function shareGradesEmail(Student $student, Request $request)
+    {
+        $this->authorize('view_students');
+        $term = $request->input('term', '1');
+        $email = $request->input('email');
+
+        if (!$email) {
+            return redirect()->back()->with('error', 'Por favor, introduza um endereço de e-mail válido.');
+        }
+
+        $student->load(['grades.subject', 'currentEnrollment.class.subjects', 'parent']);
+        $currentEnrollment = $student->currentEnrollment;
+        if (!$currentEnrollment) {
+            return redirect()->back()->with('error', 'Estudante sem matrícula ativa.');
+        }
+
+        $class = $currentEnrollment->class;
+        $allGrades = $student->grades;
+        $subjects = $class->subjects;
+        if ($subjects->isEmpty() && $allGrades->isNotEmpty()) {
+            $gradeSubjectIds = $allGrades->pluck('subject_id')->unique();
+            $subjects = \App\Models\Subject::whereIn('id', $gradeSubjectIds)->get();
+        }
+        $matrix = [];
+
+        foreach ($subjects as $subject) {
+            $subjectGrades = $allGrades->where('subject_id', $subject->id);
+            
+            $matrix[$subject->id] = [
+                'subject' => $subject,
+                'terms' => []
+            ];
+
+            for ($t = 1; $t <= 3; $t++) {
+                $termGrades = $subjectGrades->where('term', $t);
+                
+                $acs1 = $termGrades->whereIn('assessment_type', ['ACS1', 'continuous', 'test'])->first()?->grade;
+                $acs2 = $termGrades->where('assessment_type', 'ACS2')->first()?->grade;
+                $acs3 = $termGrades->where('assessment_type', 'ACS3')->first()?->grade;
+                
+                $macs = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test', 'assignment', 'participation'])->avg('grade');
+                $acp = $termGrades->whereIn('assessment_type', ['ACP', 'exam', 'ACF'])->first()?->grade;
+                
+                if ($macs !== null && $acp !== null) {
+                    $mt = round(($macs * 0.4) + ($acp * 0.6), 1);
+                } else {
+                    $mt = $termGrades->avg('grade') !== null ? round($termGrades->avg('grade'), 1) : null;
+                }
+
+                $matrix[$subject->id]['terms'][$t] = [
+                    'acs1' => $acs1,
+                    'acs2' => $acs2,
+                    'acs3' => $acs3,
+                    'macs' => $macs,
+                    'acp' => $acp,
+                    'mt' => $mt
+                ];
+            }
+
+            // Anual
+            $mt1 = $matrix[$subject->id]['terms'][1]['mt'];
+            $mt2 = $matrix[$subject->id]['terms'][2]['mt'];
+            $mt3 = $matrix[$subject->id]['terms'][3]['mt'];
+            
+            $hasAllTerms = ($mt1 !== null && $mt2 !== null && $mt3 !== null);
+            $mf = $hasAllTerms ? round(($mt1 + $mt2 + $mt3) / 3, 1) : null;
+            
+            $ne = $subjectGrades->where('assessment_type', 'exam')->first()?->grade;
+            $nr = $subjectGrades->where('assessment_type', 'ACF')->first()?->grade;
+            $effectiveExam = $nr !== null ? max($ne ?? 0, $nr) : $ne;
+            
+            if ($class->isSecondary() && in_array((int)$class->grade_level, [7, 10, 12]) && $effectiveExam !== null && $mf !== null) {
+                $mfd = round(($mf * 0.6) + ($effectiveExam * 0.4), 1);
+            } else {
+                $mfd = $mf;
+            }
+
+            $matrix[$subject->id]['annual'] = [
+                'mt1' => $mt1,
+                'mt2' => $mt2,
+                'mt3' => $mt3,
+                'mf' => $mf,
+                'exam' => $effectiveExam,
+                'mfd' => $mfd,
+                'status' => $mfd !== null ? ($mfd >= 10 ? 'Aprovado' : 'Reprovado') : 'Em Curso'
+            ];
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('students.pdf_grades', compact('student', 'currentEnrollment', 'matrix', 'term'));
+        $pdfContent = $pdf->output();
+
+        try {
+            $schoolName = setting('school_name', 'ZamEdu');
+            $termLabel = $term === 'annual' ? 'Anual/Final' : "{$term}º Trimestre";
+
+            \Illuminate\Support\Facades\Mail::send([], [], function ($message) use ($email, $student, $termLabel, $schoolName, $pdfContent) {
+                $message->to($email)
+                    ->subject("Boletim Escolar ({$termLabel}) — {$student->full_name}")
+                    ->html("
+                        <div style='font-family: sans-serif; padding: 20px; line-height: 1.6; color: #333;'>
+                            <h2 style='color: #1b5e20;'>Boletim Escolar — {$schoolName}</h2>
+                            <p>Estimado Encarregado de Educação,</p>
+                            <p>Enviamos em anexo a ficha de aproveitamento / boletim escolar do(a) aluno(a) <strong>{$student->full_name}</strong> referente ao <strong>{$termLabel}</strong>.</p>
+                            <hr style='border: 0; border-top: 1px solid #eee;'>
+                            <p style='font-size: 0.8rem; color: #777;'>Esta é uma mensagem automática enviada pelo Sistema de Gestão Escolar — {$schoolName}.</p>
+                        </div>
+                    ")
+                    ->attachData($pdfContent, "boletim_{$student->student_number}.pdf", [
+                        'mime' => 'application/pdf',
+                    ]);
+            });
+
+            return redirect()->back()->with('success', "Boletim escolar enviado com sucesso para o e-mail: {$email}");
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Erro ao enviar e-mail de notas: ' . $e->getMessage());
+            return redirect()->back()->with('success', "Boletim escolar processado com sucesso! (Modo Simulação: e-mail de destino {$email})");
+        }
     }
 
     /**

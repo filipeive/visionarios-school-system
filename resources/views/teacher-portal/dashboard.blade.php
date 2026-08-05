@@ -165,47 +165,40 @@
                     </div>
                 </div>
 
-                <!-- Próximos Eventos -->
+                <!-- Aniversariantes da Semana -->
                 <div class="col-md-6 mb-4">
                     <div class="school-card h-100">
                         <div class="school-card-header">
-                            <i class="fas fa-calendar-alt"></i>
-                            Próximos Eventos
+                            <i class="fas fa-birthday-cake"></i>
+                            Aniversariantes da Semana
                         </div>
                         <div class="school-card-body">
-                            @if ($upcomingEvents->count() > 0)
-                                <div class="list-group list-group-flush">
-                                    @foreach ($upcomingEvents as $event)
-                                        <div class="list-group-item px-0">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div>
-                                                    <h6 class="mb-1">{{ $event->title }}</h6>
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-calendar"></i>
-                                                        {{ $event->event_date?->format('d/m/Y') ?? 'N/A' }}
-                                                        @if ($event->start_time)
-                                                            às {{ $event->start_time?->format('H:i') ?? 'N/A' }}
-                                                        @endif
-                                                    </small>
-                                                    @if ($event->description)
-                                                        <p class="mb-0 mt-1 small">
-                                                            {{ Str::limit($event->description, 100) }}</p>
-                                                    @endif
-                                                </div>
-                                                <span
-                                                    class="badge bg-{{ $event->type == 'meeting' ? 'primary' : ($event->type == 'exam' ? 'warning' : 'info') }}">
-                                                    {{ $event->type }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @else
+                             @forelse($birthdaysThisWeek as $birthday)
+                                 <div class="d-flex align-items-center gap-3 mb-3 p-2 rounded" style="background:#f8f9fa;">
+                                     <div class="user-avatar-sm" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white;">
+                                         {{ substr($birthday->first_name, 0, 1) }}{{ substr($birthday->last_name, 0, 1) }}
+                                     </div>
+                                     <div class="flex-grow-1">
+                                         <p class="mb-0 fw-semibold">{{ $birthday->first_name }} {{ $birthday->last_name }}</p>
+                                         <small class="text-muted">
+                                             <i class="far fa-calendar me-1"></i> {{ $birthday->birthdate->format('d/m') }}
+                                         </small>
+                                         @if($birthday->currentClass)
+                                             <div class="text-muted small">
+                                                 <i class="fas fa-chalkboard me-1"></i>{{ $birthday->currentClass->name }}
+                                             </div>
+                                         @endif
+                                     </div>
+                                     <a href="{{ route('students.show', $birthday->id) }}" class="btn btn-sm btn-warning">
+                                         <i class="fas fa-user me-1"></i>Ver Perfil
+                                     </a>
+                                 </div>
+                             @empty
                                 <p class="text-muted text-center py-3">
-                                    <i class="fas fa-calendar-times fa-2x mb-2"></i><br>
-                                    Nenhum evento próximo
+                                    <i class="fas fa-birthday-cake fa-2x mb-2"></i><br>
+                                    Nenhum aniversariante esta semana
                                 </p>
-                            @endif
+                            @endforelse
                         </div>
                     </div>
                 </div>

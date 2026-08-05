@@ -1198,7 +1198,7 @@
             @endcanany
 
             <!-- Gestão Financeira -->
-            @canany(['manage_payments', 'view_payments'])
+            @canany(['manage_payments', 'view_payments', 'manage_expenses'])
             <div class="nav-section">
                 <div class="nav-section-title">Gestão Financeira</div>
                 <ul class="nav-list">
@@ -1216,6 +1216,16 @@
                             @endif
                         </a>
                     </li>
+                    @can('manage_expenses')
+                    <li class="nav-item">
+                        <a href="{{ route('expenses.index') }}" class="nav-link {{ request()->routeIs('expenses.*') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-receipt"></i>
+                            </span>
+                            <span class="nav-text">Despesas</span>
+                        </a>
+                    </li>
+                    @endcan
                 </ul>
             </div>
             @endcanany

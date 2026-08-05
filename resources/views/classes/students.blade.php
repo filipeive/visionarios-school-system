@@ -344,13 +344,25 @@
                                             </div>
                                             <h6 class="card-title mb-1">{{ $student->first_name }}
                                                 {{ $student->last_name }}</h6>
-                                            <p class="text-muted small mb-2">
+                                            <p class="text-muted small mb-1">
+                                                <i class="fas fa-calendar me-1"></i>
                                                 {{ $student->birthdate->format('d/m') }}
                                                 ({{ $student->birthdate->age + 1 }} anos)
                                             </p>
-                                            <span class="badge bg-warning">
-                                                <i class="fas fa-gift"></i> Aniversariante
-                                            </span>
+                                            @if($student->currentClass)
+                                                <p class="text-muted small mb-1">
+                                                    <i class="fas fa-chalkboard me-1"></i>
+                                                    {{ $student->currentClass->name }}
+                                                </p>
+                                            @endif
+                                            <div class="d-flex gap-2 justify-content-center mt-2">
+                                                <a href="{{ route('students.show', $student->id) }}" class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-user me-1"></i>Ver Perfil
+                                                </a>
+                                                <span class="badge bg-warning align-self-center">
+                                                    <i class="fas fa-gift me-1"></i>Aniversariante
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

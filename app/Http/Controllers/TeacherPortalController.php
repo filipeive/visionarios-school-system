@@ -53,13 +53,30 @@ class TeacherPortalController extends Controller
             ->take(5)
             ->get();
 
+        // Aniversariantes da semana
+        $birthdaysThisWeek = Student::active()
+            ->whereNotNull('birthdate')
+            ->get()
+            ->filter(function ($student) {
+                if (!$student->birthdate) {
+                    return false;
+                }
+                $startOfWeek = now()->startOfWeek();
+                $endOfWeek = now()->endOfWeek();
+                $birthdayThisYear = $student->birthdate->copy()->setYear($startOfWeek->year);
+                return $birthdayThisYear->between($startOfWeek, $endOfWeek);
+            })
+            ->take(5)
+            ->values();
+
         return view('teacher-portal.dashboard', compact(
             'teacher',
             'stats',
             'myClasses',
             'upcomingEvents',
             'newCommsCount',
-            'recentCommunications'
+            'recentCommunications',
+            'birthdaysThisWeek'
         ));
     }
 

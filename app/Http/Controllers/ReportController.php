@@ -167,18 +167,29 @@ class ReportController extends Controller
             ->take(6)
             ->get();
 
+        $monthlyExpenses = \App\Models\Expense::select(
+            DB::raw('SUM(amount) as total'),
+            DB::raw("DATE_FORMAT(expense_date, '%Y-%m') as month")
+        )
+            ->groupBy(DB::raw("DATE_FORMAT(expense_date, '%Y-%m')"))
+            ->orderBy('month', 'desc')
+            ->take(6)
+            ->get();
+
         $paidCount = Payment::paid()->count();
         $overdueCount = Payment::overdue()->count();
         $overdueTotal = Payment::overdue()->sum('amount');
         $totalPaidAmount = Payment::paid()->sum('amount');
+        $totalExpenses = \App\Models\Expense::sum('amount');
+        $netResult = $totalPaidAmount - $totalExpenses;
 
         $financialSummary = [
-            'what_happened' => 'Arrecadado o total de ' . number_format($totalPaidAmount, 2, ',', '.') . ' MT em propinas e emolumentos.',
-            'trend' => 'Taxa de liquidação no prazo de ' . round(($paidCount / max(1, $paidCount + $overdueCount)) * 100, 1) . '%.',
+            'what_happened' => 'Arrecadado o total de ' . number_format($totalPaidAmount, 2, ',', '.') . ' MT em propinas e emolumentos, com despesas de ' . number_format($totalExpenses, 2, ',', '.') . ' MT.',
+            'trend' => 'Resultado líquido: ' . number_format($netResult, 2, ',', '.') . ' MT. Taxa de liquidação no prazo de ' . round(($paidCount / max(1, $paidCount + $overdueCount)) * 100, 1) . '%.',
             'attention' => $overdueCount . ' mensalidades em atraso (Total: ' . number_format($overdueTotal, 2, ',', '.') . ' MT).',
         ];
 
-        return view('reports.financial', compact('recentPayments', 'monthlyRevenue', 'financialSummary', 'paidCount', 'overdueCount', 'overdueTotal', 'totalPaidAmount'));
+        return view('reports.financial', compact('recentPayments', 'monthlyRevenue', 'monthlyExpenses', 'financialSummary', 'paidCount', 'overdueCount', 'overdueTotal', 'totalPaidAmount', 'totalExpenses', 'netResult'));
     }
 
     /**

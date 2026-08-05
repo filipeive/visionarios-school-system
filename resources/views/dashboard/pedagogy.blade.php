@@ -10,95 +10,210 @@
 
 @section('page-actions')
     <button type="button"
-        class="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-2 text-xs font-bold text-white shadow-md hover:bg-emerald-800 transition"
+        class="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-emerald-800 transition"
         onclick="window.location.reload()">
         <i class="fas fa-sync-alt"></i>
         Atualizar
     </button>
 @endsection
 
+@push('styles')
+<style>
+    .dash-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        transition: box-shadow 0.2s, transform 0.2s;
+    }
+    .dash-card:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+        transform: translateY(-1px);
+    }
+    .dash-card-flat {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        box-shadow: none;
+    }
+    .dash-section {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .dash-section-title {
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0;
+    }
+    .dash-section-subtitle {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin: 0;
+    }
+    .dash-kpi-value {
+        font-size: 1.6rem;
+        font-weight: 900;
+        color: #0f172a;
+        line-height: 1.1;
+    }
+    .dash-kpi-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .dash-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        border-radius: 9999px;
+        padding: 0.35rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+    }
+    .dash-quick-action {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 1rem 0.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #334155;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .dash-quick-action:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #0f172a;
+        transform: translateY(-1px);
+    }
+    .dash-quick-action i {
+        font-size: 1.1rem;
+        color: #059669;
+    }
+</style>
+@endpush
+
 @section('content')
-    <div class="space-y-6 bg-[#F4F6FA] -m-4 p-6 rounded-3xl min-h-screen">
-        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <article class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex flex-col justify-between hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total de Alunos</span>
-                    <span class="rounded-xl bg-emerald-50 p-2.5 text-emerald-600 text-sm"><i class="fas fa-user-graduate"></i></span>
-                </div>
-                <div class="mt-3">
-                    <p class="text-2xl font-black text-slate-800">{{ number_format($stats['total_students']) }}</p>
-                    <p class="mt-1 text-xs text-slate-500 font-semibold">{{ $stats['total_classes'] }} turmas ativas</p>
-                </div>
-            </article>
+<div class="space-y-5">
 
-            <article class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex flex-col justify-between hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Professores Ativos</span>
-                    <span class="rounded-xl bg-blue-50 p-2.5 text-blue-600 text-sm"><i class="fas fa-chalkboard-user"></i></span>
-                </div>
-                <div class="mt-3">
-                    <p class="text-2xl font-black text-slate-800">{{ number_format($stats['total_teachers']) }}</p>
-                    <p class="mt-1 text-xs text-blue-600 font-semibold">{{ $stats['total_subjects'] }} disciplinas</p>
-                </div>
-            </article>
+    <!-- Header Contextual -->
+    <div class="dash-card-flat">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+            <div>
+                <p class="dash-kpi-label" style="margin-bottom:0.25rem;">{{ $greetingData['school_name'] }} · Ano Lectivo {{ $greetingData['school_year'] }}</p>
+                <h1 class="dash-kpi-value" style="font-size:1.4rem;">{{ $greetingData['greeting'] }}</h1>
+            </div>
+            <div class="text-end">
+                <p class="dash-kpi-label">{{ $greetingData['current_date'] }}</p>
+            </div>
+        </div>
+    </div>
 
-            <article class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex items-center justify-between hover:shadow-md transition">
+    <!-- KPIs -->
+    <section class="row g-3">
+        <div class="col-md-6 col-xl-3">
+            <div class="dash-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="dash-kpi-label">Total Alunos</p>
+                        <p class="dash-kpi-value">{{ number_format($stats['total_students']) }}</p>
+                        <span class="dash-badge mt-2" style="background:#f1f5f9; color:#475569;">
+                            <i class="fas fa-circle" style="font-size:0.45rem; color:#10b981;"></i> {{ $stats['total_classes'] }} turmas
+                        </span>
+                    </div>
+                    <div class="rounded-lg p-2" style="background:#e0e7ff; color:#4f46e5;"><i class="fas fa-user-graduate"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="dash-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="dash-kpi-label">Professores</p>
+                        <p class="dash-kpi-value">{{ number_format($stats['total_teachers']) }}</p>
+                        <span class="dash-badge mt-2" style="background:#f1f5f9; color:#475569;">{{ $stats['total_subjects'] }} disciplinas</span>
+                    </div>
+                    <div class="rounded-lg p-2" style="background:#dbeafe; color:#2563eb;"><i class="fas fa-chalkboard-user"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="dash-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="dash-kpi-label">Presença Média</p>
+                        <p class="dash-kpi-value">{{ $stats['average_attendance'] }}%</p>
+                        <span class="dash-badge mt-2" style="background:#f1f5f9; color:#475569;">Este mês</span>
+                    </div>
+                    <div class="rounded-lg p-2" style="background:#ccfbf1; color:#0f766e;"><i class="fas fa-clipboard-check"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 col-xl-3">
+            <div class="dash-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="dash-kpi-label">Média Global</p>
+                        <p class="dash-kpi-value">{{ $stats['class_performance_avg'] }} <span style="font-size:0.75rem; font-weight:600; color:#64748b;">/ 20</span></p>
+                        <span class="dash-badge mt-2" style="background:#f1f5f9; color:#475569;">Desempenho</span>
+                    </div>
+                    <div class="rounded-lg p-2" style="background:#f3e8ff; color:#7c3aed;"><i class="fas fa-award"></i></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Desempenho por Turma -->
+    <section>
+        <div class="dash-card-flat">
+            <div class="dash-section">
                 <div>
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Presença Média</span>
-                    <p class="mt-2 text-2xl font-black text-slate-800">{{ $stats['average_attendance'] }}%</p>
-                    <p class="mt-1 text-[11px] text-teal-600 font-semibold">Este Mês</p>
+                    <p class="dash-section-title">Desempenho por Turma</p>
+                    <p class="dash-section-subtitle">Média geral e progresso</p>
                 </div>
-                <div class="relative w-14 h-14 flex items-center justify-center shrink-0">
-                    <svg class="w-14 h-14 transform -rotate-90" viewBox="0 0 36 36">
-                        <path class="text-slate-100" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                        <path class="text-teal-500" stroke-linecap="round" stroke-dasharray="{{ $stats['average_attendance'] }}, 100" stroke-width="3.5" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    </svg>
-                    <span class="absolute text-[10px] font-extrabold text-teal-700"><i class="fas fa-check"></i></span>
-                </div>
-            </article>
-
-            <article class="rounded-2xl bg-white p-5 shadow-[0_10px_25px_rgba(0,0,0,0.03)] border-0 flex flex-col justify-between hover:shadow-md transition">
-                <div class="flex items-center justify-between">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Média Global</span>
-                    <span class="rounded-xl bg-purple-50 p-2.5 text-purple-600 text-sm"><i class="fas fa-award"></i></span>
-                </div>
-                <div class="mt-3">
-                    <p class="text-2xl font-black text-purple-700">{{ $stats['class_performance_avg'] }} <span class="text-xs text-slate-400 font-normal">/ 20</span></p>
-                    <p class="mt-1 text-xs text-purple-600 font-semibold">Desempenho Académico</p>
-                </div>
-            </article>
-        </section>
-
-        <section class="grid gap-6 xl:grid-cols-3">
-            <article class="xl:col-span-2 rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0">
-                <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
-                    <h3 class="text-base font-extrabold text-slate-800 font-heading">Desempenho por Turma</h3>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full text-sm">
-                        <thead class="bg-slate-50 text-slate-500 font-bold text-xs uppercase tracking-wider">
+            </div>
+            <div class="dash-collapse-content">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
                             <tr>
-                                <th class="px-4 py-3 text-left">Turma</th>
-                                <th class="px-4 py-3 text-left">Professor</th>
-                                <th class="px-4 py-3 text-left">Alunos</th>
-                                <th class="px-4 py-3 text-left">Média</th>
-                                <th class="px-4 py-3 text-left">Progresso</th>
+                                <th>Turma</th>
+                                <th>Professor</th>
+                                <th>Alunos</th>
+                                <th>Média</th>
+                                <th style="width:140px;">Progresso</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-slate-100">
+                        <tbody>
                             @foreach($classPerformance as $class)
-                                <tr class="hover:bg-slate-50/80 transition">
-                                    <td class="px-4 py-3.5 font-extrabold text-slate-900">{{ $class['name'] }}</td>
-                                    <td class="px-4 py-3.5 text-slate-600 font-medium">{{ $class['teacher_name'] }}</td>
-                                    <td class="px-4 py-3.5 text-slate-700 font-bold">{{ $class['student_count'] }}</td>
-                                    <td class="px-4 py-3.5">
-                                        <span class="inline-block rounded-full bg-emerald-100 px-3 py-0.5 text-xs font-black text-emerald-800">
-                                            {{ number_format($class['avg_grade'], 1) }}
-                                        </span>
+                                <tr>
+                                    <td class="fw-bold">{{ $class['name'] }}</td>
+                                    <td class="text-muted">{{ $class['teacher_name'] }}</td>
+                                    <td>{{ $class['student_count'] }}</td>
+                                    <td>
+                                        <span class="dash-badge" style="background:#dcfce7; color:#166534;">{{ number_format($class['avg_grade'], 1) }}</span>
                                     </td>
-                                    <td class="px-4 py-3.5">
-                                        <div class="w-24 bg-slate-100 rounded-full h-2 overflow-hidden">
-                                            <div class="h-full rounded-full bg-emerald-500" style="width: {{ min(100, ($class['avg_grade'] / 20) * 100) }}%"></div>
+                                    <td>
+                                        <div class="progress" style="height:8px; background:#f1f5f9; border-radius:9999px;">
+                                            <div class="progress-bar bg-success" style="width: {{ min(100, ($class['avg_grade'] / 20) * 100) }}%; border-radius:9999px;"></div>
                                         </div>
                                     </td>
                                 </tr>
@@ -106,25 +221,42 @@
                         </tbody>
                     </table>
                 </div>
-            </article>
+            </div>
+        </div>
+    </section>
 
-            <article class="rounded-3xl bg-white p-6 shadow-[0_10px_30px_rgba(0,0,0,0.03)] border-0">
-                <div class="flex items-center justify-between mb-4 pb-4 border-b border-slate-100">
-                    <h3 class="text-base font-extrabold text-slate-800 font-heading">Próximos Exames</h3>
+    <!-- Próximos Exames / Eventos -->
+    <section class="row g-3">
+        <div class="col-lg-6">
+            <div class="dash-card h-100">
+                <div class="dash-section">
+                    <div>
+                        <p class="dash-section-title">Próximos Exames</p>
+                        <p class="dash-section-subtitle">Avaliações agendadas</p>
+                    </div>
                 </div>
-                <div class="space-y-3">
+                <div class="dash-collapse-content">
                     @forelse($upcomingExams as $exam)
-                        <div class="p-3.5 rounded-2xl bg-slate-50/70 border border-slate-100">
-                            <p class="text-sm font-bold text-slate-900">{{ $exam->title }}</p>
-                            <p class="text-xs text-slate-400 mt-1">
-                                <i class="fas fa-calendar me-1"></i> {{ $exam->event_date->format('d/m/Y H:i') }}
-                            </p>
+                        <div class="d-flex align-items-center justify-content-between rounded-xl p-3 mb-2" style="background:#f8fafc; border:1px solid #f1f5f9;">
+                            <div>
+                                <p class="fw-bold mb-0" style="font-size:0.85rem;">{{ $exam->title }}</p>
+                                <p class="mb-0" style="font-size:0.75rem; color:#64748b;">
+                                    <i class="far fa-clock me-1"></i> {{ $exam->event_date->format('d/m/Y H:i') }}
+                                </p>
+                            </div>
+                            <span class="dash-badge" style="background:#fef3c7; color:#92400e;">Exame</span>
                         </div>
                     @empty
-                        <p class="p-5 text-center text-sm text-slate-400">Nenhum exame agendado.</p>
+                        <p class="text-center py-4 mb-0" style="font-size:0.85rem; color:#94a3b8;">Nenhum exame agendado.</p>
                     @endforelse
                 </div>
-            </article>
-        </section>
-    </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            @include('partials.calendar')
+        </div>
+    </section>
+
+</div>
 @endsection
