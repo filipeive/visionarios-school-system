@@ -1198,10 +1198,20 @@
             @endcanany
 
             <!-- Gestão Financeira -->
-            @canany(['manage_payments', 'view_payments', 'manage_expenses'])
+            @canany(['manage_payments', 'view_payments', 'manage_expenses', 'view_financial_reports'])
             <div class="nav-section">
                 <div class="nav-section-title">Gestão Financeira</div>
                 <ul class="nav-list">
+                    @can('manage_expenses')
+                    <li class="nav-item">
+                        <a href="{{ route('expenses.index') }}" class="nav-link {{ request()->routeIs('expenses.*') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-receipt"></i>
+                            </span>
+                            <span class="nav-text">Despesas</span>
+                        </a>
+                    </li>
+                    @endcan
                     <li class="nav-item">
                         <a href="{{ route('payments.index') }}" class="nav-link {{ request()->routeIs('payments.*') ? 'active' : '' }}">
                             <span class="nav-icon">
@@ -1216,13 +1226,77 @@
                             @endif
                         </a>
                     </li>
-                    @can('manage_expenses')
+                    @can('generate_payment_references')
                     <li class="nav-item">
-                        <a href="{{ route('expenses.index') }}" class="nav-link {{ request()->routeIs('expenses.*') ? 'active' : '' }}">
+                        <a href="{{ route('payments.pending') }}" class="nav-link {{ request()->routeIs('payments.pending') ? 'active' : '' }}">
                             <span class="nav-icon">
-                                <i class="fas fa-receipt"></i>
+                                <i class="fas fa-clock"></i>
                             </span>
-                            <span class="nav-text">Despesas</span>
+                            <span class="nav-text">Pagamentos Pendentes</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ route('payments.overdue') }}" class="nav-link {{ request()->routeIs('payments.overdue') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-exclamation-triangle"></i>
+                            </span>
+                            <span class="nav-text">Mensalidades em Atraso</span>
+                        </a>
+                    </li>
+                    @endcan
+                    @can('view_financial_reports')
+                    <li class="nav-item">
+                        <a href="{{ route('reports.financial') }}" class="nav-link {{ request()->routeIs('reports.financial') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </span>
+                            <span class="nav-text">Relatório Financeiro</span>
+                        </a>
+                    </li>
+                    @endcan
+                </ul>
+            </div>
+            @endcanany
+
+            <!-- Eventos & Calendário -->
+            @canany(['manage_events', 'view_events'])
+            <div class="nav-section">
+                <div class="nav-section-title">Eventos & Calendário</div>
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="{{ route('events.index') }}" class="nav-link {{ request()->routeIs('events.*') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-calendar-alt"></i>
+                            </span>
+                            <span class="nav-text">Eventos</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            @endcanany
+
+            <!-- Relatórios -->
+            @canany(['view_reports', 'export_reports'])
+            <div class="nav-section">
+                <div class="nav-section-title">Relatórios</div>
+                <ul class="nav-list">
+                    @can('view_financial_reports')
+                    <li class="nav-item">
+                        <a href="{{ route('reports.financial') }}" class="nav-link {{ request()->routeIs('reports.financial') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </span>
+                            <span class="nav-text">Financeiro</span>
+                        </a>
+                    </li>
+                    @endcan
+                    @can('view_academic_reports')
+                    <li class="nav-item">
+                        <a href="{{ route('reports.academic') }}" class="nav-link {{ request()->routeIs('reports.academic') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-graduation-cap"></i>
+                            </span>
+                            <span class="nav-text">Académico</span>
                         </a>
                     </li>
                     @endcan
@@ -1248,10 +1322,20 @@
             @endcanany
 
             <!-- Administração -->
-            @canany(['manage_users', 'manage_enrollments', 'manage_settings', 'backup_system', 'view_audit_logs', 'view_logs'])
+            @canany(['manage_users', 'manage_enrollments', 'manage_settings', 'backup_system', 'view_audit_logs', 'view_logs', 'manage_leave_requests'])
             <div class="nav-section">
                 <div class="nav-section-title">Administração</div>
                 <ul class="nav-list">
+                    @can('manage_leave_requests')
+                    <li class="nav-item">
+                        <a href="{{ route('leave-requests.index') }}" class="nav-link {{ request()->routeIs('leave-requests.*') ? 'active' : '' }}">
+                            <span class="nav-icon">
+                                <i class="fas fa-calendar-check"></i>
+                            </span>
+                            <span class="nav-text">Licenças</span>
+                        </a>
+                    </li>
+                    @endcan
                     <li class="nav-item">
                         <a href="{{ route('admin.enrollments.renewals') }}" class="nav-link {{ request()->routeIs('admin.enrollments.renewals') ? 'active' : '' }}">
                             <span class="nav-icon">
