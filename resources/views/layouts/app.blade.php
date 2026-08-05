@@ -1708,38 +1708,35 @@
                                 <span class="nav-text">Propinas & Recibos</span>
                             </a>
                         </li>
-                    </ul>
-                </div>
-            @endif
-
-            <!-- 9. FINANCEIRO -->
-            @canany(['manage_payments', 'view_payments'])
-                <div class="nav-section">
-                    <div class="nav-section-title">Financeiro</div>
-                    <ul class="nav-list">
-                        <li class="nav-item">
-                            <a href="{{ route('payments.index') }}"
-                                class="nav-link {{ request()->routeIs('payments.*') && !request()->routeIs('payment-references.*') ? 'active' : '' }}">
-                                <span class="nav-icon"><i class="fas fa-money-bill-wave"></i></span>
-                                <span class="nav-text">Gestão Financeira</span>
+              @php $finance = config('menu.finance'); @endphp
+@php $isAdmin = auth()->check() && auth()->user()->hasRole('admin'); @endphp
+@if($isAdmin || auth()->user()->canAny($finance['permission']))
+    <div class="nav-section">
+        <div class="nav-section-title">{{ $finance['title'] }}</div>
+        <ul class="nav-list">
+            @foreach ($finance['items'] as $item)
+                @if($isAdmin || auth()->user()->can($item['permission']))
+                    <li class="nav-item">
+                        <a href="{{ route($item['route']) }}"
+                           class="nav-link {{ request()->routeIs($item['active']) ? 'active' : '' }}{{ isset($item['exclude_route']) && request()->routeIs($item['exclude_route']) ? '' : '' }}">
+                            <span class="nav-icon"><i class="{{ $item['icon'] }}"></i></span>
+                            <span class="nav-text">{{ $item['label'] }}</span>
+                            @if (isset($item['badge']))
                                 @php
-                                    $overduePayments = \App\Models\Payment::where('status', 'overdue')->count();
+                                    $badgeCount = $item['badge']['model']::where($item['badge']['where'][0], $item['badge']['where'][1])->{$item['badge']['field']}();
                                 @endphp
-                                @if ($overduePayments > 0)
-                                    <span class="nav-badge badge-danger">{{ $overduePayments }}</span>
+                                @if ($badgeCount > 0)
+                                    <span class="nav-badge badge-danger">{{ $badgeCount }}</span>
                                 @endif
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a href="{{ route('payments.references') }}"
-                                class="nav-link {{ request()->routeIs('payment-references.*') ? 'active' : '' }}">
-                                <span class="nav-icon"><i class="fas fa-receipt"></i></span>
-                                <span class="nav-text">Referências de Pagamento</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            @endcanany
+                            @endif
+                        </a>
+                    </li>
+                @endif
+            @endforeach
+        </ul>
+    </div>
+@endif
+@endif
 
             <!-- 10 & 11. COMUNICAÇÃO & RELATÓRIOS -->
             @canany(['manage_events', 'send_notifications', 'view_reports', 'export_reports'])
@@ -2186,6 +2183,7 @@
                     });
                 </script>
             @endif
+
 
             <!-- Modal de Confirmação Reutilizável -->
             <div class="modal fade" id="confirmModal" tabindex="-1" aria-hidden="true">
