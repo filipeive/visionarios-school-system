@@ -146,7 +146,34 @@
                             </div>
                             <div>
                                 <small class="text-xs text-muted uppercase font-bold">Média Geral</small>
-                                <h5 class="fw-black mb-0 text-slate-800">{{ number_format($student->grades->avg('grade') ?? 0, 1) }}</h5>
+                                @php
+                                    $studentMts = [];
+                                    if (isset($matrix) && !empty($matrix)) {
+                                        foreach ($matrix as $mItem) {
+                                            foreach ([1, 2, 3] as $tNum) {
+                                                if (isset($mItem['terms'][$tNum]['mt']) && $mItem['terms'][$tNum]['mt'] !== null) {
+                                                    $studentMts[] = $mItem['terms'][$tNum]['mt'];
+                                                }
+                                            }
+                                        }
+                                    }
+                                    $totalSubs = isset($matrix) ? count($matrix) : 1;
+                                    $gradedSubs = count($studentMts);
+                                    $avgMethod = setting('average_method', 'all_subjects');
+                                    if ($gradedSubs > 0) {
+                                        $overallStudentAvg = ($avgMethod === 'all_subjects' && $totalSubs > 0)
+                                            ? round(array_sum($studentMts) / $totalSubs, 1)
+                                            : round(array_sum($studentMts) / $gradedSubs, 1);
+                                    } else {
+                                        $overallStudentAvg = 0;
+                                    }
+                                @endphp
+                                <h5 class="fw-black mb-0 text-slate-800">
+                                    {{ number_format($overallStudentAvg, 1) }}
+                                    @if($gradedSubs > 0 && $gradedSubs < $totalSubs)
+                                        <small class="text-muted text-xs font-normal">({{ $gradedSubs }}/{{ $totalSubs }})</small>
+                                    @endif
+                                </h5>
                             </div>
                         </div>
                     </div>

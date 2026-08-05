@@ -251,8 +251,12 @@ class StudentController extends Controller
                     $macs = $termGrades->whereIn('assessment_type', ['ACS1', 'ACS2', 'ACS3', 'continuous', 'test', 'assignment', 'participation'])->avg('grade');
                     $acp = $termGrades->whereIn('assessment_type', ['ACP', 'exam', 'ACF'])->first()?->grade;
                     
+                    $macsWeight = (float) setting('macs_weight', 2);
+                    $acpWeight = (float) setting('acp_weight_in_mt', 1);
+                    $totalWeight = $macsWeight + $acpWeight;
+
                     if ($macs !== null && $acp !== null) {
-                        $mt = round(($macs * 0.4) + ($acp * 0.6), 1);
+                        $mt = round(($macsWeight * $macs + $acpWeight * $acp) / $totalWeight, 1);
                     } else {
                         $mt = $termGrades->avg('grade') !== null ? round($termGrades->avg('grade'), 1) : null;
                     }
@@ -279,8 +283,15 @@ class StudentController extends Controller
                 $nr = $subjectGrades->where('assessment_type', 'ACF')->first()?->grade;
                 $effectiveExam = $nr !== null ? max($ne ?? 0, $nr) : $ne;
                 
-                if ($class->isSecondary() && in_array((int)$class->grade_level, [7, 10, 12]) && $effectiveExam !== null && $mf !== null) {
-                    $mfd = round(($mf * 0.6) + ($effectiveExam * 0.4), 1);
+                $includeAcf = setting('include_acf_in_mfd', '0') == '1';
+                $examLevels = array_map('trim', explode(',', setting('exam_class_levels', '6,7,10,12')));
+                $isExamClass = $class && in_array((string)$class->grade_level, $examLevels);
+
+                if ($includeAcf && $isExamClass && $effectiveExam !== null && $mf !== null) {
+                    $acfWeight = (float) setting('acf_weight_in_mfd', 1);
+                    $termsWeight = (float) setting('terms_weight_in_mfd', 3);
+                    $totalW = $acfWeight + $termsWeight;
+                    $mfd = round(($termsWeight * $mf + $acfWeight * $effectiveExam) / $totalW, 1);
                 } else {
                     $mfd = $mf;
                 }
