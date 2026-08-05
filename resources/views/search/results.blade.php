@@ -367,27 +367,61 @@
 
 @push('scripts')
 <script>
-// Função para destacar os termos pesquisados
-function highlightText(text, query) {
-    if (!query) return text;
+// Destacar termos pesquisados sem destruir nós HTML (botões, links, imagens)
+function highlightNode(element, query) {
+    if (!query || query.length < 2) return;
+    const escapedQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const regex = new RegExp(`(${escapedQuery})`, 'gi');
     
-    const regex = new RegExp(`(${query})`, 'gi');
-    return text.replace(regex, '<mark>$1</mark>');
+    function walk(node) {
+        if (node.nodeType === 3) { // Nó de texto
+            const val = node.nodeValue;
+            if (val && regex.test(val)) {
+                const span = document.createElement('span');
+                span.innerHTML = val.replace(regex, '<mark class="bg-warning text-dark px-1 rounded font-semibold">$1</mark>');
+                node.parentNode.replaceChild(span, node);
+            }
+        } else if (node.nodeType === 1 && !['SCRIPT', 'STYLE', 'INPUT', 'TEXTAREA', 'BUTTON', 'A', 'IMG', 'CODE'].includes(node.tagName)) {
+            Array.from(node.childNodes).forEach(walk);
+        }
+    }
+    walk(element);
 }
 
-// Aplicar destaque aos textos
 document.addEventListener('DOMContentLoaded', function() {
-    const query = "{{ $query }}";
-    
-    // Destacar textos nas tabelas
-    document.querySelectorAll('.school-table td').forEach(td => {
-        td.innerHTML = highlightText(td.textContent, query);
-    });
-    
-    // Destacar textos nos cards
-    document.querySelectorAll('.card-title, .card-text').forEach(el => {
-        el.innerHTML = highlightText(el.textContent, query);
-    });
+    const query = @json($query);
+    if (query && query.length >= 2) {
+        document.querySelectorAll('.school-card, .table-hover').forEach(container => {
+            highlightNode(container, query);
+        });
+    }
+
+    // Pesquisa em tempo real ao digitar (Live Search Filtering)
+    let searchDebounce = null;
+    const searchInput = document.querySelector('input[name="q"]');
+    if (searchInput) {
+        searchInput.addEventListener('input', function(e) {
+            clearTimeout(searchDebounce);
+            const val = e.target.value.trim().toLowerCase();
+            searchDebounce = setTimeout(() => {
+                if (val.length >= 2) {
+                    document.querySelectorAll('tbody tr').forEach(row => {
+                        const text = row.textContent.toLowerCase();
+                        row.style.display = text.includes(val) ? '' : 'none';
+                    });
+                    document.querySelectorAll('.school-card').forEach(card => {
+                        const tableBody = card.querySelector('tbody');
+                        if (tableBody) {
+                            const visibleRows = tableBody.querySelectorAll('tr:not([style*="display: none"])');
+                            card.style.display = visibleRows.length > 0 ? '' : 'none';
+                        }
+                    });
+                } else {
+                    document.querySelectorAll('tbody tr, .school-card').forEach(el => el.style.display = '');
+                }
+            }, 200);
+        });
+    }
 });
 </script>
 @endpush
