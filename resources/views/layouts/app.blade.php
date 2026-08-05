@@ -1755,10 +1755,10 @@
 
                         @if ($isAdmin || auth()->user()->can('generate_payment_references'))
                             <li class="nav-item">
-                                <a href="{{ route('payments.pending') }}"
-                                    class="nav-link {{ request()->routeIs('payments.pending') ? 'active' : '' }}">
+                                <a href="{{ route('payments.references') }}"
+                                    class="nav-link {{ request()->routeIs('payments.references', 'payments.pending') ? 'active' : '' }}">
                                     <span class="nav-icon"><i class="fas fa-clock"></i></span>
-                                    <span class="nav-text">Pagamentos Pendentes</span>
+                                    <span class="nav-text">Referências & Pagamentos</span>
                                 </a>
                             </li>
                             <li class="nav-item">

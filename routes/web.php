@@ -349,6 +349,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // Rotas principais (GET)
             Route::get('/', [App\Http\Controllers\PaymentController::class, 'index'])->name('index');
             Route::get('/references', [App\Http\Controllers\PaymentController::class, 'references'])->name('references');
+            Route::get('/pending', [App\Http\Controllers\PaymentController::class, 'references'])->name('pending');
             Route::get('/reports', [App\Http\Controllers\PaymentController::class, 'reports'])->name('reports');
             Route::get('/overdue', [App\Http\Controllers\PaymentController::class, 'overdue'])->name('overdue');
             Route::get('/with-penalties', [App\Http\Controllers\PaymentController::class, 'withPenalties'])->name('with-penalties');
