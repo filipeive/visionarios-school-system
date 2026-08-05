@@ -93,3 +93,11 @@ Implementar suporte a turnos escolares, corrigir cálculo de média final de not
 - Implementar exportação de relatórios financeiros (PDF/Excel).
 - Adicionar notificações push para aniversariantes.
 - Implementar dashboard de análise de despesas por categoria.
+
+### Sidebar Menu Updates (additional)
+- Added "Pagamentos Pendentes" and "Mensalidades em Atraso" links under Gestão Financeira (for users with `generate_payment_references` permission)
+- Added "Relatório Financeiro" link under Gestão Financeira (for users with `view_financial_reports` permission)
+- Added "Eventos & Calendário" section with events link
+- Added "Relatórios" section with financial and academic reports links
+- Added "Licenças" link under Administração (for users with `manage_leave_requests` permission)
+- Updated `@canany` conditions to include `view_financial_reports` and `manage_leave_requests` permissions
