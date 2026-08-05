@@ -301,29 +301,21 @@
 
                     <div class="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-6">
                         <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4 flex items-center gap-2">
-                            <i class="fas fa-clock text-emerald-600"></i> Cronograma dos Trimestres
+                            <i class="fas fa-clock text-emerald-600"></i> Horários de Atraso por Turno
                         </h4>
+                        <p class="text-xs text-slate-500 mb-4">Defina o horário limite para cada turno. Chegadas após este horário são registadas como atraso.</p>
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div class="bg-white p-4 rounded-xl border border-slate-200">
-                                <span class="block text-xs font-extrabold text-emerald-700 mb-2">1º Trimestre</span>
-                                <div class="space-y-2">
-                                    <input type="date" name="settings[term1_start]" class="form-control text-xs" value="{{ setting('term1_start', '2026-02-01') }}">
-                                    <input type="date" name="settings[term1_end]" class="form-control text-xs" value="{{ setting('term1_end', '2026-05-15') }}">
-                                </div>
+                                <span class="block text-xs font-extrabold text-emerald-700 mb-2">Turno da Manhã</span>
+                                <input type="time" name="settings[shift_morning_late_time]" class="form-control text-xs" value="{{ setting('shift_morning_late_time', '07:30') }}">
                             </div>
                             <div class="bg-white p-4 rounded-xl border border-slate-200">
-                                <span class="block text-xs font-extrabold text-emerald-700 mb-2">2º Trimestre</span>
-                                <div class="space-y-2">
-                                    <input type="date" name="settings[term2_start]" class="form-control text-xs" value="{{ setting('term2_start', '2026-05-25') }}">
-                                    <input type="date" name="settings[term2_end]" class="form-control text-xs" value="{{ setting('term2_end', '2026-08-28') }}">
-                                </div>
+                                <span class="block text-xs font-extrabold text-orange-700 mb-2">Turno da Tarde</span>
+                                <input type="time" name="settings[shift_afternoon_late_time]" class="form-control text-xs" value="{{ setting('shift_afternoon_late_time', '13:00') }}">
                             </div>
                             <div class="bg-white p-4 rounded-xl border border-slate-200">
-                                <span class="block text-xs font-extrabold text-emerald-700 mb-2">3º Trimestre (Final)</span>
-                                <div class="space-y-2">
-                                    <input type="date" name="settings[term3_start]" class="form-control text-xs" value="{{ setting('term3_start', '2026-09-07') }}">
-                                    <input type="date" name="settings[term3_end]" class="form-control text-xs" value="{{ setting('term3_end', '2026-11-20') }}">
-                                </div>
+                                <span class="block text-xs font-extrabold text-indigo-700 mb-2">Turno da Noite</span>
+                                <input type="time" name="settings[shift_night_late_time]" class="form-control text-xs" value="{{ setting('shift_night_late_time', '18:00') }}">
                             </div>
                         </div>
                     </div>
@@ -356,21 +348,27 @@
                         </div>
 
                         <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Mínimo de Trimestres para Média Final</label>
+                            <input type="number" name="settings[min_terms_for_final_grade]" class="form-control rounded-xl border-slate-200 p-3 text-sm"
+                                value="{{ setting('min_terms_for_final_grade', 3) }}" min="1" max="3">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Peso MACS no MT</label>
+                            <input type="number" name="settings[macs_weight]" class="form-control rounded-xl border-slate-200 p-3 text-sm"
+                                value="{{ setting('macs_weight', 2) }}" min="0" max="10">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Peso ACP no MT</label>
+                            <input type="number" name="settings[acp_weight_in_mt]" class="form-control rounded-xl border-slate-200 p-3 text-sm"
+                                value="{{ setting('acp_weight_in_mt', 1) }}" min="0" max="10">
+                        </div>
+
+                        <div>
                             <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Capacidade Máxima por Sala</label>
                             <input type="number" name="settings[default_room_capacity]" class="form-control rounded-xl border-slate-200 p-3 text-sm"
                                 value="{{ setting('default_room_capacity', 45) }}" min="5" max="100">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Peso da Avaliação Contínua (%)</label>
-                            <input type="number" name="settings[acp_weight]" class="form-control rounded-xl border-slate-200 p-3 text-sm"
-                                value="{{ setting('acp_weight', 40) }}" min="0" max="100">
-                        </div>
-
-                        <div>
-                            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Peso da Prova Trimestral (%)</label>
-                            <input type="number" name="settings[exam_weight]" class="form-control rounded-xl border-slate-200 p-3 text-sm"
-                                value="{{ setting('exam_weight', 60) }}" min="0" max="100">
                         </div>
 
                         <div>

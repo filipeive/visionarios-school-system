@@ -162,11 +162,24 @@ class Grade extends Model
         return round($grades->avg('grade'), 1);
     }
 
+    protected static function getMACSWeight(): int
+    {
+        return (int) setting('macs_weight', 2);
+    }
+
+    protected static function getACPWeight(): int
+    {
+        return (int) setting('acp_weight_in_mt', 1);
+    }
+
+    protected static function getMinTermsForFinalGrade(): int
+    {
+        return (int) setting('min_terms_for_final_grade', 3);
+    }
+
     /**
      * MT - Média Trimestral (Moçambique)
-     * MT = (2 * MACS + ACP) / 3
-     *
-     * Pesos: AC Contínua = 2/3, Prova Trimestral = 1/3
+     * MT = (MACS_Weight * MACS + ACP_Weight * ACP) / (MACS_Weight + ACP_Weight)
      */
     public static function calculateMT(int $studentId, ?int $subjectId, int $classId, int $term): ?float
     {
@@ -187,17 +200,22 @@ class Grade extends Model
             return null;
         }
 
-        return round((2 * $macs + $acp) / 3, 1);
+        $macsWeight = self::getMACSWeight();
+        $acpWeight = self::getACPWeight();
+        $totalWeight = $macsWeight + $acpWeight;
+
+        return round(($macsWeight * $macs + $acpWeight * $acp) / $totalWeight, 1);
     }
 
     /**
      * MFD - Média de Frequência por Disciplina
      * MFD = (MT1 + MT2 + MT3) / 3
      *
-     * Para passar: MFD >= 10
+     * Para passar: MFD >= passing_grade
      */
     public static function calculateMFD(int $studentId, ?int $subjectId, int $classId, int $year): ?float
     {
+        $minTerms = self::getMinTermsForFinalGrade();
         $mts = [];
 
         for ($term = 1; $term <= 3; $term++) {
@@ -206,7 +224,7 @@ class Grade extends Model
 
         $validMts = collect($mts)->filter(fn ($v) => $v !== null);
 
-        if ($validMts->isEmpty()) {
+        if ($validMts->count() < $minTerms) {
             return null;
         }
 

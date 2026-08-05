@@ -31,6 +31,22 @@ class SettingSeeder extends Seeder
             ['key' => 'current_academic_year', 'value' => '2025', 'group' => 'academic'],
             ['key' => 'next_academic_year', 'value' => '2026', 'group' => 'academic'],
             
+            // Turnos & Horários de Atraso
+            ['key' => 'shift_morning_late_time', 'value' => '07:30', 'group' => 'academic'],
+            ['key' => 'shift_afternoon_late_time', 'value' => '13:00', 'group' => 'academic'],
+            ['key' => 'shift_night_late_time', 'value' => '18:00', 'group' => 'academic'],
+
+            // Avaliações & Médias
+            ['key' => 'passing_grade', 'value' => '10', 'group' => 'grading'],
+            ['key' => 'grading_scale', 'value' => '0_20', 'group' => 'grading'],
+            ['key' => 'min_terms_for_final_grade', 'value' => '3', 'group' => 'grading'],
+            ['key' => 'macs_weight', 'value' => '2', 'group' => 'grading'],
+            ['key' => 'acp_weight_in_mt', 'value' => '1', 'group' => 'grading'],
+            ['key' => 'continuous_weight', 'value' => '66.67', 'group' => 'grading'],
+            ['key' => 'exam_weight', 'value' => '33.33', 'group' => 'grading'],
+            ['key' => 'default_room_capacity', 'value' => '45', 'group' => 'grading'],
+            ['key' => 'max_unexcused_absences', 'value' => '15', 'group' => 'grading'],
+
             // Sistema & Contas Demo
             ['key' => 'demo_email', 'value' => 'demo@zamedu.co.mz', 'group' => 'system'],
         ];
